@@ -78,17 +78,11 @@
                 </div>
 
                 <v-container fluid>
-                  <v-layout
-                    row
-                    wrap
-                    align-center
-                    v-for="(value, key) in video.customFields"
-                    :key="key"
-                  >
+                  <v-layout row wrap align-center v-for="field in customFields" :key="field[0]">
                     <v-flex xs12 sm6>
-                      <v-subheader>{{ key }}</v-subheader>
+                      <v-subheader>{{ field[0] }}</v-subheader>
                     </v-flex>
-                    <v-flex xs12 sm6>{{ value }}</v-flex>
+                    <v-flex xs12 sm6>{{ Array.isArray(field[1]) ? field[1].join(", ") : field[1] }}</v-flex>
                   </v-layout>
                 </v-container>
               </div>
@@ -100,7 +94,6 @@
             <v-layout row wrap>
               <v-flex v-for="actor in actors" :key="actor.id" xs6 sm4 md4 lg3>
                 <Actor :actor="actor"></Actor>
-                <!-- @click = open actor page -->
               </v-flex>
             </v-layout>
           </v-flex>
@@ -206,7 +199,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="editDialog = false" flat>Cancel</v-btn>
-          <v-btn @click="saveSettings" outline color="primary">Save</v-btn>
+          <v-btn @click="saveSettings" color="primary">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -228,7 +221,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="labelDialog = false" flat>Cancel</v-btn>
-          <v-btn @click="saveLabels" outline color="primary">Save</v-btn>
+          <v-btn @click="saveLabels" color="primary">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -248,6 +241,7 @@ import { toTitleCase } from "@/util/string";
 import { CustomFieldValue } from "@/classes/common";
 import CustomField from "@/components/CustomField.vue";
 
+
 export default Vue.extend({
   components: {
     Actor: ActorComponent,
@@ -265,7 +259,7 @@ export default Vue.extend({
         customFields: {} as CustomFieldValue
       },
 
-      chosenLabels: [] as string[]
+      chosenLabels: [] as string[],
     };
   },
   methods: {
@@ -278,7 +272,7 @@ export default Vue.extend({
     saveLabels() {
       this.$store.commit("videos/setLabels", {
         id: this.video.id,
-        labels: this.chosenLabels.map(label => toTitleCase(label))
+        labels: this.chosenLabels.map((label: string) => toTitleCase(label))
       });
       this.labelDialog = false;
     },
@@ -374,14 +368,16 @@ export default Vue.extend({
 
         this.$store.commit("images/add", images);
 
-        if (files.length)
+        if (files.length) {
           this.$store.commit("videos/addThumbnails", {
             id: this.video.id,
             images: images.map(i => i.id)
           });
+        }
 
         el.value = "";
       });
+
       el.click();
     },
     playVideo() {
@@ -391,6 +387,11 @@ export default Vue.extend({
     }
   },
   computed: {
+    customFields() {
+      let array = Object.entries(this.video.customFields);
+      array = array.filter((a: any) => a[1] !== null);
+      return array;
+    },
     video(): Video {
       return this.$store.state.videos.items.find(
         (v: Video) => v.id == this.$route.params.id
@@ -402,7 +403,7 @@ export default Vue.extend({
       });
     },
     thumbnails(): string[] {
-      return (<Video>this.video).thumbnails.map(id =>
+      return this.video.thumbnails.map((id: string) =>
         this.$store.getters["images/idToPath"](id)
       );
     }

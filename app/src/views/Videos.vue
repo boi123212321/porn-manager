@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <div color="primary" class="mb-3 text-xs-center">
-      <v-btn :loading="generatingThumbnails" large @click="openFileInput">
+      <v-btn large @click="openFileInput">
         <v-icon left>add</v-icon>Add videos
       </v-btn>
     </div>
@@ -148,6 +148,8 @@
         </v-flex>
       </v-layout>
     </v-navigation-drawer>
+
+    <VideoImporter ref="video-importer" />
   </v-container>
 </template>
 
@@ -159,57 +161,16 @@ import Video from "@/classes/video";
 import Fuse from "fuse.js";
 import fs from "fs";
 import path from "path";
-import asyncPool from "tiny-async-pool";
-import ffmpeg from "fluent-ffmpeg";
+
 import { takeScreenshots } from "@/util/thumbnails";
-var os = require("os");
+import VideoImporter from "@/components/VideoImporter.vue";
+import { toTitleCase } from '@/util/string';
 
-var platform = os.platform();
-//patch for compatibilit with electron-builder, for smart built process.
-if (platform == "darwin") {
-  platform = "mac";
-} else if (platform == "win32") {
-  platform = "win";
-}
-//adding browser, for use case when module is bundled using browserify. and added to html using src.
-if (
-  platform !== "linux" &&
-  platform !== "mac" &&
-  platform !== "win" &&
-  platform !== "browser"
-) {
-  console.error("Unsupported platform.", platform);
-  process.exit(1);
-}
-
-var arch = os.arch();
-if (platform === "mac" && arch !== "x64") {
-  console.error("Unsupported architecture.");
-  process.exit(1);
-}
-
-const ffmpegPath = path.join(
-  process.cwd(),
-  "bin/ffmpeg",
-  platform,
-  arch,
-  platform === "win" ? "ffmpeg.exe" : "ffmpeg"
-);
-
-const ffprobePath = path.join(
-  process.cwd(),
-  "bin/ffprobe",
-  platform,
-  arch,
-  platform === "win" ? "ffprobe.exe" : "ffprobe"
-);
-
-ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath);
 
 export default Vue.extend({
   components: {
-    Video: VideoComponent
+    Video: VideoComponent,
+    VideoImporter
   },
   data() {
     return {
@@ -260,7 +221,9 @@ export default Vue.extend({
       }
     },
     removeActor(id: string) {
-      this.chosenActors = this.chosenActors.filter(a => a != id);
+      this.chosenActors = this.chosenActors.filter(
+        (actor: string) => actor != id
+      );
     },
     expand(video: Video) {
       this.current = video;
@@ -270,106 +233,24 @@ export default Vue.extend({
       let el = document.getElementById(`file-input-videos`) as any;
 
       el.addEventListener("change", async (ev: Event) => {
-        let files = Array.from(el.files) as File[];
+        let fileArray = Array.from(el.files) as File[];
 
         // Ignore already added videos
-        files = files.filter(
+        fileArray = fileArray.filter(
           file => !this.$store.getters["videos/getByPath"](file.path)
         );
 
-        if (files.length) {
-          const videos = files.map(file => Video.create(file));
+        if (fileArray.length) {
+          let files = fileArray.map(file => {
+            return {
+              name: toTitleCase(file.name),
+              path: file.path,
+              size: file.size
+            };
+          }) as { name: string; path: string; size: number }[];
 
-          let customFieldNames = this.$store.getters[
-            "globals/getCustomFieldNames"
-          ] as string[];
+          this.$refs["video-importer"].push(files);
 
-          this.generatingThumbnails = true;
-
-          if (!fs.existsSync("library/")) {
-            fs.mkdirSync("library/");
-          }
-
-          if (!fs.existsSync("library/images/")) {
-            fs.mkdirSync("library/images/");
-          }
-
-          const thumbnailPath = "library/images/thumbnails/";
-
-          if (!fs.existsSync(thumbnailPath)) {
-            fs.mkdirSync(thumbnailPath);
-          }
-
-          await asyncPool(1, videos, video => {
-            return new Promise(async (resolve, reject) => {
-              customFieldNames.forEach(field => {
-                video.customFields[field] = null;
-              });
-
-              let duration = (await new Promise((resolve, reject) => {
-                ffmpeg.ffprobe(video.path, (err, metadata) => {
-                  if (err) return reject(err);
-                  resolve(metadata.format.duration);
-                });
-              })) as number;
-
-              let amount = Math.max(
-                1,
-                Math.floor(
-                  duration /
-                    this.$store.state.globals.settings
-                      .thumbnailsOnImportInterval
-                )
-              );
-
-              console.log(`Generating ${amount} thumbnails...`);
-
-              await takeScreenshots(
-                video.path,
-                `thumbnail-${video.id}-%s.jpg`,
-                amount,
-                thumbnailPath,
-                0
-              );
-
-              let files = fs.readdirSync(thumbnailPath) as any[];
-              files = files.filter(name =>
-                name.includes(`thumbnail-${video.id}`)
-              );
-
-              files = files.map(name => {
-                let filePath = path.resolve(
-                  process.cwd(),
-                  "library/images/thumbnails/",
-                  name
-                );
-                return {
-                  name,
-                  path: filePath,
-                  size: fs.statSync(filePath).size,
-                  time: fs.statSync(filePath).mtime.getTime()
-                };
-              });
-
-              files.sort((a, b) => a.time - b.time);
-
-              let images = files.map(file => Image.create(file));
-
-              images.forEach(image => {
-                image.video = video.id;
-              });
-
-              this.$store.commit("images/add", images);
-
-              video.thumbnails.push(...images.map(i => i.id));
-
-              this.$store.commit("videos/add", [video]);
-
-              resolve();
-            });
-          });
-          
-          this.generatingThumbnails = false;
           el.value = "";
         }
       });
@@ -377,15 +258,6 @@ export default Vue.extend({
     }
   },
   computed: {
-    generatingThumbnails: {
-      get(): boolean {
-        return this.$store.state.videos.generatingThumbnails;
-      },
-      set(value: boolean) {
-        this.$store.commit("videos/generatingThumbnails", value);
-      }
-    },
-
     chosenSort: {
       get(): number {
         return this.$store.state.videos.search.chosenSort;
@@ -504,13 +376,17 @@ export default Vue.extend({
 
       if (this.chosenLabels.length) {
         videos = videos.filter(video =>
-          this.chosenLabels.every(label => video.labels.includes(label))
+          this.chosenLabels.every((label: string) =>
+            video.labels.includes(label)
+          )
         );
       }
 
       if (this.chosenActors.length) {
         videos = videos.filter(video =>
-          this.chosenActors.every(actor => video.actors.includes(actor))
+          this.chosenActors.every((actor: string) =>
+            video.actors.includes(actor)
+          )
         );
       }
 

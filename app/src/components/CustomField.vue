@@ -7,9 +7,15 @@
       <v-flex xs6 sm8>
         <v-text-field
           :value="value"
-          label="Enter value"
+          label="Enter string"
           @change="$emit('change', { key: field.name, value: $event })"
-          v-if="field.type === 0 || field.type === 1"
+          v-if="field.type === 0"
+        />
+        <v-text-field
+          :value="value"
+          label="Enter number"
+          @change="$emit('change', { key: field.name, value: parseInt($event) })"
+          v-if="field.type === 1"
         />
         <v-checkbox
           v-else-if="field.type === 2"
@@ -28,7 +34,7 @@
           v-else-if="field.type === 4"
           v-model="internalValue"
           :items="field.values"
-          label="Select value"
+          label="Select value(s)"
           multiple
           chips
           @change="$emit('change', { key: field.name, value: internalValue })"

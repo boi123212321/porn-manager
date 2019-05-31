@@ -68,6 +68,8 @@
           <v-text-field v-model="search" single-line label="Search..." clearable></v-text-field>
         </v-flex>
         <v-flex xs12 class="mt-2">
+          <v-divider></v-divider>
+          <v-subheader>Filter</v-subheader>
           <v-autocomplete
             clearable
             v-model="chosenLabels"
@@ -120,7 +122,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="createDialog = false" flat>Cancel</v-btn>
-          <v-btn @click="addActor" outline color="primary">Save</v-btn>
+          <v-btn @click="addActor" color="primary">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -311,7 +313,7 @@ export default Vue.extend({
 
       if (this.chosenLabels.length) {
         actors = actors.filter(actor =>
-          this.chosenLabels.every(label => actor.labels.includes(label))
+          this.chosenLabels.every((label: string) => actor.labels.includes(label))
         );
       }
 

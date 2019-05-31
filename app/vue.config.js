@@ -7,6 +7,7 @@ module.exports = {
           return args
         })
       },
+      outputDir: 'build/'
     }
   }
 }

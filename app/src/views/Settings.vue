@@ -4,9 +4,9 @@
     {{ $store.state.globals.settings }}
     <v-checkbox v-model="darkMode" label="Dark Mode"></v-checkbox>
 
-    <v-subheader>Custom fields</v-subheader>
+    <v-subheader>Custom data fields</v-subheader>
 
-    <v-list two-line>
+    <v-list two-line v-if="$store.state.globals.customFields">
       <v-list-tile v-for="field in $store.state.globals.customFields" :key="field.name">
         <v-list-tile-content>
           <v-list-tile-title>{{ field.name }}</v-list-tile-title>
@@ -35,13 +35,14 @@
       chips
       label="Preset values"
     ></v-combobox>
-    <v-btn @click="createField">Create field</v-btn>
+    <v-btn @click="createField">Create data field</v-btn>
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import CustomField, { CustomFieldType } from "@/classes/custom_field";
+import { toTitleCase } from '../util/string';
 
 // Turn enum into array
 function toArray(enumme: any) {
@@ -95,8 +96,8 @@ export default Vue.extend({
   methods: {
     createField() {
       let field = CustomField.create(
-        this.fields.name,
-        this.fields.chosenType > 2 ? this.fields.values : null,
+        toTitleCase(this.fields.name),
+        this.fields.chosenType > 2 ? this.fields.values.map((v: string) => toTitleCase(v)) : null,
         this.fields.chosenType
       );
 

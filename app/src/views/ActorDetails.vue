@@ -58,12 +58,10 @@
                 <div class="mt-1">
                   <v-chip
                     small
-                    v-for="label in allLabels.slice().sort()"
+                    v-for="label in labels"
                     :key="label"
-                    :outline="!actor.labels.includes(label)"
                   >{{ label }}</v-chip>
                   <v-chip small @click="openLabelDialog" color="primary white--text">+ Add</v-chip>
-                  <p class="mt-2 sec--text">Outlined labels are inferred from actor's scenes</p>
                 </div>
 
                 <div class="mt-3">
@@ -79,13 +77,13 @@
                     row
                     wrap
                     align-center
-                    v-for="(value, key) in actor.customFields"
-                    :key="key"
+                    v-for="field in customFields"
+                    :key="field[0]"
                   >
                     <v-flex xs12 sm6>
-                      <v-subheader>{{ key }}</v-subheader>
+                      <v-subheader>{{ field[0] }}</v-subheader>
                     </v-flex>
-                    <v-flex xs12 sm6>{{ value }}</v-flex>
+                    <v-flex xs12 sm6>{{ Array.isArray(field[1]) ? field[1].join(", ") : field[1] }}</v-flex>
                   </v-layout>
                 </v-container>
               </div>
@@ -147,7 +145,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="editDialog = false" flat>Cancel</v-btn>
-          <v-btn @click="saveSettings" outline color="primary">Save</v-btn>
+          <v-btn @click="saveSettings" color="primary">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -170,7 +168,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="labelDialog = false" flat>Cancel</v-btn>
-          <v-btn @click="saveLabels" outline color="primary">Save</v-btn>
+          <v-btn @click="saveLabels" color="primary">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -229,7 +227,7 @@ export default Vue.extend({
     saveLabels() {
       this.$store.commit("actors/setLabels", {
         id: this.actor.id,
-        labels: this.chosenLabels.map(label => toTitleCase(label))
+        labels: this.chosenLabels.map((label: string) => toTitleCase(label))
       });
       this.labelDialog = false;
     },
@@ -315,6 +313,11 @@ export default Vue.extend({
     }
   },
   computed: {
+    customFields() {
+      let array = Object.entries((this.actor as unknown as Actor).customFields);
+      array = array.filter((a: any) => a[1] !== null);
+      return array;
+    },
     watches(): number[] {
       return this.$store.getters["videos/getActorWatches"](this.actor.id);
     },
@@ -331,18 +334,8 @@ export default Vue.extend({
         this.$store.getters["images/idToPath"](id)
       );
     },
-    videoLabels(): string[] {
-      return [
-        ...new Set(
-          this.videos.reduce(
-            (acc: string[], video) => acc.concat(video.labels),
-            []
-          )
-        )
-      ];
-    },
-    allLabels(): string[] {
-      return Array.from(new Set(this.actor.labels.concat(this.videoLabels)));
+    labels(): string[] {
+      return this.actor.labels.slice().sort();
     }
   }
 });

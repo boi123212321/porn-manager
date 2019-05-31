@@ -20,7 +20,7 @@ export default class Video {
   collection: string | null = null;
   watches: number[] = []; // Array of timestamps of watches
 
-  static create(file: File): Video {
+  static create(file: File | { name: string, path: string, size: number }): Video {
     let video = new Video();
     video.title = file.name;
     video.path = file.path;

@@ -302,7 +302,7 @@ export default Vue.extend({
       });
     },
     removeActor(id: string) {
-      this.chosenActors = this.chosenActors.filter(a => a != id);
+      this.chosenActors = this.chosenActors.filter((actor: string) => actor != id);
     },
     openFileInput() {
       let el = document.getElementById(`file-input-images`) as any;
@@ -475,13 +475,13 @@ export default Vue.extend({
 
       if (this.chosenLabels.length) {
         images = images.filter(image =>
-          this.chosenLabels.every(label => image.labels.includes(label))
+          this.chosenLabels.every((label: string) => image.labels.includes(label))
         );
       }
 
       if (this.chosenActors.length) {
         images = images.filter(image =>
-          this.chosenActors.every(actor => image.actors.includes(actor))
+          this.chosenActors.every((actor: string) => image.actors.includes(actor))
         );
       }
 

@@ -22,11 +22,11 @@
       </v-btn>
       <v-btn icon flat @click="maximize">
         <v-icon>launch</v-icon>
-      </v-btn> -->
+      </v-btn>-->
       <!-- TODO: hide app to app tray -->
       <!-- <v-btn icon flat @click="minimize">
         <v-icon>close</v-icon>
-      </v-btn> -->
+      </v-btn>-->
     </v-toolbar>
 
     <v-content>
@@ -38,6 +38,30 @@
 <script>
 import * as library from "@/util/library";
 import { remote } from "electron";
+
+// DEBUG RIGHT-CLICK
+let rightClickPosition = null;
+const menu = new remote.Menu();
+const menuItem = new remote.MenuItem({
+  label: "Inspect Element",
+  click: () => {
+    remote
+      .getCurrentWindow()
+      .inspectElement(rightClickPosition.x, rightClickPosition.y);
+  }
+});
+menu.append(menuItem);
+
+window.addEventListener(
+  "contextmenu",
+  e => {
+    e.preventDefault();
+    rightClickPosition = { x: e.x, y: e.y };
+    menu.popup(remote.getCurrentWindow());
+  },
+  false
+);
+//
 
 export default {
   name: "App",
