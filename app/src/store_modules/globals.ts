@@ -46,7 +46,7 @@ export default {
         type: CustomFieldType.SELECT
       },
       {
-        name: "Hair Color",
+        name: "Hair Color(s)",
         values: [
           "Brown",
           "Black",
@@ -54,7 +54,7 @@ export default {
           "Red",
           "Colored"
         ],
-        type: CustomFieldType.SELECT
+        type: CustomFieldType.MULTI_SELECT
       },
       {
         name: "Eye Color",

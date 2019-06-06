@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <v-toolbar dark color="primary">
+      <v-toolbar dense dark color="primary">
         <v-btn icon dark @click="$router.go(-1)">
           <v-icon>chevron_left</v-icon>
         </v-btn>

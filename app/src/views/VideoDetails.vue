@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <v-toolbar dark color="primary">
+      <v-toolbar dense dark color="primary">
         <v-btn icon dark @click="$router.go(-1)">
           <v-icon>chevron_left</v-icon>
         </v-btn>
@@ -55,11 +55,11 @@
                   </span>
                 </div>
 
-                <div>
+                <div class="mt-2">
                   <p class="sec--text">{{ video.description }}</p>
                 </div>
 
-                <div class="mt-4 mb-1">
+                <div class="mt-3 mb-1">
                   <v-icon class="mr-1" style="vertical-align: bottom">label</v-icon>
                   <span class="body-2">Labels</span>
                 </div>
@@ -72,7 +72,7 @@
                   <v-chip small @click="openLabelDialog" color="primary white--text">+ Add</v-chip>
                 </div>
 
-                <v-container fluid>
+                <v-container fluid class="mt-1">
                   <v-layout row wrap class="sec--text">
                     <v-flex xs4>
                       <v-icon class="mr-1" style="vertical-align: middle">album</v-icon>
@@ -89,7 +89,7 @@
                   </v-layout>
                 </v-container>
 
-                <div class="mt-3">
+                <div class="mt-3 subheading">
                   <p
                     class="mb-0"
                   >{{ video.watches.length }} {{ video.watches.length == 1 ? 'view' : 'views' }}</p>

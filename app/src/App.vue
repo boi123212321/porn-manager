@@ -1,9 +1,9 @@
 <template>
   <v-app :dark="$store.getters['globals/darkMode']">
-    <v-toolbar style="-webkit-app-region: drag;" dark color="primary" :flat="flatToolbar" app>
+    <v-toolbar clipped-right dense style="-webkit-app-region: drag;" dark color="primary" :flat="flatToolbar" app>
       <!-- <v-btn flat to="/">
         <span class="mr-2">Home</span>
-      </v-btn> -->
+      </v-btn>-->
       <v-btn flat to="/videos">
         <span class="mr-2">Videos</span>
       </v-btn>
@@ -16,6 +16,10 @@
       <v-btn flat to="/settings">
         <span class="mr-2">Settings</span>
       </v-btn>
+      <v-spacer></v-spacer>
+      <v-btn flat @click="openGithub">
+        <span class="mr-2">GitHub</span>
+      </v-btn>
     </v-toolbar>
 
     <v-content>
@@ -27,6 +31,7 @@
 <script>
 import * as library from "@/util/library";
 import { remote } from "electron";
+const { shell } = require("electron");
 
 // DEBUG RIGHT-CLICK
 let rightClickPosition = null;
@@ -59,6 +64,9 @@ export default {
     return {};
   },
   methods: {
+    openGithub() {
+      shell.openExternal("https://github.com/boi123212321/porn-manager")
+    },
     minimize() {
       remote.BrowserWindow.getFocusedWindow().minimize();
     },
@@ -99,7 +107,6 @@ export default {
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background: #888;
-  border-radius: 5px;
 }
 
 /* Handle on hover */
