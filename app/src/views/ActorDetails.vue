@@ -1,187 +1,114 @@
 <template>
   <div>
-    <div>
-      <v-toolbar dense dark color="primary">
-        <v-btn icon dark @click="$router.go(-1)">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        <v-toolbar-title class="mr-2">{{ actor.name }}</v-toolbar-title>
-        <v-btn icon dark @click="favorite">
-          <v-icon>{{ actor.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
-        </v-btn>
-        <v-btn icon dark @click="bookmark">
-          <v-icon>{{ actor.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
-        </v-btn>
-        <v-spacer></v-spacer>
-        <v-btn icon dark @click="openEditDialog">
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn icon dark @click>
-          <v-icon color="warning">mdi-delete</v-icon>
-        </v-btn>
-      </v-toolbar>
-      <v-container>
-        <v-layout wrap>
-          <v-flex xs6 sm4 md3 lg2>
-            <v-hover v-slot:default="{ hover }">
-              <v-img
-                v-if="actor.thumbnails.length"
-                class="clickable"
-                v-ripple
-                :aspect-ratio="1"
-                :src="thumbnails[actor.coverIndex]"
-                contain
-                @click="openFileInput"
-              >
-                <transition name="fade">
-                  <v-sheet color="primary" dark v-if="hover" class="fill sec--text">
-                    <v-icon x-large class="center">mdi-upload</v-icon>
-                  </v-sheet>
-                </transition>
-              </v-img>
-              <v-img
-                @click="openFileInput"
-                v-else
-                class="elevation-6 clickable"
-                :aspect-ratio="1"
-                src
-                style="background: grey"
-              >
-                <transition name="fade">
-                  <v-sheet color="primary" dark v-if="hover" class="fill sec--text">
-                    <v-icon x-large class="center">mdi-upload</v-icon>
-                  </v-sheet>
-                </transition>
-              </v-img>
-            </v-hover>
+    <v-container>
+      <v-layout wrap>
+        <v-flex xs6 sm4 md3 lg2>
+          <v-hover v-slot:default="{ hover }">
+            <v-img
+              v-if="actor.thumbnails.length"
+              class="clickable"
+              v-ripple
+              :aspect-ratio="1"
+              :src="thumbnails[actor.coverIndex]"
+              contain
+              @click="openFileInput"
+            >
+              <transition name="fade">
+                <v-sheet color="primary" dark v-if="hover" class="fill sec--text">
+                  <v-icon x-large class="center">mdi-upload</v-icon>
+                </v-sheet>
+              </transition>
+            </v-img>
+            <v-img
+              @click="openFileInput"
+              v-else
+              class="elevation-6 clickable"
+              :aspect-ratio="1"
+              src
+              style="background: grey"
+            >
+              <transition name="fade">
+                <v-sheet color="primary" dark v-if="hover" class="fill sec--text">
+                  <v-icon x-large class="center">mdi-upload</v-icon>
+                </v-sheet>
+              </transition>
+            </v-img>
+          </v-hover>
 
-            <input accept="image/*" multiple style="display:none" type="file" :data-id="actor.id" />
-          </v-flex>
-          <v-flex xs6 sm8 md9 lg10>
-            <v-container fluid fill-height>
-              <div class="fill">
-                <v-rating
-                  background-color="grey"
-                  color="amber"
-                  dense
-                  :value="actor.rating"
-                  @input="rateActor($event)"
-                  clearable
-                ></v-rating>
-
-                <div class="mt-4 mb-1">
-                  <v-icon class="mr-1" style="vertical-align: bottom">mdi-label</v-icon>
-                  <span class="body-2">Labels</span>
-                </div>
-                <div class="mt-1">
-                  <v-chip class="mr-1 mb-1" small v-for="label in labels" :key="label">{{ label }}</v-chip>
-                  <v-chip small @click="openLabelDialog" color="primary white--text">+ Add</v-chip>
-                </div>
-
-                <div class="mt-3">
-                  <p class="mb-0">{{ watches.length }} {{ watches.length == 1 ? 'view' : 'views' }}</p>
-                  <p
-                    class="sec--text"
-                    v-if="watches.length"
-                  >Last view: {{ new Date(watches.slice(-1)[0]).toLocaleString() }}</p>
-                </div>
-
-                <v-container fluid>
-                  <v-layout row wrap align-center v-for="field in customFields" :key="field[0]">
-                    <v-flex xs12 sm6>
-                      <v-subheader>{{ field[0] }}</v-subheader>
-                    </v-flex>
-                    <v-flex xs12 sm6>{{ Array.isArray(field[1]) ? field[1].join(", ") : field[1] }}</v-flex>
-                  </v-layout>
-                </v-container>
-              </div>
-            </v-container>
-          </v-flex>
-
-          <v-flex class="py-5" xs12 v-if="videos.length">
-            <p class="text-center title font-weight-regular">Scenes</p>
-            <v-layout wrap>
-              <v-flex v-for="video in videos" :key="video.id" xs6 sm4 md4 lg3>
-                <Video :video="video"></Video>
-              </v-flex>
-            </v-layout>
-          </v-flex>
-
-          <v-flex
-            xs12
-            sm10
-            offset-sm1
-            md8
-            offset-md2
-            lg6
-            offset-lg3
-            v-if="actor.thumbnails.length > 1"
-          >
-            <p class="text-center title font-weight-regular">Images</p>
-            <v-checkbox v-model="cycle" label="Auto-cycle images"></v-checkbox>
-            <v-carousel :cycle="cycle" hide-delimiters>
-              <v-carousel-item v-for="(item,i) in thumbnails" :key="i" :src="item">
-                <v-btn @click="setCoverIndex(i)" icon class="thumb-btn" large>
-                  <v-icon>photo</v-icon>
-                </v-btn>
-              </v-carousel-item>
-            </v-carousel>
-          </v-flex>
-        </v-layout>
-      </v-container>
-    </div>
-
-    <v-dialog v-model="editDialog" max-width="600px">
-      <v-card>
-        <v-toolbar dark color="primary">
-          <v-toolbar-title>Edit '{{actor.name}}'</v-toolbar-title>
-        </v-toolbar>
-        <v-container v-if="editDialog">
-          <v-layout wrap align-center>
-            <v-flex xs6 sm4>
-              <v-subheader>Actor name</v-subheader>
-            </v-flex>
-            <v-flex xs6 sm8>
-              <v-text-field single-line v-model="editing.name" label="Enter name"></v-text-field>
-            </v-flex>
-
-            <v-flex xs12>
-              <v-combobox
-                v-model="editing.aliases"
-                label="Actor alias names"
-                multiple
-                chips
+          <input accept="image/*" multiple style="display:none" type="file" :data-id="actor.id" />
+        </v-flex>
+        <v-flex xs6 sm8 md9 lg10>
+          <v-container fluid fill-height>
+            <div class="fill">
+              <v-rating
+                background-color="grey"
+                color="amber"
+                dense
+                :value="actor.rating"
+                @input="rateActor($event)"
                 clearable
-              ></v-combobox>
-            </v-flex>
+              ></v-rating>
 
-            <v-flex xs12>
-              <v-btn
-                text
-                @click="editing.showCustomFields = !editing.showCustomFields"
-              >{{ editing.showCustomFields ? 'Hide custom data fields' : 'Show custom data fields'}}</v-btn>
-            </v-flex>
+              <div class="mt-4 mb-1">
+                <v-icon class="mr-1" style="vertical-align: bottom">mdi-label</v-icon>
+                <span class="body-2">Labels</span>
+              </div>
+              <div class="mt-1">
+                <v-chip class="mr-1 mb-1" small v-for="label in labels" :key="label">{{ label }}</v-chip>
+                <v-chip small @click="openLabelDialog" color="primary white--text">+ Add</v-chip>
+              </div>
 
-            <v-container fluid v-if="editing.showCustomFields">
-              <v-layout wrap>
-                <v-flex xs12 v-for="field in $store.state.globals.customFields" :key="field.name">
-                  <CustomField
-                    :field="field"
-                    :value="getFieldValue(field.name)"
-                    v-on:change="setFieldValue"
-                  />
-                </v-flex>
-              </v-layout>
-            </v-container>
+              <div class="mt-3">
+                <p class="mb-0">{{ watches.length }} {{ watches.length == 1 ? 'view' : 'views' }}</p>
+                <p
+                  class="sec--text"
+                  v-if="watches.length"
+                >Last view: {{ new Date(watches.slice(-1)[0]).toLocaleString() }}</p>
+              </div>
+
+              <v-container fluid>
+                <v-layout row wrap align-center v-for="field in customFields" :key="field[0]">
+                  <v-flex xs12 sm6>
+                    <v-subheader>{{ field[0] }}</v-subheader>
+                  </v-flex>
+                  <v-flex xs12 sm6>{{ Array.isArray(field[1]) ? field[1].join(", ") : field[1] }}</v-flex>
+                </v-layout>
+              </v-container>
+            </div>
+          </v-container>
+        </v-flex>
+
+        <v-flex class="py-5" xs12 v-if="videos.length">
+          <p class="text-center title font-weight-regular">Scenes</p>
+          <v-layout wrap>
+            <v-flex v-for="video in videos" :key="video.id" xs6 sm4 md4 lg3>
+              <Video :video="video"></Video>
+            </v-flex>
           </v-layout>
-        </v-container>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="editDialog = false" text>Cancel</v-btn>
-          <v-btn @click="saveSettings" color="primary">Save</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </v-flex>
+
+        <v-flex
+          xs12
+          sm10
+          offset-sm1
+          md8
+          offset-md2
+          lg6
+          offset-lg3
+          v-if="actor.thumbnails.length > 1"
+        >
+          <p class="text-center title font-weight-regular">Images</p>
+          <v-checkbox v-model="cycle" label="Auto-cycle images"></v-checkbox>
+          <v-carousel :cycle="cycle" hide-delimiters>
+            <v-carousel-item v-for="(item,i) in thumbnails" :key="i" :src="item">
+              <v-btn @click="setCoverIndex(i)" icon class="thumb-btn" large>
+                <v-icon>mdi-image</v-icon>
+              </v-btn>
+            </v-carousel-item>
+          </v-carousel>
+        </v-flex>
+      </v-layout>
+    </v-container>
 
     <v-dialog v-model="labelDialog" max-width="600px">
       <v-card>
@@ -231,39 +158,12 @@ import { exportToDisk } from "@/util/library";
 })
 export default class ActorDetails extends Vue {
   cycle = true;
-  editDialog = false;
+  
   labelDialog = false;
 
   editing = {
-    showCustomFields: false,
-
-    name: "",
-    aliases: [] as string[],
-    customFields: {} as CustomFieldValue,
     chosenLabels: [] as string[]
   };
-
-  setFieldValue({ key, value }: { key: string; value: string }) {
-    this.editing.customFields[key] = value;
-  }
-
-  getFieldValue(name: string): string | number | boolean | null {
-    return this.editing.customFields[name];
-  }
-
-  saveSettings() {
-    this.$store.commit("actors/edit", {
-      id: this.actor.id,
-      settings: {
-        name: toTitleCase(this.editing.name),
-        customFields: JSON.parse(JSON.stringify(this.editing.customFields)),
-        aliases: this.editing.aliases.map((label: string) => toTitleCase(label))
-      }
-    });
-    this.editDialog = false;
-
-    exportToDisk();
-  }
 
   saveLabels() {
     this.$store.commit("actors/setLabels", {
@@ -280,25 +180,6 @@ export default class ActorDetails extends Vue {
   openLabelDialog() {
     this.labelDialog = true;
     this.editing.chosenLabels = this.actor.labels;
-  }
-
-  openEditDialog() {
-    this.editDialog = true;
-    this.editing.name = this.actor.name;
-    this.editing.aliases = this.actor.aliases;
-    this.editing.customFields = JSON.parse(
-      JSON.stringify(this.actor.customFields)
-    );
-  }
-
-  favorite() {
-    this.$store.commit("actors/favorite", this.actor.id);
-    exportToDisk();
-  }
-
-  bookmark() {
-    this.$store.commit("actors/bookmark", this.actor.id);
-    exportToDisk();
   }
 
   rateActor(rating: number) {

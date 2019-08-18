@@ -1,7 +1,6 @@
 <template>
   <v-app :dark="$vuetify.theme.dark">
     <v-app-bar
-      elevate-on-scroll
       clipped-right
       dense
       style="-webkit-app-region: drag;"
@@ -12,6 +11,12 @@
       <v-btn v-for="btn in toolbarItems" :key="btn.label" class="mr-2" text :to="btn.to">
         <span>{{ btn.label }}</span>
       </v-btn>
+
+      <template v-slot:extension>
+        <VideoDetailsActions v-if="$route.name == 'video'" />
+        <ActorDetailsActions v-else-if="$route.name == 'actor'" />
+      </template>
+    
     </v-app-bar>
 
     <v-content>
@@ -50,8 +55,14 @@ window.addEventListener(
   false
 );
 
+import VideoDetailsActions from "@/components/VideoDetailsActions.vue";
+import ActorDetailsActions from "@/components/ActorDetailsActions.vue";
+
 @Component({
-  components: {}
+  components: {
+    VideoDetailsActions,
+    ActorDetailsActions,
+  }
 })
 export default class App extends Vue {
   toolbarItems = [
