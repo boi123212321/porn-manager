@@ -6,11 +6,27 @@
     </v-btn>
     <v-subheader>Settings</v-subheader>
     {{ $store.state.globals.settings }}
-    <v-checkbox
-      :color="$store.getters['globals/secondaryColor']"
-      v-model="darkMode"
-      label="Dark Mode"
-    ></v-checkbox>
+    <v-card class="my-3">
+      <v-card-title>Theme</v-card-title>
+      <v-card-text>
+        <v-color-picker
+          class="d-inline-block mr-2"
+          @input="changePrimaryColor"
+          :value="$store.getters['globals/primaryColor']"
+        />
+        <v-color-picker
+          class="d-inline-block"
+          @input="changeSecondaryColor"
+          :value="$store.getters['globals/secondaryColor']"
+        />
+
+        <v-checkbox
+          :color="$store.getters['globals/secondaryColor']"
+          v-model="darkMode"
+          label="Dark Mode"
+        ></v-checkbox>
+      </v-card-text>
+    </v-card>
 
     <v-card class="mb-3">
       <v-card-title>Custom data fields</v-card-title>
@@ -136,6 +152,16 @@ export default class Settings extends Vue {
     ],
     values: [] as any[]
   };
+
+  changeSecondaryColor(col: string) {
+    this.$store.commit("globals/setSecondaryColor", col);
+    exportToDisk();
+  }
+
+  changePrimaryColor(col: string) {
+    this.$store.commit("globals/setPrimaryColor", col);
+    exportToDisk();
+  }
 
   get darkMode(): boolean {
     return this.$vuetify.theme.dark;

@@ -69,8 +69,8 @@ export default {
   state: {
     settings: {
       theme: {
-        primaryColor: "indigo",
-        secondaryColor: "pink",
+        primaryColor: "#3f51b5",
+        secondaryColor: "#ff4081",
         darkMode: false,
       },
       copyThumbnails: true,
