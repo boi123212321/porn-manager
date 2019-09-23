@@ -1,14 +1,18 @@
 <template>
   <v-container>
-    <v-btn color="primary" @click="openGithub">
+    <v-btn :color="$store.getters['globals/secondaryColor']" @click="openGithub">
       <v-icon left>mdi-github-circle</v-icon>
       <span>GitHub</span>
     </v-btn>
     <v-subheader>Settings</v-subheader>
     {{ $store.state.globals.settings }}
-    <v-checkbox v-model="darkMode" label="Dark Mode"></v-checkbox>
+    <v-checkbox
+      :color="$store.getters['globals/secondaryColor']"
+      v-model="darkMode"
+      label="Dark Mode"
+    ></v-checkbox>
 
-    <v-card>
+    <v-card class="mb-3">
       <v-card-title>Custom data fields</v-card-title>
       <v-card-text>
         <v-list two-line v-if="$store.state.globals.customFields">
@@ -25,8 +29,14 @@
           </v-list-item>
         </v-list>
 
-        <v-text-field v-model="fields.name" clearable label="Field name"></v-text-field>
+        <v-text-field
+          :color="$store.getters['globals/secondaryColor']"
+          v-model="fields.name"
+          clearable
+          label="Field name"
+        ></v-text-field>
         <v-select
+          :color="$store.getters['globals/secondaryColor']"
           v-model="fields.chosenType"
           :items="fields.types"
           item-text="name"
@@ -35,6 +45,7 @@
         ></v-select>
 
         <v-combobox
+          :color="$store.getters['globals/secondaryColor']"
           multiple
           clearable
           v-if="fields.chosenType > 2"
@@ -44,7 +55,7 @@
         ></v-combobox>
         <v-card-actions>
           <v-btn
-            color="primary"
+            :color="$store.getters['globals/secondaryColor']"
             :disabled="!fields.name || !fields.name.length"
             @click="createField"
           >Create data field</v-btn>
@@ -52,8 +63,18 @@
       </v-card-text>
     </v-card>
 
-    <div class="mt-5">
-      <v-btn text :loading="backupLoader" @click="exportBackup">
+    <!-- <div class="py-5">
+      <v-subheader>Theme color</v-subheader>
+      <ColorSelector />
+    </div>-->
+
+    <div>
+      <v-btn
+        :color="$store.getters['globals/secondaryColor']"
+        text
+        :loading="backupLoader"
+        @click="exportBackup"
+      >
         <v-icon left>mdi-database</v-icon>create backup
       </v-btn>
     </div>
@@ -71,15 +92,20 @@ import path from "path";
 import fs from "fs";
 import rimraf from "rimraf";
 const { shell } = require("electron");
+import ColorSelector from "@/components/ColorSelector.vue";
 
 // Turn enum into array
-function toArray(enumme: any) {
-  return Object.keys(enumme)
-    .filter((value: any) => isNaN(Number(value)) === false)
-    .map(key => enumme[key]);
-}
+// function toArray(enumme: any) {
+//   return Object.keys(enumme)
+//     .filter((value: any) => isNaN(Number(value)) === false)
+//     .map(key => enumme[key]);
+// }
 
-@Component
+@Component({
+  components: {
+    ColorSelector
+  }
+})
 export default class Settings extends Vue {
   backupLoader = false;
 
@@ -118,7 +144,7 @@ export default class Settings extends Vue {
   set darkMode(val: boolean) {
     this.$vuetify.theme.dark = val;
     this.$store.commit("globals/setDarkMode", val);
-    exportToDisk(5000);
+    exportToDisk();
   }
 
   openGithub() {

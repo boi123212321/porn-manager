@@ -4,9 +4,10 @@
       <v-card-title>Add new videos</v-card-title>
       <v-card-text>
         <v-card class="pa-2 mb-2" v-for="video in videos" :key="video.path">
-          <v-text-field label="Video name" :value="video.name" @change="video.name = $event"></v-text-field>
+          <v-text-field :color="$store.getters['globals/secondaryColor']" label="Video name" :value="video.name" @change="video.name = $event"></v-text-field>
           <p class="sec--text">{{ video.path}}</p>
           <v-combobox
+          :color="$store.getters['globals/secondaryColor']"
             :value="video.labels"
             :items="$store.getters['videos/getLabels']"
             label="Add or choose labels"
@@ -15,6 +16,7 @@
             @change="video.labels = $event"
           ></v-combobox>
           <v-autocomplete
+          :color="$store.getters['globals/secondaryColor']"
             :value="video.actors"
             :items="$store.state.actors.items"
             chips
@@ -50,7 +52,7 @@
           </v-autocomplete>
         </v-card>
         <div v-if="processing.length" class="text-center">
-          <v-progress-circular indeterminate :size="80" :width="5" color="primary"></v-progress-circular>
+          <v-progress-circular indeterminate :size="80" :width="5" :color="$store.getters['globals/secondaryColor']"></v-progress-circular>
           <div class="mt-2 subheading">
             {{ processing.length }}
             <span>{{ processing.length == 1 ? 'video' : 'videos' }} processing...</span>
@@ -60,7 +62,7 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn :disabled="generatingThumbnails" text @click="videos = []">Cancel</v-btn>
-        <v-btn :disabled="generatingThumbnails" @click="add" color="primary">Add</v-btn>
+        <v-btn :disabled="generatingThumbnails" @click="add" :color="$store.getters['globals/secondaryColor']">Add</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -78,53 +80,6 @@ import Image from "@/classes/image";
 import { takeScreenshots } from "@/util/thumbnails";
 import { toTitleCase } from "../util/string";
 import { exportToDisk } from "../util/library";
-
-var os = require("os");
-
-var platform = os.platform();
-//patch for compatibilit with electron-builder, for smart built process.
-if (platform == "darwin") {
-  platform = "mac";
-} else if (platform == "win32") {
-  platform = "win";
-}
-//adding browser, for use case when module is bundled using browserify. and added to html using src.
-if (
-  platform !== "linux" &&
-  platform !== "mac" &&
-  platform !== "win" &&
-  platform !== "browser"
-) {
-  console.error("Unsupported platform.", platform);
-  process.exit(1);
-}
-
-var arch = os.arch();
-if (platform === "mac" && arch !== "x64") {
-  console.error("Unsupported architecture.");
-  process.exit(1);
-}
-
-const ffmpegPath = path.join(
-  process.cwd(),
-  "bin/",
-  platform,
-  "ffmpeg/",
-  arch,
-  platform === "win" ? "ffmpeg.exe" : "ffmpeg"
-);
-
-const ffprobePath = path.join(
-  process.cwd(),
-  "bin/",
-  platform,
-  "ffprobe/",
-  arch,
-  platform === "win" ? "ffprobe.exe" : "ffprobe"
-);
-
-ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath);
 
 @Component
 export default class VideoImporter extends Vue {
@@ -154,6 +109,9 @@ export default class VideoImporter extends Vue {
   }
 
   async add() {
+    ffmpeg.setFfmpegPath(this.$store.state.globals.settings.ffmpegPath);
+    ffmpeg.setFfprobePath(this.$store.state.globals.settings.ffprobePath);
+
     this.processing.push(...this.videos);
     this.videos = [];
 

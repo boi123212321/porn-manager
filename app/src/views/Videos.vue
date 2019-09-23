@@ -73,13 +73,20 @@
     >
       <v-layout wrap>
         <v-flex xs12>
-          <v-text-field v-model="search" single-line label="Search..." clearable></v-text-field>
+          <v-text-field
+            :color="$store.getters['globals/secondaryColor']"
+            v-model="search"
+            single-line
+            label="Search..."
+            clearable
+          ></v-text-field>
         </v-flex>
 
         <v-flex xs12 class="mt-3">
           <v-divider></v-divider>
           <v-subheader>Sort</v-subheader>
           <v-select
+            :color="$store.getters['globals/secondaryColor']"
             :items="sortModes"
             single-line
             v-model="chosenSort"
@@ -92,6 +99,7 @@
           <v-divider></v-divider>
           <v-subheader>Filter</v-subheader>
           <v-autocomplete
+            :color="$store.getters['globals/secondaryColor']"
             v-model="chosenActors"
             :items="$store.state.actors.items"
             chips
@@ -137,8 +145,9 @@
             single-line
             :items="labels"
             label="Select labels..."
+            :color="$store.getters['globals/secondaryColor']"
           ></v-autocomplete>
-          {{ chosenLabels }}
+          <!-- {{ chosenLabels }} -->
         </v-flex>
         <v-flex xs12 class="mt-3">
           Filter by rating
@@ -152,8 +161,18 @@
           ></v-rating>
         </v-flex>
         <v-flex xs12>
-          <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
-          <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
+          <v-checkbox
+            :color="$store.getters['globals/secondaryColor']"
+            hide-details
+            v-model="favoritesOnly"
+            label="Show favorites only"
+          ></v-checkbox>
+          <v-checkbox
+            :color="$store.getters['globals/secondaryColor']"
+            hide-details
+            v-model="bookmarksOnly"
+            label="Show bookmarks only"
+          ></v-checkbox>
         </v-flex>
 
         <v-flex class="mt-2" xs12 v-for="field in fieldFilters" :key="field.name">

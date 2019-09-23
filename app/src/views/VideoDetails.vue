@@ -13,7 +13,12 @@
               @click="openFileInput"
             >
               <transition name="fade">
-                <v-sheet color="primary" dark v-if="hover" class="fill sec--text">
+                <v-sheet
+                  :color="$store.getters['globals/primaryColor']"
+                  dark
+                  v-if="hover"
+                  class="fill sec--text"
+                >
                   <v-icon x-large class="center">mdi-upload</v-icon>
                 </v-sheet>
               </transition>
@@ -27,7 +32,12 @@
               style="background: grey"
             >
               <transition name="fade">
-                <v-sheet color="primary" dark v-if="hover" class="fill sec--text">
+                <v-sheet
+                  :color="$store.getters['globals/primaryColor']"
+                  dark
+                  v-if="hover"
+                  class="fill sec--text"
+                >
                   <v-icon x-large class="center">mdi-upload</v-icon>
                 </v-sheet>
               </transition>
@@ -63,7 +73,11 @@
                   :key="label"
                   class="mr-1 mb-1"
                 >{{ label }}</v-chip>
-                <v-chip small @click="openLabelDialog" color="primary white--text">+ Add</v-chip>
+                <v-chip
+                  :color="$store.getters['globals/secondaryColor']"
+                  small
+                  @click="openLabelDialog"
+                >+ Add</v-chip>
               </div>
 
               <v-container fluid class="mt-1">
@@ -126,15 +140,19 @@
           v-if="video.thumbnails.length > 1"
         >
           <p class="text-center title font-weight-regular">Images</p>
-          <v-checkbox v-model="cycle" label="Auto-cycle images"></v-checkbox>
+          <v-checkbox
+            :color="$store.getters['globals/secondaryColor']"
+            v-model="cycle"
+            label="Auto-cycle images"
+          ></v-checkbox>
           <v-carousel :cycle="cycle" hide-delimiters>
             <v-carousel-item v-for="(item,i) in thumbnails" :key="i" :src="item">
               <div class="topbar">
                 <v-spacer></v-spacer>
-                <v-btn class="thumb-btn" @click="setCoverIndex(i)" icon large>
+                <v-btn class="thumb-btn mr-2" @click="setCoverIndex(i)" icon small>
                   <v-icon>mdi-image</v-icon>
                 </v-btn>
-                <v-btn class="thumb-btn" @click="removeThumbnail(i)" icon large>
+                <v-btn class="thumb-btn" @click="removeThumbnail(i)" icon small>
                   <v-icon>mdi-close</v-icon>
                 </v-btn>
               </div>
@@ -146,11 +164,12 @@
 
     <v-dialog v-model="labelDialog" max-width="600px">
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar dark :color="$store.getters['globals/primaryColor']">
           <v-toolbar-title>Edit labels</v-toolbar-title>
         </v-toolbar>
         <v-container>
           <v-combobox
+            :color="$store.getters['globals/secondaryColor']"
             v-model="editing.chosenLabels"
             :items="$store.getters['videos/getLabels']"
             label="Add or choose labels"
@@ -161,7 +180,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="labelDialog = false" text>Cancel</v-btn>
-          <v-btn @click="saveLabels" color="primary">Save</v-btn>
+          <v-btn @click="saveLabels" :color="$store.getters['globals/secondaryColor']">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -23,23 +23,32 @@
 
     <v-dialog v-model="editDialog" max-width="600px">
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar dark :color="$store.getters['globals/primaryColor']">
           <v-toolbar-title>Edit '{{video.title}}'</v-toolbar-title>
         </v-toolbar>
-        <v-card-text style="height: 50vh; overflow-y: auto">
+        <v-card-text style="height: 66vh; overflow-y: auto">
           <v-layout wrap align-center>
             <v-flex xs6 sm4>
               <v-subheader>Video title</v-subheader>
             </v-flex>
             <v-flex xs6 sm8>
-              <v-text-field single-line v-model="editing.title" label="Enter title"></v-text-field>
+              <v-text-field
+                :color="$store.getters['globals/secondaryColor']"
+                single-line
+                v-model="editing.title"
+                label="Enter title"
+              ></v-text-field>
             </v-flex>
 
             <v-flex xs6 sm4>
               <v-subheader>Description</v-subheader>
             </v-flex>
             <v-flex xs6 sm8>
-              <v-textarea label="Enter description" v-model="editing.description"></v-textarea>
+              <v-textarea
+                :color="$store.getters['globals/secondaryColor']"
+                label="Enter description"
+                v-model="editing.description"
+              ></v-textarea>
             </v-flex>
 
             <v-flex xs6 sm4>
@@ -55,6 +64,7 @@
                 item-value="id"
                 multiple
                 clearable
+                :color="$store.getters['globals/secondaryColor']"
               >
                 <template v-slot:selection="data">
                   <v-chip pill>
@@ -83,6 +93,7 @@
 
             <v-flex xs12>
               <v-btn
+                :color="$store.getters['globals/secondaryColor']"
                 text
                 @click="editing.showCustomFields = !editing.showCustomFields"
               >{{ editing.showCustomFields ? 'Hide custom data fields' : 'Show custom data fields'}}</v-btn>
@@ -104,7 +115,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="editDialog = false" text>Cancel</v-btn>
-          <v-btn @click="saveSettings" color="primary">Save</v-btn>
+          <v-btn @click="saveSettings" :color="$store.getters['globals/secondaryColor']">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

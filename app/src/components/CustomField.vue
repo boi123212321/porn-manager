@@ -6,6 +6,7 @@
       </v-flex>
       <v-flex xs6 sm8 class="mr-1" v-if="field.mode !== undefined">
         <v-select
+          :color="$store.getters['globals/secondaryColor']"
           :items="filterModes"
           item-text="name"
           item-value="value"
@@ -17,6 +18,7 @@
       </v-flex>
       <v-flex xs6 sm8>
         <v-text-field
+          :color="$store.getters['globals/secondaryColor']"
           :value="value"
           label="Enter string"
           clearable
@@ -24,6 +26,7 @@
           v-if="field.type === 0"
         />
         <v-text-field
+          :color="$store.getters['globals/secondaryColor']"
           :value="value"
           type="number"
           label="Enter number"
@@ -32,12 +35,14 @@
           v-if="field.type === 1"
         />
         <v-checkbox
+          :color="$store.getters['globals/secondaryColor']"
           v-else-if="field.type === 2"
           :value="value"
           label="Set value"
           @change="$emit('change', { key: field.name, value: $event || false, mode: field.mode })"
         ></v-checkbox>
         <v-select
+          :color="$store.getters['globals/secondaryColor']"
           v-else-if="field.type === 3"
           v-model="internalValue"
           :items="field.values"
@@ -46,6 +51,7 @@
           @change="$emit('change', { key: field.name, value: internalValue, mode: field.mode })"
         />
         <v-select
+          :color="$store.getters['globals/secondaryColor']"
           v-else-if="field.type === 4"
           v-model="internalValue"
           :items="field.values"
@@ -74,8 +80,7 @@ const Props = Vue.extend({
   }
 });
 
-@Component({
-})
+@Component({})
 export default class CustomFieldComponent extends Props {
   internalValue = this.value;
 

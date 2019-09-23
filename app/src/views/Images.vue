@@ -168,6 +168,7 @@
             @click.stop="showImageDetails = !showImageDetails"
             class="thumb-btn"
             icon
+            small
           >
             <v-icon>mdi-information-outline</v-icon>
           </v-btn>
@@ -179,10 +180,17 @@
           <div style="position: relative; width: 100%; height: 100%;">
             <img @click.stop class="image" :src="items[currentImage].path" />
 
-            <v-btn v-if="currentImage > 0" icon class="thumb-btn left" @click.stop="currentImage--">
+            <v-btn
+              small
+              v-if="currentImage > 0"
+              icon
+              class="thumb-btn left"
+              @click.stop="currentImage--"
+            >
               <v-icon color="white">mdi-chevron-left</v-icon>
             </v-btn>
             <v-btn
+              small
               v-if="currentImage < items.length - 1"
               icon
               class="thumb-btn right"
@@ -197,7 +205,7 @@
               <v-spacer></v-spacer>
             </div>
             <v-card
-              color="primary"
+              :color="$store.getters['globals/primaryColor']"
               style="display: flex;"
               class="px-2 mb-1 headline font-weight-light"
               dark
@@ -248,7 +256,11 @@
                   :key="label"
                   class="mr-1 mb-1"
                 >{{ label }}</v-chip>
-                <v-chip small @click="openLabelDialog" color="primary white--text">+ Add</v-chip>
+                <v-chip
+                  small
+                  @click="openLabelDialog"
+                  :color="$store.getters['globals/secondaryColor']"
+                >+ Add</v-chip>
               </div>
 
               <v-container fluid>
@@ -265,9 +277,9 @@
       </div>
     </transition>
 
-    <v-dialog v-model="editDialog" max-width="600px">
+    <v-dialog v-model="editDialog" max-width="500px">
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar dark :color="$store.getters['globals/primaryColor']">
           <v-toolbar-title>Edit image</v-toolbar-title>
         </v-toolbar>
         <v-container v-if="editDialog">
@@ -276,7 +288,12 @@
               <v-subheader>Image name</v-subheader>
             </v-flex>
             <v-flex xs6 sm8>
-              <v-text-field single-line v-model="editing.title" label="Enter name (or leave blank)"></v-text-field>
+              <v-text-field
+                :color="$store.getters['globals/secondaryColor']"
+                single-line
+                v-model="editing.title"
+                label="Enter name (or leave blank)"
+              ></v-text-field>
             </v-flex>
 
             <v-flex xs6 sm4>
@@ -292,6 +309,7 @@
                 item-value="id"
                 multiple
                 clearable
+                :color="$store.getters['globals/secondaryColor']"
               >
                 <template v-slot:selection="data">
                   <v-chip pill>
@@ -341,18 +359,19 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="editDialog = false" text>Cancel</v-btn>
-          <v-btn @click="saveSettings" color="primary">Save</v-btn>
+          <v-btn @click="saveSettings" :color="$store.getters['globals/secondaryColor']">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="labelDialog" max-width="600px">
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar dark :color="$store.getters['globals/primaryColor']">
           <v-toolbar-title>Edit labels</v-toolbar-title>
         </v-toolbar>
         <v-container>
           <v-combobox
+            :color="$store.getters['globals/secondaryColor']"
             v-model="editing.chosenLabels"
             :items="$store.getters['images/getLabels']"
             label="Add or choose labels"
@@ -363,7 +382,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="labelDialog = false" text>Cancel</v-btn>
-          <v-btn @click="saveLabels" color="primary">Save</v-btn>
+          <v-btn @click="saveLabels" :color="$store.getters['globals/secondaryColor']">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -644,7 +663,7 @@ export default class Images extends Vue {
 
   get actors(): Actor[] {
     // This is an Actor array because the items are modified in "get items()"
-    return this.items[this.currentImage].actors as unknown as Actor[];
+    return (this.items[this.currentImage].actors as unknown) as Actor[];
   }
 
   get labels(): string[] {

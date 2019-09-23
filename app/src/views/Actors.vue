@@ -122,23 +122,20 @@
       </v-layout>
     </v-navigation-drawer>
 
-    <v-dialog v-model="createDialog" max-width="600px">
+    <v-dialog v-model="createDialog" max-width="300px">
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar dark :color="$store.getters['globals/primaryColor']">
           <v-toolbar-title>Add actor</v-toolbar-title>
         </v-toolbar>
-        <v-container>
-          <v-layout wrap align-center>
-            <v-flex xs6 sm4>
-              <v-subheader>Actor name</v-subheader>
-            </v-flex>
-            <v-text-field single-line v-model="creating.name" label="Enter a name"></v-text-field>
-          </v-layout>
-        </v-container>
+
+        <v-card-text>
+            <v-text-field :color="$store.getters['globals/secondaryColor']" single-line v-model="creating.name" label="Enter a name"></v-text-field>
+        </v-card-text>
+
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="createDialog = false" text>Cancel</v-btn>
-          <v-btn @click="addActor" color="primary">Save</v-btn>
+          <v-btn @click="addActor" :color="$store.getters['globals/secondaryColor']">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

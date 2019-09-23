@@ -5,7 +5,7 @@
       dense
       style="-webkit-app-region: drag;"
       dark
-      color="primary"
+      :color="$store.getters['globals/primaryColor']"
       app
     >
       <v-btn v-for="btn in toolbarItems" :key="btn.label" class="mr-2" text :to="btn.to">
@@ -100,7 +100,7 @@ export default class App extends Vue {
 
   async beforeMount() {
     await library.loadFromDisk();
-    this.$vuetify.theme.dark = this.$store.state.globals.settings.darkMode;
+    this.$vuetify.theme.dark = this.$store.getters['globals/darkMode'];
   }
 }
 </script>

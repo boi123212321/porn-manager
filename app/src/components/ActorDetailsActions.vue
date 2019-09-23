@@ -18,9 +18,9 @@
       <v-icon color="warning">mdi-delete</v-icon>
     </v-btn>
 
-    <v-dialog v-model="editDialog" max-width="600px">
+    <v-dialog v-model="editDialog" max-width="500px">
       <v-card>
-        <v-toolbar dark color="primary">
+        <v-toolbar dark :color="$store.getters['globals/primaryColor']">
           <v-toolbar-title>Edit '{{actor.name}}'</v-toolbar-title>
         </v-toolbar>
         <v-container v-if="editDialog">
@@ -29,11 +29,17 @@
               <v-subheader>Actor name</v-subheader>
             </v-flex>
             <v-flex xs6 sm8>
-              <v-text-field single-line v-model="editing.name" label="Enter name"></v-text-field>
+              <v-text-field
+                :color="$store.getters['globals/secondaryColor']"
+                single-line
+                v-model="editing.name"
+                label="Enter name"
+              ></v-text-field>
             </v-flex>
 
             <v-flex xs12>
               <v-combobox
+                :color="$store.getters['globals/secondaryColor']"
                 v-model="editing.aliases"
                 label="Actor alias names"
                 multiple
@@ -65,7 +71,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="editDialog = false" text>Cancel</v-btn>
-          <v-btn @click="saveSettings" color="primary">Save</v-btn>
+          <v-btn :color="$store.getters['globals/secondaryColor']" @click="saveSettings">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
