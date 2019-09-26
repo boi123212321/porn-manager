@@ -87,7 +87,7 @@ import CustomField from "@/components/CustomField.vue";
 import { CustomFieldValue } from "@/classes/common";
 import { toTitleCase } from "@/util/string";
 import Actor from "@/classes/actor";
-import ActorModule from "@/store_modules/actors";
+import ActorsModule from "@/store_modules/actors";
 
 @Component({
   components: {
@@ -114,7 +114,7 @@ export default class VideoDetailsActions extends Vue {
   }
 
   saveSettings() {
-    ActorModule.edit({
+    ActorsModule.edit({
       id: this.actor.id,
       settings: {
         name: toTitleCase(this.editing.name),
@@ -137,17 +137,17 @@ export default class VideoDetailsActions extends Vue {
   }
 
   favorite() {
-    ActorModule.favorite(this.actor.id);
+    ActorsModule.favorite(this.actor.id);
     exportToDisk();
   }
 
   bookmark() {
-    ActorModule.bookmark(this.actor.id);
+    ActorsModule.bookmark(this.actor.id);
     exportToDisk();
   }
 
   get actor(): Actor {
-    return ActorModule.getById(this.$route.params.id);
+    return ActorsModule.getById(this.$route.params.id);
   }
 }
 </script>

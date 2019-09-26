@@ -201,6 +201,7 @@ import { exportToDisk } from "../util/library";
 import CustomField, { CustomFieldType } from "@/classes/custom_field";
 import CustomFieldComponent from "@/components/CustomField.vue";
 import ActorsModule from "@/store_modules/actors";
+import VideosModule from "@/store_modules/videos";
 
 enum FilterMode {
   NONE,
@@ -322,9 +323,7 @@ export default class Videos extends Vue {
       let fileArray = Array.from(el.files) as File[];
 
       // Ignore already added videos
-      fileArray = fileArray.filter(
-        file => !this.$store.getters["videos/getByPath"](file.path)
-      );
+      fileArray = fileArray.filter(file => !VideosModule.getByPath(file.path));
 
       if (fileArray.length) {
         let files = fileArray.map(file => {
@@ -348,7 +347,7 @@ export default class Videos extends Vue {
   }
 
   set chosenSort(value: number) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "chosenSort",
       value
     });
@@ -359,7 +358,7 @@ export default class Videos extends Vue {
   }
 
   set ratingFilter(value: number) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "ratingFilter",
       value
     });
@@ -370,7 +369,7 @@ export default class Videos extends Vue {
   }
 
   set bookmarksOnly(value: boolean) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "bookmarksOnly",
       value
     });
@@ -381,7 +380,7 @@ export default class Videos extends Vue {
   }
 
   set favoritesOnly(value: boolean) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "favoritesOnly",
       value
     });
@@ -392,7 +391,7 @@ export default class Videos extends Vue {
   }
 
   set chosenActors(value: string[]) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "chosenActors",
       value
     });
@@ -403,7 +402,7 @@ export default class Videos extends Vue {
   }
 
   set chosenLabels(value: string[]) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "chosenLabels",
       value
     });
@@ -414,7 +413,7 @@ export default class Videos extends Vue {
   }
 
   set search(value: string) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "search",
       value
     });
@@ -425,7 +424,7 @@ export default class Videos extends Vue {
   }
 
   set gridSize(value: number) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "gridSize",
       value
     });
@@ -436,14 +435,14 @@ export default class Videos extends Vue {
   }
 
   set filterDrawer(value: boolean) {
-    this.$store.commit("videos/setSearchParam", {
+    VideosModule.setSearchParam({
       key: "filterDrawer",
       value
     });
   }
 
   get labels(): string[] {
-    return this.$store.getters["videos/getLabels"];
+    return VideosModule.getLabels;
   }
 
   get items(): Video[] {

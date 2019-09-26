@@ -132,7 +132,7 @@
         <v-container>
           <v-combobox
             v-model="editing.chosenLabels"
-            :items="$store.getters['videos/getLabels']"
+            :items="allActorLabels"
             label="Add or choose labels"
             multiple
             chips
@@ -167,6 +167,7 @@ import { exportToDisk } from "@/util/library";
 import ActorsModule from "@/store_modules/actors";
 import ImagesModule from "@/store_modules/images";
 import GlobalsModule from "@/store_modules/globals";
+import VideosModule from "@/store_modules/videos";
 
 @Component({
   components: {
@@ -279,7 +280,7 @@ export default class ActorDetails extends Vue {
   }
 
   get watches(): number[] {
-    return this.$store.getters["videos/getActorWatches"](this.actor.id);
+    return VideosModule.getActorWatches(this.actor.id);
   }
 
   get actor(): Actor {
@@ -287,17 +288,19 @@ export default class ActorDetails extends Vue {
   }
 
   get videos(): Video[] {
-    return this.$store.getters["videos/getByActor"](this.actor.id);
+    return VideosModule.getByActor(this.actor.id);
   }
 
   get thumbnails(): string[] {
-    return (<Actor>this.actor).thumbnails.map(
-      id => ImagesModule.getById(id).path
-    );
+    return this.actor.thumbnails.map(id => ImagesModule.getById(id).path);
   }
 
   get labels(): string[] {
     return this.actor.labels.slice().sort();
+  }
+
+  get allActorLabels(): string[] {
+    return ActorsModule.getLabels;
   }
 }
 </script>

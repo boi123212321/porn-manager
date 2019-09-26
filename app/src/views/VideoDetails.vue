@@ -171,7 +171,7 @@
           <v-combobox
             :color="$store.getters['globals/secondaryColor']"
             v-model="editing.chosenLabels"
-            :items="$store.getters['videos/getLabels']"
+            :items="allVideoLabels"
             label="Add or choose labels"
             multiple
             chips
@@ -202,6 +202,7 @@ import { CustomFieldValue } from "@/classes/common";
 import { exportToDisk } from "@/util/library";
 import CustomField from "@/components/CustomField.vue";
 import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 @Component({
   components: {
@@ -218,7 +219,7 @@ export default class VideoDetails extends Vue {
   };
 
   saveLabels() {
-    this.$store.commit("videos/setLabels", {
+    VideosModule.setLabels({
       id: this.video.id,
       labels: this.editing.chosenLabels.map((label: string) =>
         toTitleCase(label)
@@ -235,7 +236,7 @@ export default class VideoDetails extends Vue {
   }
 
   rateVideo(rating: number) {
-    this.$store.commit("videos/rate", {
+    VideosModule.rate({
       id: this.video.id,
       rating
     });
@@ -243,7 +244,7 @@ export default class VideoDetails extends Vue {
   }
 
   removeThumbnail(index: number) {
-    this.$store.commit("videos/removeThumbnail", {
+    VideosModule.removeThumbnail({
       id: this.video.id,
       index
     });
@@ -252,7 +253,7 @@ export default class VideoDetails extends Vue {
   }
 
   setCoverIndex(index: number) {
-    this.$store.commit("videos/setCoverIndex", {
+    VideosModule.setCoverIndex({
       id: this.video.id,
       index
     });
@@ -301,7 +302,7 @@ export default class VideoDetails extends Vue {
       ImagesModule.add(images);
 
       if (files.length) {
-        this.$store.commit("videos/addThumbnails", {
+        VideosModule.addThumbnails({
           id: this.video.id,
           images: images.map(i => i.id)
         });
@@ -335,6 +336,10 @@ export default class VideoDetails extends Vue {
 
   get thumbnails(): string[] {
     return this.video.thumbnails.map(id => ImagesModule.getById(id).path);
+  }
+
+  get allVideoLabels(): string[] {
+    return VideosModule.getLabels;
   }
 }
 </script>

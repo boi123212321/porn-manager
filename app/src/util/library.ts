@@ -2,11 +2,10 @@ import Vue from "vue";
 import path from "path";
 import fs from "fs";
 
-import store from "@/store";
-
-import ActorModule from "@/store_modules/actors";
+import ActorsModule from "@/store_modules/actors";
 import GlobalsModule from "@/store_modules/globals";
 import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 import Video from "@/classes/video";
 import Actor from "@/classes/actor";
@@ -29,10 +28,10 @@ export async function exportToDisk(timeout?: number): Promise<void> {
           fs.mkdirSync(libraryPath);
 
         const videoPath = path.resolve(libraryPath, "videos.json");
-        fs.writeFileSync(videoPath, JSON.stringify(store.getters["videos/getAll"]), "utf-8");
+        fs.writeFileSync(videoPath, JSON.stringify(VideosModule.getAll), "utf-8");
 
         const actorPath = path.resolve(libraryPath, "actors.json");
-        fs.writeFileSync(actorPath, JSON.stringify(ActorModule.getAll), "utf-8");
+        fs.writeFileSync(actorPath, JSON.stringify(ActorsModule.getAll), "utf-8");
 
         const imagePath = path.resolve(libraryPath, "images.json");
         fs.writeFileSync(imagePath, JSON.stringify(ImagesModule.getAll), "utf-8");
@@ -75,17 +74,13 @@ export function loadFromDisk(): Promise<void> {
         if (fileContent) {
           var videos = JSON.parse(fileContent);
           if (videos && Array.isArray(videos)) {
-            store.commit(
-              "videos/set",
+            VideosModule.set(
               videos.map((o: any) => Object.assign(new Video(), o))
             );
           }
         }
         else {
-          store.commit(
-            "videos/set",
-            []
-          );
+          VideosModule.set([]);
         }
       }
 
@@ -95,13 +90,13 @@ export function loadFromDisk(): Promise<void> {
         if (fileContent) {
           const actors = JSON.parse(fileContent);
           if (actors && Array.isArray(actors)) {
-            ActorModule.set(
+            ActorsModule.set(
               actors.map((o: any) => Object.assign(new Actor(), o))
             );
           }
         }
         else {
-          ActorModule.set([]);
+          ActorsModule.set([]);
         }
       }
 

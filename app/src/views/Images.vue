@@ -407,6 +407,7 @@ import { exportToDisk } from "@/util/library";
 import ActorsModule from "@/store_modules/actors";
 import GlobalsModule from "@/store_modules/globals";
 import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 enum FilterMode {
   NONE,
@@ -560,7 +561,7 @@ export default class Images extends Vue {
     ImagesModule.remove(item.id);
 
     if (item.video) {
-      this.$store.commit("videos/removeThumbnailById", {
+      VideosModule.removeThumbnailById({
         id: item.video,
         image: item.id
       });

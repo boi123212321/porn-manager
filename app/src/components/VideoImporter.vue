@@ -14,7 +14,7 @@
           <v-combobox
             :color="$store.getters['globals/secondaryColor']"
             :value="video.labels"
-            :items="$store.getters['videos/getLabels']"
+            :items="allVideoLabels"
             label="Add or choose labels"
             multiple
             chips
@@ -99,6 +99,7 @@ import { toTitleCase } from "../util/string";
 import { exportToDisk } from "../util/library";
 import GlobalsModule from "@/store_modules/globals";
 import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 @Component
 export default class VideoImporter extends Vue {
@@ -249,13 +250,11 @@ export default class VideoImporter extends Vue {
           image.actors = video.actors;
         });
 
+        VideosModule.add([video]);
         ImagesModule.add(images);
 
         video.thumbnails.push(...images.map(i => i.id));
-
         video.coverIndex = Math.floor(images.length / 2);
-
-        this.$store.commit("videos/add", [video]);
 
         this.processing = this.processing.filter(
           (v: { path: string }) => v.path != video.path
@@ -271,11 +270,15 @@ export default class VideoImporter extends Vue {
   }
 
   get generatingThumbnails() {
-    return this.$store.state.videos.generatingThumbnails;
+    return VideosModule.generatingThumbnails;
   }
 
   set generatingThumbnails(value: boolean) {
-    this.$store.commit("videos/generatingThumbnails", value);
+    VideosModule.setGeneratingThumbnails(value);
+  }
+
+  get allVideoLabels(): string[] {
+    return VideosModule.getLabels;
   }
 }
 </script>

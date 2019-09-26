@@ -29,9 +29,11 @@ class ActorModule extends VuexModule {
   }
 
   get getLabels(): string[] {
-    const tags = [] as string[];
-    this.items.forEach(actor => tags.push(...actor.labels));
-    return [...new Set(tags)];
+    return [
+      ...new Set(
+        this.items.map(v => v.labels).flat()
+      )
+    ];
   }
 
   @Mutation

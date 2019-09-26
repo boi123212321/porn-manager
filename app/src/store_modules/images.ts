@@ -43,9 +43,11 @@ class ImagesModule extends VuexModule {
   }
 
   get getLabels() {
-    const tags = [] as string[];
-    this.items.forEach(image => tags.push(...image.labels));
-    return [...new Set(tags)];
+    return [
+      ...new Set(
+        this.items.map(v => v.labels).flat()
+      )
+    ];
   }
 
   @Mutation

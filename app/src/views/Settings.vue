@@ -111,6 +111,7 @@ const { shell } = require("electron");
 import ActorModule from "@/store_modules/actors";
 import GlobalsModule from "@/store_modules/globals";
 import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 @Component({
   components: {}
@@ -202,7 +203,7 @@ export default class Settings extends Vue {
     GlobalsModule.addCustomField(field);
     ActorModule.addCustomField(field);
     ImagesModule.addCustomField(field);
-    this.$store.commit("videos/addCustomField", field);
+    VideosModule.addCustomField(field);
 
     exportToDisk();
   }
