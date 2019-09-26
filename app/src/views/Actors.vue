@@ -159,6 +159,7 @@ import CustomField, { CustomFieldType } from "@/classes/custom_field";
 import CustomFieldComponent from "@/components/CustomField.vue";
 import ActorModule from "@/store_modules/actors";
 import GlobalsModule from "@/store_modules/globals";
+import VideosModule from "@/store_modules/videos";
 
 enum FilterMode {
   NONE,
@@ -193,7 +194,7 @@ export default class Actors extends Vue {
   sortModes = [
     {
       name: "Date added (newest)",
-      value: 0
+      value: 0 // !TODO: Sort mode enum
     },
     {
       name: "Date added (oldest)",
@@ -407,18 +408,14 @@ export default class Actors extends Vue {
         break;
       case 6:
         actors.forEach(actor => {
-          actor["watches"] = this.$store.getters["videos/getActorWatches"](
-            actor.id
-          );
+          actor["watches"] = VideosModule.getActorWatches(actor.id);
         });
 
         actors.sort((a, b) => b.watches.length - a.watches.length);
         break;
       case 7:
         actors.forEach(actor => {
-          actor["watches"] = this.$store.getters["videos/getActorWatches"](
-            actor.id
-          );
+          actor["watches"] = VideosModule.getActorWatches(actor.id);
         });
 
         actors.sort((a, b) => a.watches.length - b.watches.length);
