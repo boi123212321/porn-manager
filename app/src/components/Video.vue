@@ -23,6 +23,7 @@ import fs from "fs";
 import path from "path";
 import { hash } from "@/util/generator";
 import Video from "@/classes/video";
+import ImagesModule from "@/store_modules/images";
 
 const Props = Vue.extend({
   props: {
@@ -37,8 +38,8 @@ export default class VideoComponent extends Props {
   }
 
   get thumbnails(): string[] {
-    return (<Video>this.video).thumbnails.map(id =>
-      this.$store.getters["images/idToPath"](id)
+    return (<Video>this.video).thumbnails.map(
+      id => ImagesModule.getById(id).path
     );
   }
 }

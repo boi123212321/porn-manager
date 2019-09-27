@@ -404,6 +404,10 @@ import { toTitleCase } from "@/util/string";
 import CustomFieldComponent from "@/components/CustomField.vue";
 import CustomField, { CustomFieldType } from "../classes/custom_field";
 import { exportToDisk } from "@/util/library";
+import ActorsModule from "@/store_modules/actors";
+import GlobalsModule from "@/store_modules/globals";
+import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 enum FilterMode {
   NONE,
@@ -475,17 +479,15 @@ export default class Images extends Vue {
   showImageDetails = false;
 
   mounted() {
-    this.fieldFilters = (<CustomField[]>this.$store.state.globals.customFields)
-      .slice()
-      .map(field => {
-        return {
-          name: field.name,
-          values: field.values,
-          type: field.type,
-          mode: FilterMode.NONE,
-          value: field.type >= 3 ? [] : null
-        };
-      }) as FieldFilter[];
+    this.fieldFilters = GlobalsModule.customFields.slice().map(field => {
+      return {
+        name: field.name,
+        values: field.values,
+        type: field.type,
+        mode: FilterMode.NONE,
+        value: field.type >= 3 ? [] : null
+      };
+    }) as FieldFilter[];
   }
 
   setFieldFilterValue({
@@ -518,7 +520,7 @@ export default class Images extends Vue {
   }
 
   saveLabels() {
-    this.$store.commit("images/setLabels", {
+    ImagesModule.setLabels({
       id: this.items[this.currentImage].id,
       labels: this.editing.chosenLabels.map((label: string) =>
         toTitleCase(label)
@@ -530,7 +532,7 @@ export default class Images extends Vue {
   }
 
   saveSettings() {
-    this.$store.commit("images/edit", {
+    ImagesModule.edit({
       id: this.items[this.currentImage].id,
       settings: {
         name: toTitleCase(this.editing.name),
@@ -556,10 +558,10 @@ export default class Images extends Vue {
 
     if (item.path.includes("library/")) fs.unlinkSync(item.path);
 
-    this.$store.commit("images/remove", item.id);
+    ImagesModule.remove(item.id);
 
     if (item.video) {
-      this.$store.commit("videos/removeThumbnailById", {
+      VideosModule.removeThumbnailById({
         id: item.video,
         image: item.id
       });
@@ -578,17 +580,17 @@ export default class Images extends Vue {
   }
 
   favorite() {
-    this.$store.commit("images/favorite", this.items[this.currentImage].id);
+    ImagesModule.favorite(this.items[this.currentImage].id);
     exportToDisk();
   }
 
   bookmark() {
-    this.$store.commit("images/bookmark", this.items[this.currentImage].id);
+    ImagesModule.bookmark(this.items[this.currentImage].id);
     exportToDisk();
   }
 
   rateImage(rating: number) {
-    this.$store.commit("images/rate", {
+    ImagesModule.rate({
       id: this.items[this.currentImage].id,
       rating
     });
@@ -615,7 +617,7 @@ export default class Images extends Vue {
         };
       }) as { name: string; path: string; size: number }[];
 
-      if (this.$store.state.globals.settings.copyThumbnails) {
+      if (GlobalsModule.copyThumbnails) {
         if (!fs.existsSync(path.resolve(process.cwd(), "library/images/"))) {
           fs.mkdirSync(path.resolve(process.cwd(), "library/images/"));
         }
@@ -634,9 +636,7 @@ export default class Images extends Vue {
 
       let images = files.map(file => Image.create(file));
 
-      let customFieldNames = this.$store.getters[
-        "globals/getCustomFieldNames"
-      ] as string[];
+      let customFieldNames = GlobalsModule.getCustomFieldNames;
 
       images.forEach(image => {
         customFieldNames.forEach(field => {
@@ -644,7 +644,7 @@ export default class Images extends Vue {
         });
       });
 
-      this.$store.commit("images/add", images);
+      ImagesModule.add(images);
 
       exportToDisk();
 
@@ -667,13 +667,11 @@ export default class Images extends Vue {
   }
 
   get labels(): string[] {
-    return this.$store.getters["images/getLabels"];
+    return ImagesModule.getLabels;
   }
 
   get items() {
-    let images = JSON.parse(
-      JSON.stringify(this.$store.state.images.items)
-    ) as Image[];
+    let images = JSON.parse(JSON.stringify(ImagesModule.items)) as Image[];
 
     if (this.favoritesOnly) {
       images = images.filter(image => image.favorite);
@@ -770,7 +768,8 @@ export default class Images extends Vue {
 
     images.forEach(image => {
       image.actors = image.actors.map((id: string) => {
-        return this.$store.getters["actors/getById"](id);
+        // !TYPE
+        return <any>ActorsModule.getById(id);
       });
     });
 
@@ -813,99 +812,99 @@ export default class Images extends Vue {
   }
 
   get chosenSort(): number {
-    return this.$store.state.images.search.chosenSort;
+    return ImagesModule.search.chosenSort;
   }
 
   set chosenSort(value: number) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "chosenSort",
       value
     });
   }
 
   get ratingFilter(): number {
-    return this.$store.state.images.search.ratingFilter;
+    return ImagesModule.search.ratingFilter;
   }
 
   set ratingFilter(value: number) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "ratingFilter",
       value
     });
   }
 
   get bookmarksOnly(): boolean {
-    return this.$store.state.images.search.bookmarksOnly;
+    return ImagesModule.search.bookmarksOnly;
   }
 
   set bookmarksOnly(value: boolean) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "bookmarksOnly",
       value
     });
   }
 
   get favoritesOnly(): boolean {
-    return this.$store.state.images.search.favoritesOnly;
+    return ImagesModule.search.favoritesOnly;
   }
 
   set favoritesOnly(value: boolean) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "favoritesOnly",
       value
     });
   }
 
   get chosenActors(): string[] {
-    return this.$store.state.images.search.chosenActors;
+    return ImagesModule.search.chosenActors;
   }
 
   set chosenActors(value: string[]) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "chosenActors",
       value
     });
   }
 
   get chosenLabels(): string[] {
-    return this.$store.state.images.search.chosenLabels;
+    return ImagesModule.search.chosenLabels;
   }
 
   set chosenLabels(value: string[]) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "chosenLabels",
       value
     });
   }
 
   get search(): string {
-    return this.$store.state.images.search.search;
+    return ImagesModule.search.search;
   }
 
   set search(value: string) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "search",
       value
     });
   }
 
   get gridSize(): number {
-    return this.$store.state.images.search.gridSize;
+    return ImagesModule.search.gridSize;
   }
 
   set gridSize(value: number) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "gridSize",
       value
     });
   }
 
   get filterDrawer(): boolean {
-    return this.$store.state.images.search.filterDrawer;
+    return ImagesModule.search.filterDrawer;
   }
 
   set filterDrawer(value: boolean) {
-    this.$store.commit("images/setSearchParam", {
+    ImagesModule.setSearchParam({
       key: "filterDrawer",
       value
     });

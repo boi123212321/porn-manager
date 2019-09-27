@@ -108,19 +108,13 @@ import path from "path";
 import fs from "fs";
 import rimraf from "rimraf";
 const { shell } = require("electron");
-import ColorSelector from "@/components/ColorSelector.vue";
-
-// Turn enum into array
-// function toArray(enumme: any) {
-//   return Object.keys(enumme)
-//     .filter((value: any) => isNaN(Number(value)) === false)
-//     .map(key => enumme[key]);
-// }
+import ActorModule from "@/store_modules/actors";
+import GlobalsModule from "@/store_modules/globals";
+import ImagesModule from "@/store_modules/images";
+import VideosModule from "@/store_modules/videos";
 
 @Component({
-  components: {
-    ColorSelector
-  }
+  components: {}
 })
 export default class Settings extends Vue {
   backupLoader = false;
@@ -154,12 +148,12 @@ export default class Settings extends Vue {
   };
 
   changeSecondaryColor(col: string) {
-    this.$store.commit("globals/setSecondaryColor", col);
+    GlobalsModule.setSecondaryColor(col);
     exportToDisk();
   }
 
   changePrimaryColor(col: string) {
-    this.$store.commit("globals/setPrimaryColor", col);
+    GlobalsModule.setPrimaryColor(col);
     exportToDisk();
   }
 
@@ -169,7 +163,7 @@ export default class Settings extends Vue {
 
   set darkMode(val: boolean) {
     this.$vuetify.theme.dark = val;
-    this.$store.commit("globals/setDarkMode", val);
+    GlobalsModule.setDarkMode(val);
     exportToDisk();
   }
 
@@ -206,10 +200,10 @@ export default class Settings extends Vue {
       this.fields.chosenType
     );
 
-    this.$store.commit("globals/addCustomField", field);
-    this.$store.commit("actors/addCustomField", field);
-    this.$store.commit("images/addCustomField", field);
-    this.$store.commit("videos/addCustomField", field);
+    GlobalsModule.addCustomField(field);
+    ActorModule.addCustomField(field);
+    ImagesModule.addCustomField(field);
+    VideosModule.addCustomField(field);
 
     exportToDisk();
   }

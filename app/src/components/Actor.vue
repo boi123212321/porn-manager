@@ -21,6 +21,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import Actor from "@/classes/actor";
+import ImagesModule from "@/store_modules/images";
 
 const Props = Vue.extend({
   props: {
@@ -38,8 +39,8 @@ export default class ActorComponent extends Props {
   }
 
   get thumbnails(): string[] {
-    return (<Actor>this.actor).thumbnails.map(id =>
-      this.$store.getters["images/idToPath"](id)
+    return (<Actor>this.actor).thumbnails.map(
+      id => ImagesModule.getById(id).path
     );
   }
 }

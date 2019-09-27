@@ -31,6 +31,9 @@ import Component from "vue-class-component";
 import * as library from "@/util/library";
 import { remote } from "electron";
 const { shell } = require("electron");
+import VideoDetailsActions from "@/components/VideoDetailsActions.vue";
+import ActorDetailsActions from "@/components/ActorDetailsActions.vue";
+import GlobalsModule from "@/store_modules/globals";
 
 // DEBUG RIGHT-CLICK
 let rightClickPosition = null as null | { x: number; y: number };
@@ -54,9 +57,6 @@ window.addEventListener(
   },
   false
 );
-
-import VideoDetailsActions from "@/components/VideoDetailsActions.vue";
-import ActorDetailsActions from "@/components/ActorDetailsActions.vue";
 
 @Component({
   components: {
@@ -100,7 +100,7 @@ export default class App extends Vue {
 
   async beforeMount() {
     await library.loadFromDisk();
-    this.$vuetify.theme.dark = this.$store.getters['globals/darkMode'];
+    this.$vuetify.theme.dark = GlobalsModule.darkMode;
   }
 }
 </script>

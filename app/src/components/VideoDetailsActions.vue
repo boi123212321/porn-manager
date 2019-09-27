@@ -17,7 +17,7 @@
     <v-btn icon dark @click="openEditDialog">
       <v-icon>mdi-pencil</v-icon>
     </v-btn>
-    <v-btn icon dark @click>
+    <v-btn icon dark @click="() => {}">
       <v-icon color="warning">mdi-delete</v-icon>
     </v-btn>
 
@@ -130,6 +130,7 @@ import { exportToDisk } from "@/util/library";
 import CustomField from "@/components/CustomField.vue";
 import { CustomFieldValue } from "@/classes/common";
 import { toTitleCase } from "@/util/string";
+import VideosModule from "@/store_modules/videos";
 
 @Component({
   components: {
@@ -149,7 +150,7 @@ export default class VideoDetailsActions extends Vue {
   };
 
   saveSettings() {
-    this.$store.commit("videos/edit", {
+    VideosModule.edit({
       id: this.video.id,
       settings: {
         title: toTitleCase(this.editing.title),
@@ -188,16 +189,17 @@ export default class VideoDetailsActions extends Vue {
 
   playVideo() {
     this.video.open();
-    this.$store.commit("videos/incrementViewCounter", this.video.id);
+    VideosModule.incrementViewCounter(this.video.id);
+    exportToDisk();
   }
 
   favorite() {
-    this.$store.commit("videos/favorite", this.video.id);
+    VideosModule.favorite(this.video.id);
     exportToDisk();
   }
 
   bookmark() {
-    this.$store.commit("videos/bookmark", this.video.id);
+    VideosModule.bookmark(this.video.id);
     exportToDisk();
   }
 
