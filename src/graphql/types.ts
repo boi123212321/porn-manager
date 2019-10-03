@@ -65,7 +65,6 @@ type Scene {
   rating: Int
   actors: [Actor!]!
   labels: [Label!]!
-  movies: [String!]!
   path: String
   streamLinks: [String!]!
   watches: [Long!]!
@@ -95,6 +94,7 @@ type Mutation {
   updateLabel(id: String!, name: String, aliases: [String!]): Label
   removeLabel(id: String!): Boolean
   
+  setSceneLabels(id: String!, labels: [String!]!): Scene
   setActorLabels(id: String!, labels: [String!]!): Actor
   
   addScene(name: String!, actors: [String!], labels: [String!]): Scene

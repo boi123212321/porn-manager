@@ -1,12 +1,14 @@
 import { database } from "../../database";
 import Actor from "../../types/actor";
 import Label from "../../types/label";
-import { ReadStream, createWriteStream, statSync } from "fs";
+import { ReadStream, createWriteStream, statSync, existsSync } from "fs";
 import path, { extname } from "path";
 import Scene from "../../types/scene";
 import ffmpeg from "fluent-ffmpeg";
 import * as logger from "../../logger";
 import Image from "../../types/image";
+import config from "../../config";
+import { extractLabels, extractActors } from "../../extractor";
 
 interface HashMap<T> {
   [key: string]: T;
@@ -57,6 +59,29 @@ export default {
     }
   },
 
+  setSceneLabels(parent, args: AnyMap) {
+    const scene = Scene.getById(args.id);
+
+    for (const label of args.labels) {
+      const labelInDb = Label.getById(label);
+
+      if (!labelInDb)
+        throw new Error(`Label ${label} not found`);
+    }
+
+    if (scene) {
+      scene.labels = args.labels;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ labels: args.labels })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
   setActorLabels(parent, args: AnyMap) {
     const actor = Actor.getById(args.id);
 
@@ -102,9 +127,21 @@ export default {
       scene.actors = args.actors;
     }
 
+    // Extract actors
+    const extractedActors = extractActors(scene.name);
+    logger.LOG(`Found ${extractedActors.length} actors in scene title.`)
+    scene.actors.push(...extractedActors);
+    scene.actors = [...new Set(scene.actors)];
+
     if (args.labels) {
       scene.labels = args.labels;
     }
+
+    // Extract labels
+    const extractedLabels = extractLabels(scene.name);
+    logger.LOG(`Found ${extractedLabels.length} labels in scene title.`)
+    scene.labels.push(...extractedLabels);
+    scene.labels = [...new Set(scene.labels)];
 
     database
       .get('scenes')
@@ -139,8 +176,18 @@ export default {
     if (args.name)
       sceneName = args.name;
 
-    // !TODO check mimetype
-    // !TODO check if ffmpeg/ffprobe exist
+    if (!mimetype.includes("video/"))
+      throw new Error("Invalid file");
+
+    if (!existsSync(config.FFMPEG_PATH)) {
+      logger.ERROR("ERROR: FFMPEG not found")
+      throw new Error("FFMPEG not found");
+    }
+
+    if (!existsSync(config.FFPROBE_PATH)) {
+      logger.ERROR("ERROR: FFPROBE not found")
+      throw new Error("FFPROBE not found");
+    }
 
     const scene = new Scene(sceneName);
 
@@ -189,9 +236,21 @@ export default {
       scene.actors = args.actors;
     }
 
+    // Extract actors
+    const extractedActors = extractActors(scene.name);
+    logger.LOG(`Found ${extractedActors.length} actors in scene title.`)
+    scene.actors.push(...extractedActors);
+    scene.actors = [...new Set(scene.actors)];
+
     if (args.labels) {
       scene.labels = args.labels;
     }
+
+    // Extract labels
+    const extractedLabels = extractLabels(scene.name);
+    logger.LOG(`Found ${extractedLabels.length} labels in scene title.`)
+    scene.labels.push(...extractedLabels);
+    scene.labels = [...new Set(scene.labels)];
 
     const thumbnailFiles = await scene.generateThumbnails();
 
