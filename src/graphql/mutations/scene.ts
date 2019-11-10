@@ -9,7 +9,7 @@ import * as logger from "../../logger";
 import Image from "../../types/image";
 import config from "../../config";
 import { extractLabels, extractActors } from "../../extractor";
-import { Dictionary, isValidUrl } from "../../types/utility";
+import { Dictionary, isValidUrl, libraryPath } from "../../types/utility";
 
 export default {
   addScene(parent, args: Dictionary<any>) {
@@ -98,16 +98,15 @@ export default {
 
     const scene = new Scene(sceneName);
 
-    const sourcePath = path.resolve(
-      process.cwd(),
-      `./library/scenes/${scene.id}${ext}`
-    );
+    const sourcePath =  `scenes/${scene.id}${ext}`;
     scene.path = sourcePath;
 
     logger.LOG(`Getting file...`);
 
     const read = createReadStream() as ReadStream;
-    const write = createWriteStream(sourcePath);
+    const write = createWriteStream(
+      libraryPath(sourcePath)
+    );
 
     const pipe = read.pipe(write);
 
@@ -160,7 +159,7 @@ export default {
     scene.labels = [...new Set(scene.labels)];
 
     const thumbnailFiles = await scene.generateThumbnails();
-
+    thumbnailFiles
     for (let i = 0; i < thumbnailFiles.length; i++) {
       const file = thumbnailFiles[i];
       const image = new Image(`${sceneName} ${i + 1}`);

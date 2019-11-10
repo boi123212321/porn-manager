@@ -2,6 +2,8 @@ import { readFileSync, existsSync, writeFileSync } from "fs";
 import * as logger from "../logger";
 
 interface IConfig {
+  LIBRARY_PATH: string;
+
   FFMPEG_PATH: string;
   FFPROBE_PATH: string;
 
@@ -11,13 +13,14 @@ interface IConfig {
 }
 
 const defaultConfig: IConfig = {
+  LIBRARY_PATH: process.cwd(),
   FFMPEG_PATH: "",
   FFPROBE_PATH: "",
   THUMBNAIL_INTERVAL: 60,
   DOWNLOAD_FFMPEG_BIN: false
 }
 
-let config = JSON.parse(JSON.stringify(defaultConfig));
+let config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;
 
 if (existsSync("config.json")) {
   config = JSON.parse(readFileSync("config.json", "utf-8"));

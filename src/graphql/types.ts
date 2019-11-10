@@ -53,7 +53,7 @@ type Label {
   name: String!
   aliases: [String!]!
   addedOn: Long!
-  image: String
+  thumbnail: Image
 }
 
 type Scene {
@@ -107,11 +107,11 @@ type Mutation {
   setImageRating(id: String!, rating: String!): Image
   setImageLabels(id: String!, labels: [String!]!): Image
   setImageActors(id: String!, actors: [String!]!): Image
-  setImageThumbnail(id: String!, image: String!): Image
   removeImage(id: String!): Boolean
   
   addLabel(name: String!, aliases: [String!]): Label
   updateLabel(id: String!, name: String, aliases: [String!]): Label
+  setLabelThumbnail(id: String!, image: String!): Label
   removeLabel(id: String!): Boolean
   
   addScene(name: String!, actors: [String!], labels: [String!]): Scene

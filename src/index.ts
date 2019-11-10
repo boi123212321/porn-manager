@@ -9,6 +9,7 @@ import types from "./graphql/types"
 import resolvers from "./graphql/resolvers"
 import Scene from "./types/scene";
 import * as path from "path";
+import { libraryPath } from "./types/utility";
 
 const app = express();
 
@@ -30,7 +31,7 @@ app.use("/scene/:scene", (req, res, next) => {
   // TODO: Add to watches array
 
   if (scene && scene.path)
-    res.sendFile(scene.path);
+    res.sendFile(libraryPath(scene.path));
   else
     next(404);
 })
@@ -39,7 +40,7 @@ app.use("/image/:image", (req, res, next) => {
   const image = Image.getById(req.params.image);
 
   if (image && image.path)
-    res.sendFile(image.path);
+    res.sendFile(libraryPath(image.path));
   else
     next(404);
 })

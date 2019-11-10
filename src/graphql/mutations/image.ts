@@ -7,7 +7,8 @@ import { ReadStream, createWriteStream, statSync } from "fs";
 import path, { extname } from "path";
 import * as logger from "../../logger";
 import { extractLabels, extractActors } from "../../extractor";
-import { Dictionary} from "../../types/utility";
+import { Dictionary, libraryPath } from "../../types/utility";
+import config from "../../config/index";
 
 export default {
   async uploadImage(parent, args: Dictionary<any>) {
@@ -46,16 +47,13 @@ export default {
 
     const image = new Image(imageName);
 
-    const sourcePath = path.resolve(
-      process.cwd(),
-      `./library/images/${image.id}${ext}`
-    );
+    const sourcePath = `images/${image.id}${ext}`;
     image.path = sourcePath;
 
     logger.LOG(`Getting file...`);
 
     const read = createReadStream() as ReadStream;
-    const write = createWriteStream(sourcePath);
+    const write = createWriteStream(libraryPath(sourcePath));
 
     const pipe = read.pipe(write);
 
@@ -63,7 +61,7 @@ export default {
       pipe.on("close", () => resolve());
     });
 
-    const { size } = statSync(sourcePath);
+    const { size } = statSync(libraryPath(sourcePath));
     image.meta.size = size;
 
     // TODO: extract image dimensions

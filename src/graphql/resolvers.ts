@@ -13,7 +13,7 @@ const resolvers = {
   Image: ImageResolver,
   Query: QueryResolvers,
   Mutation: MutationResolver,
-  label: LabelResolver
+  Label: LabelResolver
 }
 
 export default resolvers;

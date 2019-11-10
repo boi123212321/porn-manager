@@ -119,7 +119,7 @@ export default class Scene {
         file: this.path,
         pattern: `${this.id}-%s.jpg`,
         count: amount,
-        thumbnailPath: "./library/thumbnails/"
+        thumbnailPath: "thumbnails/"
       }
 
       try {
@@ -161,11 +161,7 @@ export default class Scene {
           .filter(name => name.includes(this.id)) as string[];
 
         const thumbnailFiles = thumbnailFilenames.map(name => {
-          const filePath = path.resolve(
-            process.cwd(),
-            "library/thumbnails/",
-            name
-          );
+          const filePath = `thumbnails/${name}`;
           const stats = fs.statSync(filePath);
           return {
             name,
