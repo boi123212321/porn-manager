@@ -9,19 +9,7 @@ import * as logger from "../../logger";
 import Image from "../../types/image";
 import config from "../../config";
 import { extractLabels, extractActors } from "../../extractor";
-
-const isValidUrl = (string) => {
-  try {
-    new URL(string);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-
-interface Dictionary<T> {
-  [key: string]: T;
-}
+import { Dictionary, isValidUrl } from "../../types/utility";
 
 export default {
   addScene(parent, args: Dictionary<any>) {

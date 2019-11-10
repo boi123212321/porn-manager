@@ -7,10 +7,7 @@ import { ReadStream, createWriteStream, statSync } from "fs";
 import path, { extname } from "path";
 import * as logger from "../../logger";
 import { extractLabels, extractActors } from "../../extractor";
-
-interface Dictionary<T> {
-  [key: string]: T;
-}
+import { Dictionary} from "../../types/utility";
 
 export default {
   async uploadImage(parent, args: Dictionary<any>) {

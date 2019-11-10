@@ -3,10 +3,7 @@ import Actor from "../../types/actor";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
 import Image from "../../types/image";
-
-interface Dictionary<T> {
-  [key: string]: T;
-}
+import { Dictionary} from "../../types/utility";
 
 export default {
   addLabel(parent, args: Dictionary<any>) {
