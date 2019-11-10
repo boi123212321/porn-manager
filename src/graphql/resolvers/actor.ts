@@ -4,18 +4,18 @@ import Actor from "../../types/actor";
 import Label from "../../types/label";
 
 export default {
-  scenes(obj) {
-    return Scene.getByActor(obj.id);
+  scenes(actor: Actor) {
+    return Scene.getByActor(actor.id);
   },
-  images(obj) {
-    return Image.getByActor(obj.id);
+  images(actor: Actor) {
+    return Image.getByActor(actor.id);
   },
-  labels(obj) {
-    const actor = Actor.getById(obj.id);
-
-    if (actor) {
-      return actor.labels.map(id => Label.getById(id));
-    }
-    return [];
+  labels(actor: Actor) {
+    return actor.labels.map(id => Label.getById(id));
+  },
+  thumbnail(actor: Actor) {
+    if (actor.thumbnail)
+      return Image.getById(actor.thumbnail);
+    return null;
   }
 }

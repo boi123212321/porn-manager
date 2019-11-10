@@ -1,14 +1,20 @@
 import { database } from "../database";
 import { generateHash } from "../hash";
 
+export class ImageDimensions {
+  width: number | null = null;
+  height: number | null = null;
+}
+
 export class ImageMeta {
   size: number | null = null;
+  dimensions = new ImageDimensions();
 }
 
 export default class Image {
   id: string;
   name: string;
-  path: string;
+  path: string | null = null;
   scene: string | null = null;
   addedOn = +new Date();
   favorite: boolean = false;
@@ -18,6 +24,21 @@ export default class Image {
   labels: string[] = [];
   meta = new ImageMeta();
   actors: string[] = [];
+
+  static remove(id: string) {
+    database.get('images')
+      .remove({ id })
+      .write();
+  }
+
+  static filterActor(actor: string) {
+    for (const image of Image.getAll()) {
+      database.get('images')
+        .find({ id: image.id })
+        .assign({ actors: image.actors.filter(l => l != actor) })
+        .write();
+    }
+  }
 
   static filterLabel(label: string) {
     for (const image of Image.getAll()) {
@@ -50,11 +71,8 @@ export default class Image {
     return database.get('images').value();
   }
 
-  constructor(name: string, path: string, scene?: string) {
+  constructor(name: string) {
     this.id = generateHash();
     this.name = name.trim();
-    this.path = path;
-    if (scene)
-      this.scene = scene;
   }
 }

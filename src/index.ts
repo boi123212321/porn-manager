@@ -19,6 +19,8 @@ const app = express();
 app.use("/scene/:scene", (req, res, next) => {
   const scene = Scene.getById(req.params.scene);
 
+  // TODO: Add to watches array
+
   if (scene && scene.path)
     res.sendFile(scene.path);
   else
@@ -28,7 +30,7 @@ app.use("/scene/:scene", (req, res, next) => {
 app.use("/image/:image", (req, res, next) => {
   const image = Image.getById(req.params.image);
 
-  if (image)
+  if (image && image.path)
     res.sendFile(image.path);
   else
     next(404);

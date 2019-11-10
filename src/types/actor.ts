@@ -14,6 +14,12 @@ export default class Actor {
   customFields: any = {};
   labels: string[] = [];
 
+  static remove(id: string) {
+    database.get('actors')
+      .remove({ id })
+      .write();
+  }
+
   static filterLabel(label: string) {
     for (const actor of Actor.getAll()) {
       database.get('actors')

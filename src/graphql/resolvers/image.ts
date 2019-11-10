@@ -1,18 +1,18 @@
 import Scene from "../../types/scene";
 import Image from "../../types/image";
-import Actor from "../../types/actor";
 import Label from "../../types/label";
+import Actor from "../../types/actor";
 
 export default {
-  scene(obj) {
-    return Scene.getById(obj.scene);
+  actors(image: Image) {
+    return image.actors.map(id => Actor.getById(id));
   },
-  labels(obj) {
-    const image = Image.getById(obj.id);
-
-    if (image) {
-      return image.labels.map(id => Label.getById(id));
-    }
-    return [];
+  scene(image: Image) {
+    if (image.scene)
+      return Scene.getById(image.scene);
+    return null;
+  },
+  labels(image: Image) {
+    return image.labels.map(id => Label.getById(id));
   }
 }

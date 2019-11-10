@@ -10,102 +10,21 @@ import Image from "../../types/image";
 import config from "../../config";
 import { extractLabels, extractActors } from "../../extractor";
 
-interface HashMap<T> {
+const isValidUrl = (string) => {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+interface Dictionary<T> {
   [key: string]: T;
 }
 
-type AnyMap = HashMap<any>;
-
 export default {
-  updateLabel(parent, args: AnyMap) {
-    const label = Label.getById(args.id);
-
-    if (args.name)
-      if (!args.name.length)
-        throw new Error(`Invalid label name`);
-
-    if (label) {
-      label.name = args.name || label.name;
-      label.aliases = args.aliases || label.aliases;
-
-      label.aliases = label.aliases.filter(s => s && s.length);
-
-      database.get('labels')
-        .find({ id: label.id })
-        .assign(label)
-        .write();
-
-      return label;
-    }
-    else {
-      throw new Error(`Label ${args.id} not found`);
-    }
-  },
-
-  removeLabel(parent, args: AnyMap) {
-    const label = Label.getById(args.id);
-
-    if (label) {
-      Label.remove(label.id);
-
-      Actor.filterLabel(label.id);
-      Image.filterLabel(label.id);
-      Scene.filterLabel(label.id);
-
-      return true;
-    }
-    else {
-      throw new Error(`Label ${args.id} not found`);
-    }
-  },
-
-  setSceneLabels(parent, args: AnyMap) {
-    const scene = Scene.getById(args.id);
-
-    for (const label of args.labels) {
-      const labelInDb = Label.getById(label);
-
-      if (!labelInDb)
-        throw new Error(`Label ${label} not found`);
-    }
-
-    if (scene) {
-      scene.labels = args.labels;
-      database.get('scenes')
-        .find({ id: scene.id })
-        .assign({ labels: args.labels })
-        .write();
-      return scene;
-    }
-    else {
-      throw new Error(`Scene ${args.id} not found`);
-    }
-  },
-
-  setActorLabels(parent, args: AnyMap) {
-    const actor = Actor.getById(args.id);
-
-    for (const label of args.labels) {
-      const labelInDb = Label.getById(label);
-
-      if (!labelInDb)
-        throw new Error(`Label ${label} not found`);
-    }
-
-    if (actor) {
-      actor.labels = args.labels;
-      database.get('actors')
-        .find({ id: actor.id })
-        .assign({ labels: args.labels })
-        .write();
-      return actor;
-    }
-    else {
-      throw new Error(`Actor ${args.id} not found`);
-    }
-  },
-
-  addScene(parent, args: AnyMap) {
+  addScene(parent, args: Dictionary<any>) {
     for (const actor of args.actors || []) {
       const actorInDb = Actor.getById(actor);
 
@@ -152,7 +71,7 @@ export default {
     return scene;
   },
 
-  async uploadScene(parent, args: AnyMap) {
+  async uploadScene(parent, args: Dictionary<any>) {
     for (const actor of args.actors || []) {
       const actorInDb = Actor.getById(actor);
 
@@ -256,7 +175,9 @@ export default {
 
     for (let i = 0; i < thumbnailFiles.length; i++) {
       const file = thumbnailFiles[i];
-      const image = new Image(`${sceneName} ${i}`, file.path, scene.id);
+      const image = new Image(`${sceneName} ${i + 1}`);
+      image.path = file.path;
+      image.scene = scene.id;
       image.meta.size = file.size;
       image.actors = scene.actors;
       image.labels = scene.labels;
@@ -279,24 +200,168 @@ export default {
 
     return scene;
   },
-  addActor(parent, args: AnyMap) {
-    const actor = new Actor(args.name, args.aliases)
 
-    database
-      .get('actors')
-      .push(actor)
-      .write();
+  setSceneName(parent, args: Dictionary<any>) {
+    const scenes = Scene.getById(args.id);
 
-    return actor;
+    if (scenes) {
+      scenes.name = args.name;
+      database.get('scenes')
+        .find({ id: scenes.id })
+        .assign({ name: args.name })
+        .write();
+      return scenes;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
   },
-  addLabel(parent, args: AnyMap) {
-    const label = new Label(args.name, args.aliases);
 
-    database
-      .get("labels")
-      .push(label)
-      .write();
+  setSceneRating(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
 
-    return label;
+    if (scene) {
+      scene.rating = args.rating;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ rating: args.rating })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
   },
+
+  removeScene(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    if (scene) {
+      Scene.remove(scene.id);
+      return true;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
+  setSceneLabels(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    for (const label of args.labels) {
+      const labelInDb = Label.getById(label);
+
+      if (!labelInDb)
+        throw new Error(`Label ${label} not found`);
+    }
+
+    if (scene) {
+      scene.labels = args.labels;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ labels: args.labels })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
+  setSceneStreamLinks(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    for (const url of args.urls) {
+      if (!isValidUrl(url))
+        throw new Error(`Link ${url} is invalid`);
+    }
+
+    if (scene) {
+      scene.streamLinks = args.urls;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ streamLinks: args.urls })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
+  setSceneActors(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    for (const actor of args.actors) {
+      const actorInDb = Label.getById(actor);
+
+      if (!actorInDb)
+        throw new Error(`Actor ${actor} not found`);
+    }
+
+    if (scene) {
+      scene.actors = args.actors;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ streamLinks: args.actors })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
+  setSceneFavorite(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    if (scene) {
+      scene.favorite = args.bool;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ favorite: args.bool })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
+  setSceneBookmark(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    if (scene) {
+      scene.bookmark = args.bool;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ bookmark: args.bool })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  },
+
+  setSceneThumbnail(parent, args: Dictionary<any>) {
+    const scene = Scene.getById(args.id);
+
+    const imageInDb = Image.getById(args.image);
+
+    if (!imageInDb)
+      throw new Error(`Image ${args.image} not found`);
+
+    if (scene) {
+      scene.thumbnail = args.image;
+      database.get('scenes')
+        .find({ id: scene.id })
+        .assign({ thumbnail: args.image })
+        .write();
+      return scene;
+    }
+    else {
+      throw new Error(`Scene ${args.id} not found`);
+    }
+  }
 }

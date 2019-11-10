@@ -4,8 +4,8 @@ import * as logger from "../logger";
 let config: any;
 
 const defaultConfig = {
-  "FFMPEG_PATH": "__SET__HERE__",
-  "FFPROBE_PATH": "__SET__HERE__",
+  "FFMPEG_PATH": "",
+  "FFPROBE_PATH": "",
   "THUMBNAIL_INTERVAL": 60
 };
 
