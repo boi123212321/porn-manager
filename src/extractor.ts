@@ -22,12 +22,12 @@ export function extractActors(str: string): string[] {
   str = str.toLowerCase();
   const foundActors = [] as string[];
   Actor.getAll()
-    .forEach(label => {
-      if (str.includes(label.name.toLowerCase())) {
-        foundActors.push(label.id);
+    .forEach(actor => {
+      if (str.includes(actor.name.toLowerCase())) {
+        foundActors.push(actor.id);
       }
-      else if (label.aliases.some(alias => str.includes(alias.toLowerCase()))) {
-        foundActors.push(label.id);
+      else if (actor.aliases.some(alias => str.includes(alias.toLowerCase()))) {
+        foundActors.push(actor.id);
       }
     })
   return foundActors;
