@@ -5,7 +5,9 @@ Note: this is by no means finished, but useable.
 
 ## Features
 - Crossplatform (Win, Linux, Mac)
+- Works on any somewhat-modern device including tablets and smartphones
 - Self hosted, fully open source
+- Serves image and video to your device
 - Manage video scenes
 - Manage actors
 - Manage images
