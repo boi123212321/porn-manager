@@ -7,10 +7,17 @@ import extractQueryOptions, { SortTarget } from "../../query_extractor";
 import Fuse from "fuse.js";
 import * as logger from "../../logger/index";
 import { Dictionary } from "../../types/utility";
+import ProcessingQueue from "../../queue/index";
 
 const PAGE_SIZE = 20;
 
 export default {
+  async getQueueInfo() {
+    return {
+      length: await ProcessingQueue.getLength()
+    };
+  },
+  
   async getActors(_, { query }: { query: string | undefined }) {
     const timeNow = +new Date();
     logger.log("Searching...");

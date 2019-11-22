@@ -17,6 +17,11 @@ type ImageMeta {
   dimensions: Dimensions!
 }
 
+type QueueInfo {
+  length: Int!
+  isProcessing: Boolean!
+}
+
 type Query {
   getScenes(query: String): [Scene!]!
   getActors(query: String): [Actor!]!
@@ -32,6 +37,8 @@ type Query {
   getLabels: [Label!]!
 
   getMovies: [Movie!]
+
+  getQueueInfo: QueueInfo!
 }
 
 type Actor {
@@ -184,7 +191,7 @@ type Mutation {
   addScene(name: String!, actors: [String!], labels: [String!]): Scene!
   addActorsToScene(id: String!, actors: [String!]!): Scene!
   watchScene(id: String!): Scene!
-  uploadScene(file: Upload!, name: String, actors: [String!], labels: [String!]): Scene!
+  uploadScene(file: Upload!, name: String, actors: [String!], labels: [String!]): Boolean!
   updateScenes(ids: [String!]!, opts: SceneUpdateOpts!): [Scene!]!
   removeScenes(ids: [String!]!): Boolean
 

@@ -9,6 +9,7 @@ let store = {} as {
   labels: DataStore;
   movies: DataStore;
   studios: DataStore;
+  queue: DataStore;
 };
 
 (async () => {
@@ -43,6 +44,10 @@ let store = {} as {
     studios: new DataStore({
       autoload: true,
       filename: await libraryPath("studios.db")
+    }),
+    queue: new DataStore({
+      autoload: true,
+      filename: await libraryPath("queue.db")
     })
   };
 })();

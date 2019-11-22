@@ -125,6 +125,10 @@ export default class Scene {
     return labels;
   }
 
+  static async getSceneByPath(path: string) {
+    return (await Scene.getAll()).filter(scene => scene.path == path)[0];
+  }
+
   static async getById(_id: string) {
     return (await database.findOne(database.store.scenes, {
       _id
@@ -155,7 +159,7 @@ export default class Scene {
       );
 
       const options = {
-        file: await libraryPath(scene.path),
+        file: scene.path,
         pattern: `${scene._id}-%s.jpg`,
         count: amount,
         thumbnailPath: await libraryPath("thumbnails/")
@@ -200,8 +204,8 @@ export default class Scene {
 
         const thumbnailFiles = await Promise.all(
           thumbnailFilenames.map(async name => {
-            const filePath = `thumbnails/${name}`;
-            const stats = await statAsync(await libraryPath(filePath));
+            const filePath = await libraryPath(`thumbnails/${name}`);
+            const stats = await statAsync(filePath);
             return {
               name,
               path: filePath,

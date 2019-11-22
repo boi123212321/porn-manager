@@ -371,8 +371,16 @@ export default class SceneDetails extends Vue {
           $crop: Crop
           $actors: [String!]
           $labels: [String!]
+          $scene: String
         ) {
-          uploadImage(file: $file, name: $name, crop: $crop, actors: $actors, labels: $labels) {
+          uploadImage(
+            file: $file
+            name: $name
+            crop: $crop
+            actors: $actors
+            labels: $labels
+            scene: $scene
+          ) {
             ...ImageFragment
           }
         }
@@ -381,6 +389,7 @@ export default class SceneDetails extends Vue {
       variables: {
         file: this.selectedThumbnail,
         name: this.currentScene.name + " (thumbnail)",
+        scene: this.currentScene._id,
         crop: {
           left: this.crop.left,
           top: this.crop.top,
@@ -530,7 +539,9 @@ export default class SceneDetails extends Vue {
       variables: {
         ids: [this.currentScene._id],
         opts: {
-          labels: this.selectedLabels.map(i => this.allLabels[i]).map(l => l._id)
+          labels: this.selectedLabels
+            .map(i => this.allLabels[i])
+            .map(l => l._id)
         }
       }
     })

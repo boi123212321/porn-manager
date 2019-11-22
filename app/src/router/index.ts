@@ -14,8 +14,9 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    name: "home",
-    component: Home
+    redirect: "/scenes"
+    /* name: "home", */
+    /* component: Home */
   },
   {
     path: "/about",
@@ -60,11 +61,11 @@ const routes = [
 
 const router = new VueRouter({
   routes,
-  scrollBehavior (to, from, savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
-      return savedPosition
+      return savedPosition;
     } else {
-      return { x: 0, y: 0 }
+      return { x: 0, y: 0 };
     }
   }
 });

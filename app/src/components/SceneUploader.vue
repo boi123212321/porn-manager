@@ -70,18 +70,8 @@ export default class ImageUploader extends Vue {
     ApolloClient.mutate({
       mutation: gql`
         mutation($file: Upload!, $name: String) {
-          uploadScene(file: $file, name: $name) {
-            ...SceneFragment
-            actors {
-              ...ActorFragment
-            }
-            thumbnail {
-              _id
-            }
-          }
+          uploadScene(file: $file, name: $name)
         }
-        ${sceneFragment}
-        ${actorFragment}
       `,
       variables: {
         file: scene.file,
@@ -95,7 +85,8 @@ export default class ImageUploader extends Vue {
       }
     })
       .then(res => {
-        this.$emit("uploaded", res.data.uploadScene);
+        // TODO: feedback?
+        // this.$emit("uploaded", res.data.uploadScene);
         this.uploadQueue.shift();
 
         if (this.uploadQueue.length) {

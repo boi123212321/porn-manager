@@ -9,5 +9,5 @@ export function randomString(length = 8) {
 }
 
 export function generateHash() {
-  return new Date().valueOf().toString(16) + randomString(4);
+  return new Date().valueOf().toString(36) + randomString();
 }

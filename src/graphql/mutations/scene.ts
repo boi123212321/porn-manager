@@ -2,17 +2,15 @@ import * as database from "../../database";
 import Actor from "../../types/actor";
 import Label from "../../types/label";
 import { ReadStream, createWriteStream } from "fs";
-import { extname } from "path";
-import Scene, { ThumbnailFile } from "../../types/scene";
-import ffmpeg from "fluent-ffmpeg";
+import Scene from "../../types/scene";
 import * as logger from "../../logger";
 import Image from "../../types/image";
-import { getConfig } from "../../config";
 import { extractLabels, extractActors } from "../../extractor";
 import { Dictionary, libraryPath } from "../../types/utility";
 import Movie from "../../types/movie";
-import ora from "ora";
-import { existsAsync, unlinkAsync, statAsync } from "../../fs/async";
+import { unlinkAsync } from "../../fs/async";
+import ProcessingQueue from "../../queue/index";
+import { extname } from "path";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
@@ -80,62 +78,22 @@ export default {
   },
 
   async uploadScene(_, args: Dictionary<any>) {
-    logger.log(`Receiving scene...`);
-
-    for (const actor of args.actors || []) {
-      const actorInDb = await Actor.getById(actor);
-
-      if (!actorInDb) throw new Error(`Actor ${actor} not found`);
-    }
-
-    for (const label of args.labels || []) {
-      const labelInDb = await Label.getById(label);
-
-      if (!labelInDb) throw new Error(`Label ${label} not found`);
-    }
-
+    logger.log(`Receiving file...`);
     const { filename, mimetype, createReadStream } = await args.file;
     logger.log(`Receiving ${filename}...`);
     const ext = extname(filename);
-    const fileNameWithoutExtension = filename.split(".")[0];
-
-    let sceneName = fileNameWithoutExtension;
-
-    if (args.name) sceneName = args.name;
+    const ID = new Scene("")._id;
+    const path = await libraryPath(`scenes/${ID}${ext}`);
 
     /* if (!mimetype.includes("video/")) {
       logger.error(`File has invalid format (${mimetype})`);
       throw new Error("Invalid file");
     } */
 
-    const config = await getConfig();
-
-    logger.log(`Checking binaries...`);
-
-    if (!(await existsAsync(config.FFMPEG_PATH))) {
-      logger.error("FFMPEG not found");
-      throw new Error("FFMPEG not found");
-    }
-
-    if (!(await existsAsync(config.FFPROBE_PATH))) {
-      logger.error("FFPROBE not found");
-      throw new Error("FFPROBE not found");
-    }
-
-    ffmpeg.setFfmpegPath(config.FFMPEG_PATH);
-    ffmpeg.setFfprobePath(config.FFPROBE_PATH);
-
-    logger.log(`Preparing download...`);
-
-    const scene = new Scene(sceneName);
-
-    const sourcePath = `scenes/${scene._id}${ext}`;
-    scene.path = sourcePath;
-
     logger.log(`Getting file...`);
 
     const read = createReadStream() as ReadStream;
-    const write = createWriteStream(await libraryPath(sourcePath));
+    const write = createWriteStream(path);
 
     try {
       const pipe = read.pipe(write);
@@ -146,118 +104,30 @@ export default {
     } catch (error) {
       logger.error("Error reading file - perhaps a permission problem?");
       try {
-        await unlinkAsync(await libraryPath(sourcePath));
+        await unlinkAsync(path);
       } catch (error) {
-        logger.warn(
-          `Could not cleanup source file - ${await libraryPath(sourcePath)}`
-        );
+        logger.warn(`Could not cleanup source file - ${path}`);
       }
       throw new Error("Error");
     }
 
     // File written, now process
-    logger.success(`File written to ${await libraryPath(sourcePath)}.`);
+    logger.success(`File written to ${path}.`);
 
-    try {
-      await new Promise(async (resolve, reject) => {
-        ffmpeg.ffprobe(await libraryPath(sourcePath), async (err, data) => {
-          if (err) {
-            console.log(err);
-            return reject(err);
-          }
+    await ProcessingQueue.append({
+      _id: ID,
+      actors: args.actors,
+      filename,
+      labels: args.labels,
+      name: args.name,
+      path
+    });
 
-          const meta = data.streams[0];
-          const { size } = await statAsync(await libraryPath(sourcePath));
-
-          if (meta) {
-            scene.meta.dimensions = {
-              width: <any>meta.width || null,
-              height: <any>meta.height || null
-            };
-            if (meta.duration) scene.meta.duration = parseInt(meta.duration);
-          } else {
-            logger.warn("Could not get video meta data.");
-          }
-
-          scene.meta.size = size;
-          resolve();
-        });
-      });
-    } catch (err) {
-      logger.error("Error ffprobing file - perhaps a permission problem?");
-      try {
-        await unlinkAsync(await libraryPath(sourcePath));
-      } catch (error) {
-        logger.warn(
-          `Could not cleanup source file - ${await libraryPath(sourcePath)}`
-        );
-      }
-      throw new Error("Error");
-    }
-
-    if (args.actors) {
-      scene.actors = args.actors;
-    }
-
-    // Extract actors
-    const extractedActors = await extractActors(scene.name);
-
-    let extractedActorsFromFileName = [] as string[];
-    if (args.name) extractedActorsFromFileName = await extractActors(filename);
-
-    scene.actors.push(...extractedActors);
-    scene.actors.push(...extractedActorsFromFileName);
-    scene.actors = [...new Set(scene.actors)];
-    logger.log(`Found ${scene.actors.length} actors in scene title.`);
-
-    if (args.labels) {
-      scene.labels = args.labels;
-    }
-
-    // Extract labels
-    const extractedLabels = await extractLabels(scene.name);
-
-    let extractedLabelsFromFileName = [] as string[];
-    if (args.name) extractedLabelsFromFileName = await extractLabels(filename);
-
-    scene.labels.push(...extractedLabels);
-    scene.labels.push(...extractedLabelsFromFileName);
-    scene.labels = [...new Set(scene.labels)];
-    logger.log(`Found ${scene.labels.length} labels in scene title.`);
-
-    if (config.GENERATE_THUMBNAILS) {
-      const loader = ora("Generating thumbnails...").start();
-
-      let thumbnailFiles = [] as ThumbnailFile[];
-      let images = [] as Image[];
-
-      try {
-        thumbnailFiles = await Scene.generateThumbnails(scene);
-        for (let i = 0; i < thumbnailFiles.length; i++) {
-          const file = thumbnailFiles[i];
-          const image = new Image(`${sceneName} ${i + 1}`);
-          image.path = file.path;
-          image.scene = scene._id;
-          image.meta.size = file.size;
-          image.actors = scene.actors;
-          image.labels = scene.labels;
-          await database.insert(database.store.images, image);
-          images.push(image);
-        }
-      } catch (error) {
-        loader.fail(`Error generating thumbnails.`);
-        throw error;
-      }
-
-      scene.thumbnail = images[Math.floor(images.length / 2)]._id;
-      loader.succeed(`Created ${thumbnailFiles.length} thumbnails.`);
-    }
+    logger.success(`Entry added to queue.`);
 
     // Done
 
-    await database.insert(database.store.scenes, scene);
-    logger.success(`Scene '${sceneName}' done.`);
-    return scene;
+    return true;
   },
 
   async addActorsToScene(_, { id, actors }: { id: string; actors: string[] }) {
