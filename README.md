@@ -32,11 +32,10 @@ Note: this is by no means finished, but useable.
 - visit [Issues](https://github.com/boi123212321/porn-manager/issues) to see what's up
 
 ## How to run
-- Visit the [Releases](https://github.com/boi123212321/porn-manager/releases) page and download the latest version, for the platform of your choice.
+- Visit the [Releases](https://github.com/boi123212321/porn-manager/releases) page and download the latest version, for the platform of your choice
 - Unzip the file
-- Run the application and follow the on-screen instructions.
-  - (if no terminal shows up, start a terminal and execute the file there instead)
-- Once your app is setup you can visit it on http://localhost:3000 (or your LAN IP equivalent) in your web browser of choice.
+- Run the application in the terminal of your choice and follow the on-screen instructions
+- Once your app is setup you can visit it on http://localhost:3000 (or your LAN IP equivalent) in your web browser of choice
 
 ## Images
 
