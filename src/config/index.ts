@@ -7,7 +7,14 @@ const existsAsync = promisify(exists);
 const readFileAsync = promisify(readFile);
 const writeFileAsync = promisify(writeFile);
 
+function stringifyFormatted(obj: any) {
+  return JSON.stringify(obj, null, 1);
+}
+
 export interface IConfig {
+  VIDEO_PATHS: string[];
+  IMAGE_PATHS: string[];
+
   LIBRARY_PATH: string;
 
   FFMPEG_PATH: string;
@@ -22,6 +29,8 @@ export interface IConfig {
 }
 
 export const defaultConfig: IConfig = {
+  VIDEO_PATHS: [],
+  IMAGE_PATHS: [],
   LIBRARY_PATH: process.cwd(),
   FFMPEG_PATH: "",
   FFPROBE_PATH: "",
@@ -46,21 +55,19 @@ export async function checkConfig() {
     }
 
     if (defaultOverride) {
-      await writeFileAsync("config.json", JSON.stringify(config), "utf-8");
+      await writeFileAsync("config.json", stringifyFormatted(config), "utf-8");
     }
     return false;
   } else {
     config = await setupFunction();
-    await writeFileAsync("config.json", JSON.stringify(config), "utf-8");
-    logger.warn("Created config.json. Please edit.");
-    return true;
+    await writeFileAsync("config.json", stringifyFormatted(config), "utf-8");
+    logger.warn("Created config.json. Please edit and restart.");
+    process.exit(0);
   }
 }
 
 export async function getConfig() {
   if (await existsAsync("config.json"))
-    return JSON.parse(
-      await readFileAsync("config.json", "utf-8")
-    ) as IConfig;
+    return JSON.parse(await readFileAsync("config.json", "utf-8")) as IConfig;
   return defaultConfig;
 }

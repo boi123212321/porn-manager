@@ -6,11 +6,13 @@ import types from "./graphql/types";
 import resolvers from "./graphql/resolvers";
 import Scene from "./types/scene";
 import * as path from "path";
-import { libraryPath } from "./types/utility";
 import debugHandler from "./debug_handler";
 import { checkPassword, passwordHandler } from "./password";
 import cors from "cors";
 import { getConfig } from "./config/index";
+import ProcessingQueue from "./queue/index";
+import { checkVideoFolders, checkImageFolders } from "./queue/check";
+import * as database from "./database/index";
 
 export default async () => {
   const app = express();
@@ -43,14 +45,14 @@ export default async () => {
 
     if (scene && scene.path) {
       Scene.watch(scene);
-      res.sendFile(await libraryPath(scene.path));
+      res.sendFile(scene.path);
     } else next(404);
   });
 
   app.use("/image/:image", async (req, res, next) => {
     const image = await Image.getById(req.params.image);
 
-    if (image && image.path) res.sendFile(await libraryPath(image.path));
+    if (image && image.path) res.sendFile(image.path);
     else next(404);
   });
 
@@ -73,5 +75,16 @@ export default async () => {
 
   app.listen(port, () => {
     console.log(`Server running in Port ${port}`);
+
+    setTimeout(async () => {
+      ProcessingQueue.setStore(database.store.queue);
+
+      await checkVideoFolders();
+      checkImageFolders();
+
+      logger.log(`Queued ${await ProcessingQueue.getLength()} videos.`);
+
+      ProcessingQueue.processLoop();
+    }, 2500);
   });
 };

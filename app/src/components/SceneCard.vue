@@ -17,7 +17,7 @@
     </div>
 
     <v-card-title>{{ scene.name }}</v-card-title>
-    <v-card-subtitle class="pb-1">Featuring {{ actorNames }}</v-card-subtitle>
+    <v-card-subtitle v-if="scene.actors.length" class="pb-1">Featuring {{ actorNames }}</v-card-subtitle>
     <v-rating
       half-increments
       @input="rate"

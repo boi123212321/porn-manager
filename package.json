@@ -7,8 +7,9 @@
   "scripts": {
     "install:app": "cd app && npm ci && cd ..",
     "watch": "tsc -w",
-    "mon": "NODE_ENV=development DEBUG=log,sucess,warn,error,http nodemon build/",
-    "dev": "NODE_ENV=development DEBUG=log,success,warn,error,http node build/",
+    "start": "node build",
+    "mon": "NODE_ENV=development nodemon build/",
+    "dev": "NODE_ENV=development node build/",
     "test": "exit 1",
     "build": "mkdir -p release/app/dist && npm run build:server && npm run build:app && cp -r ./views ./release && cp -r ./app/dist ./release/app",
     "build:app": "cd app && npm run build && cd ..",
@@ -51,6 +52,7 @@
     "js-sha512": "^0.8.0",
     "mkdirp": "^0.5.1",
     "nedb": "^1.8.0",
+    "node-filter-async": "^1.1.3",
     "ora": "^4.0.3",
     "pug": "^2.0.4",
     "tiny-async-pool": "^1.0.4"

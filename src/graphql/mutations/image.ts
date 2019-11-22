@@ -74,7 +74,7 @@ export default {
     // File written, now process
     logger.success(`File written to ${outPath}.`);
 
-    let sourcePath = `images/${image._id}${ext}`;
+    const sourcePath = await libraryPath(`images/${image._id}${ext}`);
     image.path = sourcePath;
 
     if (args.crop) {
@@ -97,14 +97,14 @@ export default {
             args.crop.width,
             args.crop.height
           )
-          .writeAsync(await libraryPath(sourcePath));
+          .writeAsync(sourcePath);
 
         image.meta.dimensions.width = args.crop.width;
         image.meta.dimensions.height = args.crop.height;
       } else {
         image.meta.dimensions.width = _image.bitmap.width;
         image.meta.dimensions.height = _image.bitmap.height;
-        await _image.writeAsync(await libraryPath(sourcePath));
+        await _image.writeAsync(sourcePath);
       }
 
       image.hash = _image.hash();

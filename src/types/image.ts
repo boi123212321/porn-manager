@@ -101,6 +101,10 @@ export default class Image {
     return labels;
   }
 
+  static async getImageByPath(path: string) {
+    return (await Image.getAll()).filter(image => image.path == path)[0];
+  }
+
   constructor(name: string) {
     this._id = generateHash();
     this.name = name.trim();
