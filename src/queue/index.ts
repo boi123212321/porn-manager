@@ -11,7 +11,7 @@ import { extractLabels, extractActors } from "../extractor";
 import ora from "ora";
 import { existsAsync, unlinkAsync, statAsync } from "../fs/async";
 
-interface IQueueItem {
+export interface IQueueItem {
   _id: string;
   name: string;
   filename: string;

@@ -4,11 +4,19 @@ import filterAsync from "node-filter-async";
 import Scene from "../types/scene";
 import Image from "../types/image";
 import { basename } from "path";
-import ProcessingQueue from "../queue/index";
+import ProcessingQueue, { IQueueItem } from "../queue/index";
 import * as logger from "../logger/index";
 import * as database from "../database";
 import { extractLabels, extractActors } from "../extractor";
 import Jimp from "jimp";
+
+async function getAll() {
+  return (await database.find(database.store.queue, {})) as IQueueItem[];
+}
+
+async function getItemByPath(path: string) {
+  return (await getAll()).filter(item => item.path == path)[0];
+}
 
 export async function checkVideoFolders() {
   const config = await getConfig();
@@ -22,7 +30,8 @@ export async function checkVideoFolders() {
 
   const unknownVideos = await filterAsync(files, async (path: string) => {
     const scene = await Scene.getSceneByPath(path);
-    return !scene;
+    const item = await getItemByPath(path);
+    return !scene && !item;
   });
 
   logger.log(`Found ${unknownVideos.length} new videos.`);
