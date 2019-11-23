@@ -43,10 +43,11 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
+import IActor from "../types/actor";
 
 @Component
 export default class ActorCard extends Vue {
-  @Prop(Object) actor!: any;
+  @Prop(Object) actor!: IActor;
 
   rate($event) {
     const rating = $event * 2;

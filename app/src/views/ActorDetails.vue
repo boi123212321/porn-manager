@@ -44,7 +44,7 @@
           <v-rating
             half-increments
             @input="rate"
-            class="pa-2"
+            class="pa-2 pb-0"
             :value="currentActor.rating / 2"
             background-color="grey"
             color="amber"
@@ -81,7 +81,7 @@
       </v-row>
       <v-row v-if="scenes.length">
         <v-col cols="12">
-          <div class="headline text-center">Scenes</div>
+          <h1 class="text-center font-weight-light">{{ scenes.length }} Scenes</h1>
 
           <v-row>
             <v-col
@@ -108,7 +108,7 @@
       <div v-if="images.length">
         <div class="d-flex align-center">
           <v-spacer></v-spacer>
-          <h1 class="font-weight-light mr-3">Images</h1>
+          <h1 class="font-weight-light mr-3">{{ images.length }} Images</h1>
           <v-btn @click="openUploadDialog" icon>
             <v-icon>mdi-upload</v-icon>
           </v-btn>
@@ -255,6 +255,8 @@ import ImageCard from "../components/ImageCard.vue";
 import InfiniteLoading from "vue-infinite-loading";
 import { Cropper } from "vue-advanced-cropper";
 import ImageUploader from "../components/ImageUploader.vue";
+import IScene from "../types/scene";
+import IImage from "../types/image";
 
 interface ICropCoordinates {
   left: number;
@@ -267,7 +269,6 @@ interface ICropResult {
   coordinates: ICropCoordinates;
 }
 
-// @ts-ignore
 @Component({
   components: {
     SceneCard,
@@ -284,8 +285,8 @@ interface ICropResult {
   }
 })
 export default class ActorDetails extends Vue {
-  scenes = [] as any[];
-  images = [] as any[];
+  scenes = [] as IScene[];
+  images = [] as IImage[];
   lightboxIndex = null as number | null;
 
   labelSelectorDialog = false;
@@ -420,6 +421,10 @@ export default class ActorDetails extends Vue {
               ...ImageFragment
               actors {
                 ...ActorFragment
+              }
+              scene {
+                _id
+                name
               }
             }
           }

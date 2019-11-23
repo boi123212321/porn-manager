@@ -43,19 +43,20 @@ import { Component, Vue, Prop, Watch } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
 import actorFragment from "../fragments/actor";
+import IActor from "../types/actor";
 
 @Component
 export default class ActorSelector extends Vue {
-  @Prop() value!: any[];
+  @Prop() value!: IActor[];
 
-  actors: any[] = [];
+  actors: IActor[] = [];
   searchQuery = "";
 
   waiting = false;
-  resetTimeout = null as any;
+  resetTimeout = null as NodeJS.Timeout | null;
 
   @Watch("selectedActors", { deep: true })
-  onSelectionChange(newVal: any[]) {
+  onSelectionChange(newVal: IActor[]) {
     this.$emit("input", newVal);
   }
 
@@ -64,13 +65,13 @@ export default class ActorSelector extends Vue {
     return this.actors.filter(a => !ids.includes(a._id));
   }
 
-  select(actor: any) {
+  select(actor: IActor) {
     if (!this.value.find(a => a._id == actor._id)) {
       this.$emit("input", this.value.concat(actor));
     }
   }
 
-  thumbnail(actor: any) {
+  thumbnail(actor: IActor) {
     if (actor.thumbnail)
       return `${serverBase}/image/${
         actor.thumbnail._id

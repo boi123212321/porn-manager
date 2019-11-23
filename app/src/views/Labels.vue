@@ -123,6 +123,7 @@ import { Component, Vue } from "vue-property-decorator";
 import ApolloClient from "../apollo";
 import gql from "graphql-tag";
 import LabelSelector from "../components/LabelSelector.vue";
+import ILabel from "../types/label";
 
 @Component({
   components: {
@@ -130,14 +131,14 @@ import LabelSelector from "../components/LabelSelector.vue";
   }
 })
 export default class Home extends Vue {
-  labels = [] as any[];
+  labels = [] as ILabel[];
   fetchLoader = false;
 
   selectedLabels = [] as number[];
 
   editLabelDialog = false;
   editLabelLoader = false;
-  editingLabel = null as any;
+  editingLabel = null as ILabel | null;
   editLabelName = "";
   editLabelAliases = [];
   validEditing = false;
@@ -162,6 +163,8 @@ export default class Home extends Vue {
   }
 
   editLabel() {
+    if (!this.editingLabel) return;
+
     this.editLabelLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -186,6 +189,7 @@ export default class Home extends Vue {
     })
       .then(res => {
         const index = this.labels.findIndex(
+          // @ts-ignore
           l => l._id == this.editingLabel._id
         );
 

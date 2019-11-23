@@ -60,13 +60,17 @@
           <v-icon color="black">mdi-delete-forever</v-icon>
         </v-btn>
       </v-toolbar>
-      <v-card-title class="subtitle-1">{{ currentImage.name }}</v-card-title>
+      <v-card-title class="pb-0 subtitle-1">{{ currentImage.name }}</v-card-title>
       <v-card-text>
+        <div v-if="currentImage.scene">
+          Part of scene
+          <a :href="`#/scene/${currentImage.scene._id}`">{{ currentImage.scene.name }}</a>
+        </div>
         <div>
           <v-rating
             half-increments
             @input="rate"
-            class="pa-2"
+            class="pa-2 pb-0"
             :value="currentImage.rating / 2"
             background-color="grey"
             color="amber"
@@ -173,6 +177,9 @@ import { contextModule } from "../store/context";
 import ImageCard from "../components/ImageCard.vue";
 import actorFragment from "../fragments/actor";
 import ActorSelector from "../components/ActorSelector.vue";
+import IImage from "../types/image";
+import ILabel from "../types/label";
+import IActor from "../types/actor";
 
 @Component({
   components: {
@@ -183,21 +190,23 @@ import ActorSelector from "../components/ActorSelector.vue";
   }
 })
 export default class Lightbox extends Vue {
-  @Prop(Array) items!: any[];
+  @Prop(Array) items!: IImage[];
   @Prop() index!: number | null;
   showImageDetails = false;
 
   labelSelectorDialog = false;
-  allLabels = [] as any[];
+  allLabels = [] as ILabel[];
   selectedLabels = [] as number[];
   labelEditLoader = false;
 
   editActorsDialog = false;
-  editActors = [] as any[];
+  editActors = [] as IActor[];
 
   removeDialog = false;
 
   editImageActors() {
+    if (!this.currentImage) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ImageUpdateOpts!) {
@@ -223,6 +232,7 @@ export default class Lightbox extends Vue {
   }
 
   openEditActorsDialog() {
+    if (!this.currentImage) return;
     this.editActors = JSON.parse(JSON.stringify(this.currentImage.actors));
     this.editActorsDialog = true;
   }
@@ -248,6 +258,8 @@ export default class Lightbox extends Vue {
   }
 
   rate(rating: number) {
+    if (!this.currentImage) return;
+
     rating = rating * 2;
 
     ApolloClient.mutate({
@@ -274,6 +286,8 @@ export default class Lightbox extends Vue {
   }
 
   favorite() {
+    if (!this.currentImage) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ImageUpdateOpts!) {
@@ -302,6 +316,8 @@ export default class Lightbox extends Vue {
   }
 
   bookmark() {
+    if (!this.currentImage) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ImageUpdateOpts!) {
@@ -330,6 +346,8 @@ export default class Lightbox extends Vue {
   }
 
   editLabels() {
+    if (!this.currentImage) return;
+
     this.labelEditLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -368,6 +386,8 @@ export default class Lightbox extends Vue {
   }
 
   openLabelSelector() {
+    if (!this.currentImage) return;
+
     if (!this.allLabels.length) {
       ApolloClient.query({
         query: gql`
@@ -381,6 +401,8 @@ export default class Lightbox extends Vue {
         `
       })
         .then(res => {
+          if (!this.currentImage) return;
+
           this.allLabels = res.data.getLabels;
           this.selectedLabels = this.currentImage.labels.map(l =>
             this.allLabels.findIndex(k => k._id == l._id)

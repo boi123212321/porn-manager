@@ -134,6 +134,8 @@ export default class App extends Vue {
   removeLoader = false;
 
   watch(url: string) {
+    if (!this.currentScene) return;
+
     var win = window.open(url, "_blank");
     if (win) win.focus();
 
@@ -165,6 +167,8 @@ export default class App extends Vue {
   }
 
   remove() {
+    if (!this.currentScene) return;
+
     this.removeLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -193,6 +197,8 @@ export default class App extends Vue {
   }
 
   editScene() {
+    if (!this.currentScene) return;
+
     const streamLinks = (this.editStreamLinks || "")
       .split("\n")
       .filter(Boolean);
@@ -228,14 +234,18 @@ export default class App extends Vue {
   }
 
   openEditDialog() {
+    if (!this.currentScene) return;
+
     this.editName = this.currentScene.name;
-    this.editDescription = this.currentScene.description;
+    this.editDescription = this.currentScene.description || "";
     this.editStreamLinks = this.currentScene.streamLinks.join("\n");
     this.editActors = JSON.parse(JSON.stringify(this.currentScene.actors));
     this.editDialog = true;
   }
 
   favorite() {
+    if (!this.currentScene) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
@@ -256,6 +266,8 @@ export default class App extends Vue {
   }
 
   bookmark() {
+    if (!this.currentScene) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {

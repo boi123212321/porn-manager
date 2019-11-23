@@ -109,6 +109,7 @@ export default class App extends Vue {
     })
       .then(res => {
         this.removeDialog = false;
+        // 
         this.$router.replace("/actors");
       })
       .catch(err => {

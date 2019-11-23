@@ -183,6 +183,7 @@ import { contextModule } from "../store/context";
 import InfiniteLoading from "vue-infinite-loading";
 import ActorSelector from "../components/ActorSelector.vue";
 import SceneUploader from "../components/SceneUploader.vue";
+import IScene from "../types/scene";
 
 @Component({
   components: {
@@ -194,7 +195,7 @@ import SceneUploader from "../components/SceneUploader.vue";
   }
 })
 export default class SceneList extends Vue {
-  scenes = [] as any[];
+  scenes = [] as IScene[];
   fetchLoader = false;
 
   waiting = false;

@@ -41,11 +41,9 @@ import QueueInfo from "../components/QueueInfo.vue";
 })
 export default class About extends Vue {
   toggleDarkMode() {
-    // @ts-ignore
     this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
     localStorage.setItem(
       "pm_darkMode",
-      // @ts-ignore
       this.$vuetify.theme.dark ? "true" : "false"
     );
   }

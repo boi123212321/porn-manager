@@ -28,20 +28,21 @@
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
+import ILabel from '../types/label';
 
 @Component
 export default class LabelSelector extends Vue {
-  @Prop() value!: any[];
-  @Prop(Array) items!: any[];
+  @Prop() value!: ILabel[];
+  @Prop(Array) items!: ILabel[];
 
   @Watch("value", { deep: true })
-  onValueChange(newVal: any[]) {
+  onValueChange(newVal: ILabel[]) {
     this.innerValue = newVal;
   }
 
-  innerValue = (this.value.length ? this.value : []) as any[];
+  innerValue = (this.value.length ? this.value : []) as ILabel[];
 
-  labelAliases(label: any) {
+  labelAliases(label: ILabel) {
     return label.aliases
       .slice()
       .sort()

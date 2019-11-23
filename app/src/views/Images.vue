@@ -158,6 +158,7 @@ import Lightbox from "../components/Lightbox.vue";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
 import ImageUploader from "../components/ImageUploader.vue";
+import IImage from "../types/image";
 
 @Component({
   components: {
@@ -169,7 +170,7 @@ import ImageUploader from "../components/ImageUploader.vue";
   }
 })
 export default class ImagesView extends Vue {
-  images = [] as any[];
+  images = [] as IImage[];
   lightboxIndex = null as number | null;
 
   waiting = false;
@@ -393,6 +394,10 @@ export default class ImagesView extends Vue {
               ...ImageFragment
               actors {
                 ...ActorFragment
+              }
+              scene {
+                _id
+                name
               }
             }
           }

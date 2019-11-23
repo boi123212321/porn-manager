@@ -180,6 +180,7 @@ import LabelSelector from "../components/LabelSelector.vue";
 import actorFragment from "../fragments/actor";
 import { contextModule } from "../store/context";
 import InfiniteLoading from "vue-infinite-loading";
+import IActor from "../types/actor";
 
 @Component({
   components: {
@@ -189,7 +190,7 @@ import InfiniteLoading from "vue-infinite-loading";
   }
 })
 export default class SceneList extends Vue {
-  actors = [] as any[];
+  actors = [] as IActor[];
   fetchLoader = false;
 
   waiting = false;
@@ -320,7 +321,7 @@ export default class SceneList extends Vue {
   }
 
   rate(id: any, rating: number) {
-    const index = this.actors.findIndex(sc => sc._id == id);
+    const index = this.actors.findIndex(ac => ac._id == id);
 
     if (index > -1) {
       const actor = this.actors[index];
@@ -330,7 +331,7 @@ export default class SceneList extends Vue {
   }
 
   favorite(id: any, favorite: boolean) {
-    const index = this.actors.findIndex(sc => sc._id == id);
+    const index = this.actors.findIndex(ac => ac._id == id);
 
     if (index > -1) {
       const actor = this.actors[index];
@@ -340,7 +341,7 @@ export default class SceneList extends Vue {
   }
 
   bookmark(id: any, bookmark: boolean) {
-    const index = this.actors.findIndex(sc => sc._id == id);
+    const index = this.actors.findIndex(ac => ac._id == id);
 
     if (index > -1) {
       const actor = this.actors[index];

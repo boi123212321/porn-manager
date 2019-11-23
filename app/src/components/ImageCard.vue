@@ -27,12 +27,13 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
+import IImage from "../types/image";
 
 @Component
 export default class ImageCard extends Vue {
-  @Prop(Object) image!: any;
+  @Prop(Object) image!: IImage;
 
-  imageLink(image: any) {
+  imageLink(image: IImage) {
     return `${serverBase}/image/${image._id}?password=${localStorage.getItem(
       "password"
     )}`;

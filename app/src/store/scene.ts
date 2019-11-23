@@ -1,22 +1,24 @@
 import { VuexModule, Module, Mutation, Action } from "vuex-class-modules";
+import IScene from "@/types/scene";
+import IActor from "@/types/actor";
 
 @Module
 class SceneModule extends VuexModule {
-  current = null as any;
+  current = null as IScene | null;
 
   @Mutation
   pushWatch(stamp: number) {
-    this.current.watches.push(stamp);
+    if (this.current) this.current.watches.push(stamp);
   }
 
   @Mutation
   setName(name: string) {
-    this.current.name = name;
+    if (this.current) this.current.name = name;
   }
 
   @Mutation
   setDescription(description: string) {
-    this.current.description = description;
+    if (this.current) this.current.description = description;
   }
 
   @Mutation
@@ -26,38 +28,40 @@ class SceneModule extends VuexModule {
 
   @Mutation
   setFavorite(bool: boolean) {
-    this.current.favorite = bool;
+    if (this.current) this.current.favorite = bool;
   }
 
   @Mutation
   setBookmark(bool: boolean) {
-    this.current.bookmark = bool;
+    if (this.current) this.current.bookmark = bool;
   }
 
   @Mutation
   setRating(rating: number) {
-    this.current.rating = rating;
+    if (this.current) this.current.rating = rating;
   }
 
   @Mutation
   setThumbnail(id: string) {
-    if (!this.current.thumbnail) this.current.thumbnail = {};
-    this.current.thumbnail._id = id;
+    if (this.current) {
+      if (!this.current.thumbnail) this.current.thumbnail = { _id: id };
+      else this.current.thumbnail._id = id;
+    }
   }
 
   @Mutation
-  setLabels(labels: string[]) {
-    this.current.labels = labels;
+  setLabels(labels: { _id: string; name: string }[]) {
+    if (this.current) this.current.labels = labels;
   }
 
   @Mutation
   setStreamLinks(streamLinks: string[]) {
-    this.current.streamLinks = streamLinks;
+    if (this.current) this.current.streamLinks = streamLinks;
   }
 
   @Mutation
-  setActors(actors: string[]) {
-    this.current.actors = actors;
+  setActors(actors: IActor[]) {
+    if (this.current) this.current.actors = actors;
   }
 }
 

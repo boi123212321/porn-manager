@@ -12,7 +12,7 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn v-if="$vuetify.breakpoint.smAndDown" icon @click="filterDrawer = !filterDrawer">
+      <v-btn v-if="showFilterButton && $vuetify.breakpoint.smAndDown" icon @click="filterDrawer = !filterDrawer">
         <v-icon>mdi-filter</v-icon>
       </v-btn>
 
@@ -63,6 +63,14 @@ import { contextModule } from "./store/context";
 export default class App extends Vue {
   navDrawer = false;
 
+  get showFilterButton() {
+    return (
+      this.$route.name == "scenes" ||
+      this.$route.name == "actors" ||
+      this.$route.name == "images"
+    );
+  }
+
   get filterDrawer() {
     return contextModule.showFilters;
   }
@@ -78,7 +86,6 @@ export default class App extends Vue {
 
     const darkModeLocalStorage = localStorage.getItem("pm_darkMode");
     if (darkModeLocalStorage) {
-      // @ts-ignore
       this.$vuetify.theme.dark = darkModeLocalStorage == "true";
     }
   }
@@ -118,7 +125,8 @@ export default class App extends Vue {
 .fade-leave-active {
   transition: opacity 0.5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
