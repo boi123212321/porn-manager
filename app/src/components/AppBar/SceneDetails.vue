@@ -50,10 +50,10 @@
       <v-icon color="black">mdi-delete-forever</v-icon>
     </v-btn>
 
-    <v-dialog scrollable v-model="editDialog" max-width="400px">
+    <v-dialog scrollable v-model="editDialog" max-width="600px">
       <v-card>
         <v-card-title>Edit '{{ currentScene.name }}'</v-card-title>
-        <v-card-text style="max-height: 400px">
+        <v-card-text style="max-height: 600px">
           <v-form v-model="validEdit">
             <v-text-field
               :rules="sceneNameRules"
@@ -114,6 +114,7 @@ import { sceneModule } from "../../store/scene";
 import ApolloClient, { serverBase } from "../../apollo";
 import gql from "graphql-tag";
 import ActorSelector from "../ActorSelector.vue";
+import IActor from "../../types/actor";
 
 @Component({
   components: {
@@ -126,7 +127,7 @@ export default class App extends Vue {
   editName = "";
   editDescription = "";
   editStreamLinks = null as string | null;
-  editActors = [] as any[];
+  editActors = [] as IActor[];
 
   sceneNameRules = [v => (!!v && !!v.length) || "Invalid scene name"];
 
@@ -134,6 +135,8 @@ export default class App extends Vue {
   removeLoader = false;
 
   watch(url: string) {
+    if (!this.currentScene) return;
+
     var win = window.open(url, "_blank");
     if (win) win.focus();
 
@@ -165,6 +168,8 @@ export default class App extends Vue {
   }
 
   remove() {
+    if (!this.currentScene) return;
+
     this.removeLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -193,6 +198,8 @@ export default class App extends Vue {
   }
 
   editScene() {
+    if (!this.currentScene) return;
+
     const streamLinks = (this.editStreamLinks || "")
       .split("\n")
       .filter(Boolean);
@@ -228,14 +235,18 @@ export default class App extends Vue {
   }
 
   openEditDialog() {
+    if (!this.currentScene) return;
+
     this.editName = this.currentScene.name;
-    this.editDescription = this.currentScene.description;
+    this.editDescription = this.currentScene.description || "";
     this.editStreamLinks = this.currentScene.streamLinks.join("\n");
     this.editActors = JSON.parse(JSON.stringify(this.currentScene.actors));
     this.editDialog = true;
   }
 
   favorite() {
+    if (!this.currentScene) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
@@ -256,6 +267,8 @@ export default class App extends Vue {
   }
 
   bookmark() {
+    if (!this.currentScene) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {

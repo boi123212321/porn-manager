@@ -55,15 +55,15 @@
     <div v-if="!fetchLoader">
       <div class="d-flex align-center">
         <h1 class="font-weight-light mr-3">Scenes</h1>
-       <!--  <v-btn class="mr-3" @click="openCreateDialog" icon>
+        <!--  <v-btn class="mr-3" @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
-        </v-btn> -->
+        </v-btn>-->
         <v-btn @click="openUploadDialog" icon>
           <v-icon>mdi-upload</v-icon>
         </v-btn>
       </div>
       <v-row>
-        <v-col v-for="scene in scenes" :key="scene._id" cols="12" sm="6" md="4" lg="3">
+        <v-col class="pa-1" v-for="scene in scenes" :key="scene._id" cols="12" sm="6" md="4" lg="3">
           <scene-card
             @rate="rate(scene._id, $event)"
             @bookmark="bookmark(scene._id, $event)"
@@ -183,6 +183,9 @@ import { contextModule } from "../store/context";
 import InfiniteLoading from "vue-infinite-loading";
 import ActorSelector from "../components/ActorSelector.vue";
 import SceneUploader from "../components/SceneUploader.vue";
+import IScene from "../types/scene";
+import IActor from "../types/actor";
+import ILabel from "../types/label";
 
 @Component({
   components: {
@@ -194,17 +197,17 @@ import SceneUploader from "../components/SceneUploader.vue";
   }
 })
 export default class SceneList extends Vue {
-  scenes = [] as any[];
+  scenes = [] as IScene[];
   fetchLoader = false;
 
   waiting = false;
-  allLabels = [] as any[];
+  allLabels = [] as ILabel[];
   selectedLabels = [] as number[];
 
   validCreation = false;
   createSceneDialog = false;
   createSceneName = "";
-  createSceneActors = [] as any[];
+  createSceneActors = [] as IActor[];
   createSelectedLabels = [] as number[];
   labelSelectorDialog = false;
   addSceneLoader = false;
@@ -247,7 +250,7 @@ export default class SceneList extends Vue {
   ratingFilter = 0;
 
   infiniteId = 0;
-  resetTimeout = null as any;
+  resetTimeout = null as NodeJS.Timeout | null;
 
   uploadDialog = false;
   isUploadingScene = false;

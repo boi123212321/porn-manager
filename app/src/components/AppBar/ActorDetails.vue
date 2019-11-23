@@ -96,6 +96,8 @@ export default class App extends Vue {
   removeLoader = false;
 
   remove() {
+    if (!this.currentActor) return;
+
     this.removeLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -124,6 +126,8 @@ export default class App extends Vue {
   }
 
   editActor() {
+    if (!this.currentActor) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
@@ -152,12 +156,15 @@ export default class App extends Vue {
   }
 
   openEditDialog() {
+    if (!this.currentActor) return;
     this.editName = this.currentActor.name;
     this.editAliases = this.currentActor.aliases;
     this.editDialog = true;
   }
 
   favorite() {
+    if (!this.currentActor) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
@@ -182,6 +189,8 @@ export default class App extends Vue {
   }
 
   bookmark() {
+    if (!this.currentActor) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {

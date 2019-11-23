@@ -44,12 +44,17 @@
           <v-rating
             half-increments
             @input="rate"
-            class="pa-2"
+            class="pa-2 pb-0"
             :value="currentActor.rating / 2"
             background-color="grey"
             color="amber"
             dense
+            hide-details
           ></v-rating>
+          <div
+            @click="rate(0)"
+            class="d-inline-block pl-3 mt-1 med--text caption hover"
+          >Reset rating</div>
           <div class="d-flex align-center">
             <v-icon>mdi-label</v-icon>
             <v-subheader>Labels</v-subheader>
@@ -76,15 +81,24 @@
       </v-row>
       <v-row v-if="scenes.length">
         <v-col cols="12">
-          <div class="headline text-center">Scenes</div>
+          <h1 class="text-center font-weight-light">{{ scenes.length }} Scenes</h1>
 
           <v-row>
-            <v-col v-for="scene in scenes" :key="scene._id" cols="12" sm="6" md="4" lg="3">
+            <v-col
+              class="pa-1"
+              v-for="scene in scenes"
+              :key="scene._id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+            >
               <scene-card
                 @rate="rateScene(scene._id, $event)"
                 @bookmark="bookmarkScene(scene._id, $event)"
                 @favorite="favoriteScene(scene._id, $event)"
                 :scene="scene"
+                style="height: 100%"
               />
             </v-col>
           </v-row>
@@ -94,7 +108,7 @@
       <div v-if="images.length">
         <div class="d-flex align-center">
           <v-spacer></v-spacer>
-          <h1 class="font-weight-light mr-3">Images</h1>
+          <h1 class="font-weight-light mr-3">{{ images.length }} Images</h1>
           <v-btn @click="openUploadDialog" icon>
             <v-icon>mdi-upload</v-icon>
           </v-btn>
@@ -102,7 +116,7 @@
         </div>
         <v-container fluid>
           <v-row>
-            <v-col v-for="(image, index) in images" :key="image._id" cols="6" sm="4">
+            <v-col class="pa-1" v-for="(image, index) in images" :key="image._id" cols="6" sm="4">
               <ImageCard @open="lightboxIndex = index" width="100%" height="100%" :image="image">
                 <template v-slot:action>
                   <v-tooltip top>
@@ -241,6 +255,9 @@ import ImageCard from "../components/ImageCard.vue";
 import InfiniteLoading from "vue-infinite-loading";
 import { Cropper } from "vue-advanced-cropper";
 import ImageUploader from "../components/ImageUploader.vue";
+import IScene from "../types/scene";
+import IImage from "../types/image";
+import ILabel from "../types/label";
 
 interface ICropCoordinates {
   left: number;
@@ -253,7 +270,6 @@ interface ICropResult {
   coordinates: ICropCoordinates;
 }
 
-// @ts-ignore
 @Component({
   components: {
     SceneCard,
@@ -270,13 +286,13 @@ interface ICropResult {
   }
 })
 export default class ActorDetails extends Vue {
-  scenes = [] as any[];
-  images = [] as any[];
+  scenes = [] as IScene[];
+  images = [] as IImage[];
   lightboxIndex = null as number | null;
 
   labelSelectorDialog = false;
-  allLabels = [] as any[];
-  selectedLabels = [] as any[];
+  allLabels = [] as ILabel[];
+  selectedLabels = [] as number[];
   labelEditLoader = false;
 
   infiniteId = 0;
@@ -321,6 +337,8 @@ export default class ActorDetails extends Vue {
   }
 
   uploadThumbnail() {
+    if (!this.currentActor) return;
+
     this.thumbnailLoader = true;
 
     ApolloClient.mutate({
@@ -332,7 +350,13 @@ export default class ActorDetails extends Vue {
           $actors: [String!]
           $labels: [String!]
         ) {
-          uploadImage(file: $file, name: $name, crop: $crop, actors: $actors, labels: $labels) {
+          uploadImage(
+            file: $file
+            name: $name
+            crop: $crop
+            actors: $actors
+            labels: $labels
+          ) {
             ...ImageFragment
           }
         }
@@ -390,6 +414,8 @@ export default class ActorDetails extends Vue {
   }
 
   async fetchPage() {
+    if (!this.currentActor) return;
+
     try {
       const query = `page:${this.page} sortDir:asc sortBy:addedOn actors:${this.currentActor._id}`;
 
@@ -400,6 +426,10 @@ export default class ActorDetails extends Vue {
               ...ImageFragment
               actors {
                 ...ActorFragment
+              }
+              scene {
+                _id
+                name
               }
             }
           }
@@ -448,6 +478,8 @@ export default class ActorDetails extends Vue {
   }
 
   setAsThumbnail(id: string) {
+    if (!this.currentActor) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
@@ -474,6 +506,8 @@ export default class ActorDetails extends Vue {
   }
 
   editLabels() {
+    if (!this.currentActor) return;
+
     this.labelEditLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -490,7 +524,9 @@ export default class ActorDetails extends Vue {
       variables: {
         ids: [this.currentActor._id],
         opts: {
-          labels: this.selectedLabels.map(i => this.allLabels[i]).map(l => l._id)
+          labels: this.selectedLabels
+            .map(i => this.allLabels[i])
+            .map(l => l._id)
         }
       }
     })
@@ -507,6 +543,8 @@ export default class ActorDetails extends Vue {
   }
 
   openLabelSelector() {
+    if (!this.currentActor) return;
+
     if (!this.allLabels.length) {
       ApolloClient.query({
         query: gql`
@@ -520,6 +558,8 @@ export default class ActorDetails extends Vue {
         `
       })
         .then(res => {
+          if (!this.currentActor) return;
+
           this.allLabels = res.data.getLabels;
           this.selectedLabels = this.currentActor.labels.map(l =>
             this.allLabels.findIndex(k => k._id == l._id)
@@ -541,6 +581,8 @@ export default class ActorDetails extends Vue {
   }
 
   rate(rating: number) {
+    if (!this.currentActor) return;
+
     rating = rating * 2;
 
     ApolloClient.mutate({
@@ -563,11 +605,12 @@ export default class ActorDetails extends Vue {
   }
 
   get labelNames() {
+    if (!this.currentActor) return "";
     return this.currentActor.labels.map(l => l.name).sort();
   }
 
   get thumbnail() {
-    if (this.currentActor.thumbnail)
+    if (this.currentActor && this.currentActor.thumbnail)
       return `${serverBase}/image/${
         this.currentActor.thumbnail._id
       }?password=${localStorage.getItem("password")}`;

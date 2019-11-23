@@ -43,10 +43,11 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
+import IScene from "../types/scene";
 
 @Component
 export default class SceneCard extends Vue {
-  @Prop(Object) scene!: any;
+  @Prop(Object) scene!: IScene;
 
   rate($event) {
     const rating = $event * 2;

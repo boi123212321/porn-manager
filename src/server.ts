@@ -14,7 +14,7 @@ import ProcessingQueue from "./queue/index";
 import { checkVideoFolders, checkImageFolders } from "./queue/check";
 import * as database from "./database/index";
 
-logger.warn(
+logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
 );
 
@@ -48,7 +48,6 @@ export default async () => {
     const scene = await Scene.getById(req.params.scene);
 
     if (scene && scene.path) {
-      Scene.watch(scene);
       res.sendFile(scene.path);
     } else next(404);
   });
@@ -75,20 +74,31 @@ export default async () => {
     }
   );
 
-  const port = (await getConfig()).PORT || 3000;
+  const config = await getConfig();
+  const port = config.PORT || 3000;
+
+  async function scanFolders() {
+    logger.warn("Scanning folders...");
+    ProcessingQueue.setStore(database.store.queue);
+
+    await checkVideoFolders();
+    checkImageFolders();
+
+    logger.log(`Processing ${await ProcessingQueue.getLength()} videos...`);
+
+    ProcessingQueue.processLoop();
+  }
 
   app.listen(port, () => {
-    console.log(`Server running in Port ${port}`);
+    console.log(`Server running on Port ${port}`);
 
-    setTimeout(async () => {
-      ProcessingQueue.setStore(database.store.queue);
-
-      await checkVideoFolders();
-      checkImageFolders();
-
-      logger.log(`Queued ${await ProcessingQueue.getLength()} videos.`);
-
-      ProcessingQueue.processLoop();
-    }, 2500);
+    if (config.SCAN_ON_STARTUP) {
+      setTimeout(scanFolders, 2500);
+      setInterval(scanFolders, config.SCAN_INTERVAL); // 3 hours
+    } else {
+      logger.warn(
+        "Scanning folders is currently disabled. Enable in config.json & restart."
+      );
+    }
   });
 };

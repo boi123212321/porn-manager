@@ -15,6 +15,9 @@ export interface IConfig {
   VIDEO_PATHS: string[];
   IMAGE_PATHS: string[];
 
+  SCAN_ON_STARTUP: boolean;
+  SCAN_INTERVAL: number;
+
   LIBRARY_PATH: string;
 
   FFMPEG_PATH: string;
@@ -31,6 +34,8 @@ export interface IConfig {
 export const defaultConfig: IConfig = {
   VIDEO_PATHS: [],
   IMAGE_PATHS: [],
+  SCAN_ON_STARTUP: false,
+  SCAN_INTERVAL: 10800000,
   LIBRARY_PATH: process.cwd(),
   FFMPEG_PATH: "",
   FFPROBE_PATH: "",

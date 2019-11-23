@@ -60,7 +60,7 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col v-for="actor in actors" :key="actor._id" cols="12" sm="6" md="4" lg="3">
+        <v-col class="pa-1" v-for="actor in actors" :key="actor._id" cols="12" sm="6" md="4" lg="3">
           <actor-card
             @rate="rate(actor._id, $event)"
             @bookmark="bookmark(actor._id, $event)"
@@ -180,6 +180,8 @@ import LabelSelector from "../components/LabelSelector.vue";
 import actorFragment from "../fragments/actor";
 import { contextModule } from "../store/context";
 import InfiniteLoading from "vue-infinite-loading";
+import IActor from "../types/actor";
+import ILabel from "../types/label";
 
 @Component({
   components: {
@@ -189,11 +191,11 @@ import InfiniteLoading from "vue-infinite-loading";
   }
 })
 export default class SceneList extends Vue {
-  actors = [] as any[];
+  actors = [] as IActor[];
   fetchLoader = false;
 
   waiting = false;
-  allLabels = [] as any[];
+  allLabels = [] as ILabel[];
   selectedLabels = [] as number[];
 
   validCreation = false;
@@ -242,7 +244,7 @@ export default class SceneList extends Vue {
   ratingFilter = 0;
 
   infiniteId = 0;
-  resetTimeout = null as any;
+  resetTimeout = null as NodeJS.Timeout | null;
 
   get drawer() {
     return contextModule.showFilters;
@@ -320,7 +322,7 @@ export default class SceneList extends Vue {
   }
 
   rate(id: any, rating: number) {
-    const index = this.actors.findIndex(sc => sc._id == id);
+    const index = this.actors.findIndex(ac => ac._id == id);
 
     if (index > -1) {
       const actor = this.actors[index];
@@ -330,7 +332,7 @@ export default class SceneList extends Vue {
   }
 
   favorite(id: any, favorite: boolean) {
-    const index = this.actors.findIndex(sc => sc._id == id);
+    const index = this.actors.findIndex(ac => ac._id == id);
 
     if (index > -1) {
       const actor = this.actors[index];
@@ -340,7 +342,7 @@ export default class SceneList extends Vue {
   }
 
   bookmark(id: any, bookmark: boolean) {
-    const index = this.actors.findIndex(sc => sc._id == id);
+    const index = this.actors.findIndex(ac => ac._id == id);
 
     if (index > -1) {
       const actor = this.actors[index];

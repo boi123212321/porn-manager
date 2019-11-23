@@ -51,12 +51,17 @@
           <v-rating
             half-increments
             @input="rate"
-            class="pa-2"
+            class="pa-2 pb-0"
             :value="currentScene.rating / 2"
             background-color="grey"
             color="amber"
             dense
+            hide-details
           ></v-rating>
+          <div
+            @click="rate(0)"
+            class="d-inline-block pl-3 mt-1 med--text caption hover"
+          >Reset rating</div>
           <div class="d-flex align-center">
             <v-icon>mdi-label</v-icon>
             <v-subheader>Labels</v-subheader>
@@ -111,12 +116,20 @@
           <h1 class="font-weight-light text-center">Starring</h1>
 
           <v-row>
-            <v-col v-for="actor in actors" :key="actor._id" cols="12" sm="6" md="4" lg="3">
+            <v-col
+              class="pa-1"
+              v-for="actor in actors"
+              :key="actor._id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+            >
               <actor-card
+                style="height: 100%"
                 @rate="rateActor(actor._id, $event)"
                 @bookmark="bookmarkActor(actor._id, $event)"
                 @favorite="favoriteActor(actor._id, $event)"
-                style="height: 100%"
                 :actor="actor"
               />
             </v-col>
@@ -127,7 +140,7 @@
       <div v-if="images.length">
         <div class="d-flex align-center">
           <v-spacer></v-spacer>
-          <h1 class="font-weight-light mr-3">Images</h1>
+          <h1 class="font-weight-light mr-3">{{ images.length }} Images</h1>
           <v-btn @click="openUploadDialog" icon>
             <v-icon>mdi-upload</v-icon>
           </v-btn>
@@ -135,7 +148,7 @@
         </div>
         <v-container fluid>
           <v-row>
-            <v-col v-for="(image, index) in images" :key="image._id" cols="6" sm="4">
+            <v-col class="pa-1" v-for="(image, index) in images" :key="image._id" cols="6" sm="4">
               <ImageCard @open="lightboxIndex = index" width="100%" height="100%" :image="image">
                 <template v-slot:action>
                   <v-tooltip top>
@@ -276,6 +289,9 @@ import InfiniteLoading from "vue-infinite-loading";
 import { Cropper } from "vue-advanced-cropper";
 import ImageUploader from "../components/ImageUploader.vue";
 import { actorModule } from "../store/actor";
+import IActor from "../types/actor";
+import IImage from "../types/image";
+import ILabel from "../types/label";
 
 interface ICropCoordinates {
   left: number;
@@ -288,7 +304,6 @@ interface ICropResult {
   coordinates: ICropCoordinates;
 }
 
-// @ts-ignore
 @Component({
   components: {
     ActorCard,
@@ -305,13 +320,13 @@ interface ICropResult {
   }
 })
 export default class SceneDetails extends Vue {
-  actors = [] as any[];
-  images = [] as any[];
+  actors = [] as IActor[];
+  images = [] as IImage[];
   lightboxIndex = null as number | null;
 
   labelSelectorDialog = false;
-  allLabels = [] as any[];
-  selectedLabels = [] as any[];
+  allLabels = [] as ILabel[];
+  selectedLabels = [] as number[];
   labelEditLoader = false;
 
   infiniteId = 0;
@@ -361,6 +376,8 @@ export default class SceneDetails extends Vue {
   }
 
   uploadThumbnail() {
+    if (!this.currentScene) return;
+
     this.thumbnailLoader = true;
 
     ApolloClient.mutate({
@@ -457,6 +474,8 @@ export default class SceneDetails extends Vue {
   }
 
   async fetchPage() {
+    if (!this.currentScene) return;
+
     try {
       const query = `page:${this.page} sortDir:asc sortBy:addedOn scene:${this.currentScene._id}`;
 
@@ -467,6 +486,10 @@ export default class SceneDetails extends Vue {
               ...ImageFragment
               actors {
                 ...ActorFragment
+              }
+              scene {
+                _id
+                name
               }
             }
           }
@@ -497,6 +520,8 @@ export default class SceneDetails extends Vue {
   }
 
   setAsThumbnail(id: string) {
+    if (!this.currentScene) return;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
@@ -523,6 +548,8 @@ export default class SceneDetails extends Vue {
   }
 
   editLabels() {
+    if (!this.currentScene) return;
+
     this.labelEditLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -558,6 +585,8 @@ export default class SceneDetails extends Vue {
   }
 
   openLabelSelector() {
+    if (!this.currentScene) return;
+
     if (!this.allLabels.length) {
       ApolloClient.query({
         query: gql`
@@ -571,6 +600,8 @@ export default class SceneDetails extends Vue {
         `
       })
         .then(res => {
+          if (!this.currentScene) return;
+
           this.allLabels = res.data.getLabels;
           this.selectedLabels = this.currentScene.labels.map(l =>
             this.allLabels.findIndex(k => k._id == l._id)
@@ -607,6 +638,8 @@ export default class SceneDetails extends Vue {
   }
 
   rate($event) {
+    if (!this.currentScene) return;
+
     const rating = $event * 2;
 
     ApolloClient.mutate({
@@ -659,11 +692,12 @@ export default class SceneDetails extends Vue {
   }
 
   get labelNames() {
+    if (!this.currentScene) return "";
     return this.currentScene.labels.map(l => l.name).sort();
   }
 
   get thumbnail() {
-    if (this.currentScene.thumbnail)
+    if (this.currentScene && this.currentScene.thumbnail)
       return `${serverBase}/image/${
         this.currentScene.thumbnail._id
       }?password=${localStorage.getItem("password")}`;
