@@ -60,7 +60,7 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col class="pa-1" v-for="movie in movies" :key="movie._id" cols="12" sm="6" md="4" lg="3">
+        <v-col class="pa-1" v-for="movie in movies" :key="movie._id" cols="6" sm="6" md="4" lg="3">
           <MovieCard
             :movie="movie"
             style="height: 100%"

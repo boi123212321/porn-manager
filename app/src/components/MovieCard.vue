@@ -4,7 +4,7 @@
         <a :href="`#/movie/${movie._id}`">
           <v-img
             contain
-            aspect-ratio="1"
+            aspect-ratio="0.71"
             class="hover"
             v-ripple
             eager

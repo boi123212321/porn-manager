@@ -488,7 +488,11 @@ export default class SceneDetails extends Vue {
     if (!this.currentMovie) return;
 
     try {
-      const query = `page:${this.page} sortDir:asc sortBy:addedOn scene:${this.currentMovie._id}`;
+      const query = `page:${
+        this.page
+      } sortDir:asc sortBy:addedOn scene:${this.scenes
+        .map(s => s._id)
+        .join(",")}`;
 
       const result = await ApolloClient.query({
         query: gql`

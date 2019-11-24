@@ -367,8 +367,10 @@ export default {
       );
     }
 
-    if (options.scene) {
-      searchDocs = searchDocs.filter(image => image.scene == options.scene);
+    if (options.scene.length) {
+      searchDocs = searchDocs.filter(image =>
+        options.scene.includes(image.scene || "none")
+      );
     }
 
     if (options.query) {
