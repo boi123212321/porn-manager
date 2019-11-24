@@ -119,7 +119,7 @@ import IActor from "../../types/actor";
     ActorSelector
   }
 })
-export default class App extends Vue {
+export default class SceneToolbar extends Vue {
   editDialog = false;
   validEdit = false;
   editName = "";

@@ -18,6 +18,104 @@ export default {
     };
   },
 
+  async getMovies(_, { query }: { query: string | undefined }) {
+    const timeNow = +new Date();
+    logger.log("Searching...");
+
+    const options = extractQueryOptions(query);
+
+    const allMovies = await Movie.getAll();
+
+    let searchDocs = await Promise.all(
+      allMovies.map(async movie => ({
+        _id: movie._id,
+        name: movie.name,
+        favorite: movie.favorite,
+        bookmark: movie.bookmark,
+        rating: movie.rating,
+        actors: await Movie.getActors(movie),
+        labels: await Movie.getLabels(movie),
+        addedOn: movie.addedOn,
+        releaseDate: movie.releaseDate
+      }))
+    );
+
+    if (options.favorite === true)
+      searchDocs = searchDocs.filter(movie => movie.favorite);
+
+    if (options.bookmark === true)
+      searchDocs = searchDocs.filter(movie => movie.bookmark);
+
+    if (options.rating > 0)
+      searchDocs = searchDocs.filter(movie => movie.rating >= options.rating);
+
+    if (options.include.length) {
+      searchDocs = searchDocs.filter(movie =>
+        options.include.every(id => movie.labels.map(l => l._id).includes(id))
+      );
+    }
+
+    if (options.exclude.length) {
+      searchDocs = searchDocs.filter(movie =>
+        options.exclude.every(id => !movie.labels.map(l => l._id).includes(id))
+      );
+    }
+
+    if (options.query) {
+      const searcher = new Fuse(searchDocs, {
+        shouldSort: options.sortBy == SortTarget.RELEVANCE,
+        tokenize: true,
+        threshold: 0,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 1,
+        keys: [
+          "name",
+          "labels.name",
+          "labels.aliases",
+          "actors.name",
+          "actors.aliases"
+        ]
+      });
+
+      searchDocs = searcher.search(options.query);
+    }
+
+    switch (options.sortBy) {
+      case SortTarget.ADDED_ON:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.addedOn - b.addedOn);
+        else searchDocs.sort((a, b) => b.addedOn - a.addedOn);
+        break;
+      case SortTarget.RATING:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.rating - b.rating);
+        else searchDocs.sort((a, b) => b.rating - a.rating);
+        break;
+      case SortTarget.DATE:
+        if (options.sortDir == "asc")
+          searchDocs.sort(
+            (a, b) => (a.releaseDate || 0) - (b.releaseDate || 0)
+          );
+        else
+          searchDocs.sort(
+            (a, b) => (b.releaseDate || 0) - (a.releaseDate || 0)
+          );
+        break;
+    }
+
+    const slice = await Promise.all(
+      searchDocs
+        .slice(options.page * PAGE_SIZE, options.page * PAGE_SIZE + PAGE_SIZE)
+        .map(movie => Movie.getById(movie._id))
+    );
+
+    logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
+
+    return slice;
+  },
+
   async getActors(_, { query }: { query: string | undefined }) {
     const timeNow = +new Date();
     logger.log("Searching...");
@@ -102,7 +200,7 @@ export default {
     const slice = await Promise.all(
       searchDocs
         .slice(options.page * PAGE_SIZE, options.page * PAGE_SIZE + PAGE_SIZE)
-        .map(image => Actor.getById(image._id))
+        .map(actor => Actor.getById(actor._id))
     );
 
     logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
@@ -174,7 +272,6 @@ export default {
           "labels.name",
           "labels.aliases",
           "actors.name",
-          "actors.labels",
           "actors.aliases"
         ]
       });
@@ -288,7 +385,6 @@ export default {
           "labels.name",
           "labels.aliases",
           "actors.name",
-          "actors.labels",
           "actors.aliases"
         ]
       });
@@ -331,6 +427,10 @@ export default {
     return await Actor.find(args.name);
   },
 
+  async getMovieById(_, args: Dictionary<any>) {
+    return await Movie.getById(args.id);
+  },
+
   async getLabelById(_, args: Dictionary<any>) {
     return await Label.getById(args.id);
   },
@@ -340,9 +440,5 @@ export default {
   },
   async findLabel(_, args: Dictionary<any>) {
     return await Label.find(args.name);
-  },
-
-  async getMovies() {
-    return await Movie.getAll();
   }
 };

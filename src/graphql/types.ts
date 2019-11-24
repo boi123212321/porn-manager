@@ -24,6 +24,7 @@ type QueueInfo {
 type Query {
   getScenes(query: String): [Scene!]!
   getActors(query: String): [Actor!]!
+  getMovies(query: String): [Movie!]!
   getImages(query: String): [Image!]!
 
   getSceneById(id: String!): Scene
@@ -35,7 +36,7 @@ type Query {
   findLabel(name: String!): Label
   getLabels: [Label!]!
 
-  getMovies: [Movie!]
+  getMovieById(id: String!): Movie
 
   getQueueInfo: QueueInfo!
 }
@@ -115,6 +116,9 @@ type Movie {
 
   actors: [Actor!]!
   labels: [Label!]!
+
+  duration: Long!
+  size: Long!
 }
 
 input ActorUpdateOpts {

@@ -82,7 +82,7 @@ import gql from "graphql-tag";
 @Component({
   components: {}
 })
-export default class App extends Vue {
+export default class ActorToolbar extends Vue {
   validEdit = false;
   editDialog = false;
   editName = "";
