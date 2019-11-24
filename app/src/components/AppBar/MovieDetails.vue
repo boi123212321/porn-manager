@@ -82,6 +82,7 @@ import IActor from "../../types/actor";
 import IScene from "../../types/scene";
 import actorFragment from "../../fragments/actor";
 import sceneFragment from "../../fragments/scene";
+import movieFragment from "../../fragments/movie";
 
 @Component({
   components: {
@@ -107,7 +108,7 @@ export default class MovieToolbar extends Vue {
       mutation: gql`
         mutation($ids: [String!]!, $opts: MovieUpdateOpts!) {
           updateMovies(ids: $ids, opts: $opts) {
-            _id
+            ...MovieFragment
             scenes {
               ...SceneFragment
               actors {
@@ -117,10 +118,9 @@ export default class MovieToolbar extends Vue {
             actors {
               ...ActorFragment
             }
-            duration
-            size
           }
         }
+        ${movieFragment}
         ${sceneFragment}
         ${actorFragment}
       `,

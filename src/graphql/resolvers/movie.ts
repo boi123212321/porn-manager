@@ -31,9 +31,9 @@ export default {
 
     if (!scenesWithScore.length) return null;
 
-    return (
+    return Math.round(
       scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) /
-      scenesWithScore.length
+        scenesWithScore.length
     );
   },
 

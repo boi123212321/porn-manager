@@ -31,15 +31,15 @@
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
     <v-card-subtitle class="pt-0 pb-0">{{ movie.scenes.length }} scenes</v-card-subtitle>
-    <!-- <v-rating
+    <v-rating
       half-increments
-      @input="rate"
       class="ml-3 mb-2"
       :value="movie.rating / 2"
       background-color="grey"
       color="amber"
       dense
-    ></v-rating>-->
+      readonly
+    ></v-rating>
     <div class="pa-2">
       <v-chip class="mr-1 mb-1" small outlined v-for="label in labelNames" :key="label">{{ label }}</v-chip>
     </div>
@@ -50,34 +50,12 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
-// import IMovie from "../types/movie";
+import IMovie from "../types/movie";
 
 @Component
-export default class SceneCard extends Vue {
-  @Prop(Object) movie!: any;
+export default class MovieCard extends Vue {
+  @Prop(Object) movie!: IMovie;
   @Prop({ default: 0.71 }) ratio!: number;
-
-  /* rate($event) {
-    const rating = $event * 2;
-
-    ApolloClient.mutate({
-      mutation: gql`
-        mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
-          updateScenes(ids: $ids, opts: $opts) {
-            rating
-          }
-        }
-      `,
-      variables: {
-        ids: [this.movie._id],
-        opts: {
-          rating
-        }
-      }
-    }).then(res => {
-      this.$emit("rate", res.data.updateScenes[0].rating);
-    });
-  } */
 
   favorite() {
     ApolloClient.mutate({

@@ -66,8 +66,8 @@
             :ratio="useDVDCoverRatio ? undefined : 1"
             :movie="movie"
             style="height: 100%"
-            @bookmark="bookmark(scene._id, $event)"
-            @favorite="favorite(scene._id, $event)"
+            @bookmark="bookmark(movie._id, $event)"
+            @favorite="favorite(movie._id, $event)"
           />
         </v-col>
       </v-row>
@@ -137,6 +137,8 @@ import IScene from "../types/scene";
 import IActor from "../types/actor";
 import ILabel from "../types/label";
 import MovieCard from "../components/MovieCard.vue";
+import IMovie from "../types/movie";
+import movieFragment from "../fragments/movie";
 
 @Component({
   components: {
@@ -146,7 +148,7 @@ import MovieCard from "../components/MovieCard.vue";
   }
 })
 export default class MovieList extends Vue {
-  movies = [] as any[];
+  movies = [] as IMovie[];
   fetchLoader = false;
 
   waiting = false;
@@ -223,30 +225,19 @@ export default class MovieList extends Vue {
       mutation: gql`
         mutation($name: String!, $scenes: [String!]) {
           addMovie(name: $name, scenes: $scenes) {
-            _id
-            name
-            description
-            favorite
-            bookmark
-            rating
-            frontCover {
-              _id
-            }
-            backCover {
-              _id
-            }
+            ...MovieFragment
             actors {
               ...ActorFragment
             }
             scenes {
               ...SceneFragment
-            }
-            labels {
-              _id
-              name
+              actors {
+                ...ActorFragment
+              }
             }
           }
         }
+        ${movieFragment}
         ${sceneFragment}
         ${actorFragment}
       `,
@@ -268,23 +259,13 @@ export default class MovieList extends Vue {
       });
   }
 
-  /* rate(id: any, rating: number) {
-    const index = this.movies.findIndex(sc => sc._id == id);
-
-    if (index > -1) {
-      const scene = this.movies[index];
-      scene.rating = rating;
-      Vue.set(this.movies, index, scene);
-    }
-  } */
-
   favorite(id: any, favorite: boolean) {
     const index = this.movies.findIndex(sc => sc._id == id);
 
     if (index > -1) {
-      const scene = this.movies[index];
-      scene.favorite = favorite;
-      Vue.set(this.movies, index, scene);
+      const movie = this.movies[index];
+      movie.favorite = favorite;
+      Vue.set(this.movies, index, movie);
     }
   }
 
@@ -292,26 +273,18 @@ export default class MovieList extends Vue {
     const index = this.movies.findIndex(sc => sc._id == id);
 
     if (index > -1) {
-      const scene = this.movies[index];
-      scene.bookmark = bookmark;
-      Vue.set(this.movies, index, scene);
+      const movie = this.movies[index];
+      movie.bookmark = bookmark;
+      Vue.set(this.movies, index, movie);
     }
   }
 
-  sceneLabels(scene: any) {
-    return scene.labels.map(l => l.name).sort();
+  movieLabels(movie: any) {
+    return movie.labels.map(l => l.name).sort();
   }
 
-  sceneActorNames(scene: any) {
-    return scene.actors.map(a => a.name).join(", ");
-  }
-
-  sceneThumbnail(scene: any) {
-    if (scene.thumbnail)
-      return `${serverBase}/image/${
-        scene.thumbnail._id
-      }?password=${localStorage.getItem("password")}`;
-    return "";
+  movieActorNames(movie: any) {
+    return movie.actors.map(a => a.name).join(", ");
   }
 
   @Watch("ratingFilter", {})
@@ -405,26 +378,19 @@ export default class MovieList extends Vue {
         query: gql`
           query($query: String) {
             getMovies(query: $query) {
-              _id
-              name
-              frontCover {
-                _id
-              }
-              backCover {
-                _id
-              }
+              ...MovieFragment
               actors {
                 ...ActorFragment
               }
               scenes {
                 ...SceneFragment
-              }
-              labels {
-                _id
-                name
+                actors {
+                  ...ActorFragment
+                }
               }
             }
           }
+          ${movieFragment}
           ${sceneFragment}
           ${actorFragment}
         `,

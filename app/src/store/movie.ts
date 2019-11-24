@@ -1,10 +1,11 @@
 import { VuexModule, Module, Mutation, Action } from "vuex-class-modules";
 import IScene from "@/types/scene";
 import IActor from "@/types/actor";
+import IMovie from "@/types/movie";
 
 @Module
 class MovieModule extends VuexModule {
-  current = null as any | null;
+  current = null as IMovie | null;
 
   @Mutation
   setName(name: string) {
@@ -24,6 +25,11 @@ class MovieModule extends VuexModule {
   @Mutation
   setFavorite(bool: boolean) {
     if (this.current) this.current.favorite = bool;
+  }
+
+  @Mutation
+  setRating(num: number) {
+    if (this.current) this.current.rating = num;
   }
 
   @Mutation

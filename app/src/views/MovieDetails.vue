@@ -47,7 +47,7 @@
           </div>
           <v-rating
             half-increments
-            class="pa-2 pb-0"
+            class="px-2"
             :value="currentMovie.rating / 2"
             background-color="grey"
             color="amber"
@@ -257,6 +257,7 @@ import IImage from "../types/image";
 import ILabel from "../types/label";
 import IScene from "../types/scene";
 import { movieModule } from "../store/movie";
+import movieFragment from "../fragments/movie";
 
 @Component({
   components: {
@@ -294,6 +295,9 @@ export default class SceneDetails extends Vue {
   @Watch("currentMovie.scenes", { deep: true })
   onSceneChange(newVal: any[]) {
     this.scenes = newVal;
+    this.images = [];
+    this.infiniteId++;
+    this.refreshRating();
   }
 
   uploadFrontCover() {
@@ -578,6 +582,23 @@ export default class SceneDetails extends Vue {
     }
   }
 
+  refreshRating() {
+    ApolloClient.query({
+      query: gql`
+        query($id: String!) {
+          getMovieById(id: $id) {
+            rating
+          }
+        }
+      `,
+      variables: {
+        id: this.currentMovie._id
+      }
+    }).then(res => {
+      movieModule.setRating(res.data.getMovieById.rating);
+    });
+  }
+
   rateScene(id: any, rating: number) {
     const index = this.scenes.findIndex(sc => sc._id == id);
 
@@ -586,6 +607,8 @@ export default class SceneDetails extends Vue {
       actor.rating = rating;
       Vue.set(this.scenes, index, actor);
     }
+
+    this.refreshRating();
   }
 
   favoriteScene(id: any, favorite: boolean) {
@@ -626,18 +649,7 @@ export default class SceneDetails extends Vue {
       query: gql`
         query($id: String!) {
           getMovieById(id: $id) {
-            _id
-            name
-            description
-            favorite
-            bookmark
-            rating
-            frontCover {
-              _id
-            }
-            backCover {
-              _id
-            }
+            ...MovieFragment
             actors {
               ...ActorFragment
             }
@@ -647,14 +659,9 @@ export default class SceneDetails extends Vue {
                 ...ActorFragment
               }
             }
-            labels {
-              _id
-              name
-            }
-            duration
-            size
           }
         }
+        ${movieFragment}
         ${sceneFragment}
         ${actorFragment}
       `,

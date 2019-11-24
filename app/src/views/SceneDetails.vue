@@ -51,7 +51,7 @@
           <v-rating
             half-increments
             @input="rate"
-            class="pa-2 pb-0"
+            class="px-2"
             :value="currentScene.rating / 2"
             background-color="grey"
             color="amber"
