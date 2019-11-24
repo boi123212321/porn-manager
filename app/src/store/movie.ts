@@ -18,7 +18,7 @@ class MovieModule extends VuexModule {
   }
 
   @Mutation
-  setCurrent(current: any) {
+  setCurrent(current: IMovie | null) {
     this.current = current;
   }
 

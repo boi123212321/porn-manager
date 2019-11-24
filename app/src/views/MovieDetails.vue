@@ -7,11 +7,6 @@
             <v-hover>
               <template v-slot:default="{ hover }">
                 <v-img contain aspect-ratio="1" :src="hover ? backCover : frontCover">
-                  <!-- <v-fade-transition>
-                    <v-overlay v-if="hover" absolute color="accent">
-                      <v-icon x-large>mdi-upload</v-icon>
-                    </v-overlay>
-                  </v-fade-transition>-->
                 </v-img>
               </template>
             </v-hover>
@@ -154,22 +149,6 @@
           <v-row>
             <v-col class="pa-1" v-for="(image, index) in images" :key="image._id" cols="6" sm="4">
               <ImageCard @open="lightboxIndex = index" width="100%" height="100%" :image="image">
-                <!-- <template v-slot:action>
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                      <v-btn
-                        v-on="on"
-                        @click.native.stop="setAsThumbnail(image._id)"
-                        class="elevation-2 mb-2"
-                        icon
-                        style="background: #fafafa;"
-                      >
-                        <v-icon>mdi-image</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Set as scene thumbnail</span>
-                  </v-tooltip>
-                </template>-->
               </ImageCard>
             </v-col>
           </v-row>
@@ -411,6 +390,8 @@ export default class SceneDetails extends Vue {
   }
 
   get frontCover() {
+     if (!this.currentMovie) return "";
+
     if (this.currentMovie.frontCover)
       return `${serverBase}/image/${
         this.currentMovie.frontCover._id
@@ -419,6 +400,8 @@ export default class SceneDetails extends Vue {
   }
 
   get backCover() {
+    if (!this.currentMovie) return "";
+    
     if (this.currentMovie.backCover)
       return `${serverBase}/image/${
         this.currentMovie.backCover._id
@@ -437,10 +420,6 @@ export default class SceneDetails extends Vue {
       reader.readAsDataURL(file);
     });
   }
-
-  /* async readThumbnail(file: File) {
-    if (file) this.thumbnailDisplay = await this.readImage(file);
-  } */
 
   removeImage(index: number) {
     ApolloClient.mutate({
@@ -482,7 +461,7 @@ export default class SceneDetails extends Vue {
   }
 
   get movieDuration() {
-    if (this.currentMovie)
+    if (this.currentMovie && this.currentMovie.duration)
       return moment()
         .startOf("day")
         .seconds(this.currentMovie.duration)
@@ -583,6 +562,8 @@ export default class SceneDetails extends Vue {
   }
 
   refreshRating() {
+    if (!this.currentMovie) return;
+
     ApolloClient.query({
       query: gql`
         query($id: String!) {
@@ -634,14 +615,6 @@ export default class SceneDetails extends Vue {
   get labelNames() {
     if (!this.currentMovie) return "";
     return this.currentMovie.labels.map(l => l.name).sort();
-  }
-
-  get thumbnail() {
-    if (this.currentMovie && this.currentMovie.thumbnail)
-      return `${serverBase}/image/${
-        this.currentMovie.thumbnail._id
-      }?password=${localStorage.getItem("password")}`;
-    return "";
   }
 
   beforeCreate() {
