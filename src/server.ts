@@ -13,6 +13,7 @@ import { getConfig } from "./config/index";
 import ProcessingQueue from "./queue/index";
 import { checkVideoFolders, checkImageFolders } from "./queue/check";
 import * as database from "./database/index";
+import { checkSceneSources, checkImageSources } from "./integrity";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
@@ -79,7 +80,6 @@ export default async () => {
 
   async function scanFolders() {
     logger.warn("Scanning folders...");
-    ProcessingQueue.setStore(database.store.queue);
 
     await checkVideoFolders();
     checkImageFolders();
@@ -92,13 +92,22 @@ export default async () => {
   app.listen(port, () => {
     console.log(`Server running on Port ${port}`);
 
+    setTimeout(() => {
+      ProcessingQueue.setStore(database.store.queue);
+      checkSceneSources();
+      checkImageSources();
+    }, 2500);
+
     if (config.SCAN_ON_STARTUP) {
-      setTimeout(scanFolders, 2500);
-      setInterval(scanFolders, config.SCAN_INTERVAL); // 3 hours
+      setTimeout(scanFolders, 5000);
+      setInterval(scanFolders, config.SCAN_INTERVAL);
     } else {
       logger.warn(
         "Scanning folders is currently disabled. Enable in config.json & restart."
       );
+      setTimeout(() => {
+        ProcessingQueue.processLoop();
+      }, 5000);
     }
   });
 };
