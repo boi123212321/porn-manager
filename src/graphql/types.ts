@@ -10,6 +10,7 @@ type SceneMeta {
   size: Long
   duration: Int
   dimensions: Dimensions!
+  fps: Float
 }
 
 type ImageMeta {
@@ -56,6 +57,8 @@ type Actor {
   scenes: [Scene!]
   watches: [Long!]!
   #customFields
+
+  numScenes: Int!
 }
 
 type Label {

@@ -72,7 +72,8 @@ export default {
         if (typeof opts.frontCover == "string")
           movie.frontCover = opts.frontCover;
 
-        if (Array.isArray(opts.scenes)) movie.scenes = opts.scenes;
+        if (Array.isArray(opts.scenes))
+          movie.scenes = [...new Set(opts.scenes)];
 
         if (typeof opts.bookmark == "boolean") movie.bookmark = opts.bookmark;
 

@@ -1,7 +1,12 @@
 <template>
   <v-card v-if="scene" outlined>
     <a :href="`#/scene/${scene._id}`">
-      <v-img aspect-ratio="1" class="hover" v-ripple eager :src="thumbnail"></v-img>
+      <v-img aspect-ratio="1" class="hover" v-ripple eager :src="thumbnail">
+        <div
+          class="white--text body-2 duration-stamp"
+          v-if="scene.meta.duration"
+        >{{ videoDuration }}</div>
+      </v-img>
     </a>
 
     <div class="corner-actions">
@@ -41,10 +46,20 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
 import IScene from "../types/scene";
+import moment from "moment";
 
 @Component
 export default class SceneCard extends Vue {
   @Prop(Object) scene!: IScene;
+
+  get videoDuration() {
+    if (this.scene)
+      return moment()
+        .startOf("day")
+        .seconds(this.scene.meta.duration)
+        .format("H:mm:ss");
+    return "";
+  }
 
   rate($event) {
     const rating = $event * 2;
@@ -131,6 +146,15 @@ export default class SceneCard extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.duration-stamp {
+  padding: 4px;
+  border-radius: 4px;
+  background: #00000080;
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
 .corner-actions {
   position: absolute;
   top: 5px;

@@ -32,6 +32,7 @@ export class SceneMeta {
   size: number | null = null;
   duration: number | null = null;
   dimensions = new VideoDimensions();
+  fps: number | null = null;
 }
 
 export default class Scene {

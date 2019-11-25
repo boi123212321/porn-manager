@@ -19,6 +19,7 @@ export default gql`
     meta {
       size
       duration
+      fps
       dimensions {
         width
         height

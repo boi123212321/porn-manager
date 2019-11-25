@@ -164,12 +164,14 @@ export default {
 
         if (typeof opts.thumbnail == "string") scene.thumbnail = opts.thumbnail;
 
-        if (Array.isArray(opts.actors)) scene.actors = opts.actors;
+        if (Array.isArray(opts.actors))
+          scene.actors = [...new Set(opts.actors)];
 
-        if (Array.isArray(opts.labels)) scene.labels = opts.labels;
+        if (Array.isArray(opts.labels))
+          scene.labels = [...new Set(opts.labels)];
 
         if (Array.isArray(opts.streamLinks))
-          scene.streamLinks = opts.streamLinks;
+          scene.streamLinks = [...new Set(opts.streamLinks)];
 
         if (typeof opts.bookmark == "boolean") scene.bookmark = opts.bookmark;
 
@@ -188,10 +190,7 @@ export default {
     return updatedScenes;
   },
 
-  async removeScenes(
-    _,
-    { ids }: { ids: string[] }
-  ) {
+  async removeScenes(_, { ids }: { ids: string[] }) {
     for (const id of ids) {
       const scene = await Scene.getById(id);
 

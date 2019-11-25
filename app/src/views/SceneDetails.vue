@@ -97,6 +97,10 @@
             <v-subheader>Video dimensions</v-subheader>
             {{ currentScene.meta.dimensions.width }}x{{ currentScene.meta.dimensions.height }}
           </div>
+          <div v-if="currentScene.meta.fps" class="px-2 d-flex align-center">
+            <v-subheader>Framerate</v-subheader>
+            {{ currentScene.meta.fps }} fps
+          </div>
           <div v-if="currentScene.meta.size" class="px-2 pb-2 d-flex align-center">
             <v-subheader>Video size</v-subheader>
             {{ (currentScene.meta.size /1000/ 1000).toFixed(0) }} MB

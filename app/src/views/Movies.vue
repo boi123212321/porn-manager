@@ -195,6 +195,10 @@ export default class MovieList extends Vue {
     {
       text: "Views",
       value: "views"
+    },
+    {
+      text: "Duration",
+      value: "duration"
     }
   ];
 

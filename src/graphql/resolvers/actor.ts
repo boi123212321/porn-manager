@@ -19,5 +19,8 @@ export default {
   },
   async watches(actor: Actor) {
     return await Actor.getWatches(actor);
+  },
+  async numScenes(actor: Actor) {
+    return (await Scene.getByActor(actor._id)).length;
   }
 };

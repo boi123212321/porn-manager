@@ -38,14 +38,14 @@ export async function checkVideoFolders() {
 
   for (const videoPath of unknownVideos) {
     const _id = new Scene("")._id;
-    logger.log(`Creating video queue item with id ${_id}...`);
+    logger.log(`Creating scene queue item with id ${_id}...`);
     await ProcessingQueue.append({
       _id,
       actors: [],
       filename: basename(videoPath),
       path: videoPath,
       labels: [],
-      name: basename(videoPath)
+      name: null
     });
   }
 
@@ -80,14 +80,14 @@ export async function checkImageFolders() {
     image.hash = jimpImage.hash();
 
     // Extract actors
-    const extractedActors = await extractActors(image.name);
-    logger.log(`Found ${extractedActors.length} actors in image title.`);
+    const extractedActors = await extractActors(image.path);
+    logger.log(`Found ${extractedActors.length} actors in image path.`);
     image.actors.push(...extractedActors);
     image.actors = [...new Set(image.actors)];
 
     // Extract labels
-    const extractedLabels = await extractLabels(image.name);
-    logger.log(`Found ${extractedLabels.length} labels in image title.`);
+    const extractedLabels = await extractLabels(image.path);
+    logger.log(`Found ${extractedLabels.length} labels in image path.`);
     image.labels.push(...extractedLabels);
     image.labels = [...new Set(image.labels)];
 

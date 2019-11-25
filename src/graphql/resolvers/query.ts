@@ -36,7 +36,8 @@ export default {
         actors: await Movie.getActors(movie),
         labels: await Movie.getLabels(movie),
         addedOn: movie.addedOn,
-        releaseDate: movie.releaseDate
+        releaseDate: movie.releaseDate,
+        duration: (await Movie.calculateDuration(movie)) || 0
       }))
     );
 
@@ -92,6 +93,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => a.rating - b.rating);
         else searchDocs.sort((a, b) => b.rating - a.rating);
+        break;
+      case SortTarget.DURATION:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.duration - b.duration);
+        else searchDocs.sort((a, b) => b.duration - a.duration);
         break;
       case SortTarget.DATE:
         if (options.sortDir == "asc")
@@ -227,7 +233,8 @@ export default {
         labels: await Scene.getLabels(scene),
         actors: await Scene.getActors(scene),
         addedOn: scene.addedOn,
-        watches: scene.watches
+        watches: scene.watches,
+        duration: scene.meta.duration || 0
       }))
     );
 
@@ -294,6 +301,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => a.watches.length - b.watches.length);
         else searchDocs.sort((a, b) => b.watches.length - a.watches.length);
+        break;
+      case SortTarget.DURATION:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.duration - b.duration);
+        else searchDocs.sort((a, b) => b.duration - a.duration);
         break;
       case SortTarget.DATE:
         if (options.sortDir == "asc")

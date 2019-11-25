@@ -22,7 +22,6 @@ export default {
         await Actor.filterLabel(label._id);
         await Scene.filterLabel(label._id);
         await Image.filterLabel(label._id);
-
       }
     }
     return true;
@@ -44,7 +43,8 @@ export default {
       const label = await Label.getById(id);
 
       if (label) {
-        if (Array.isArray(opts.aliases)) label.aliases = opts.aliases;
+        if (Array.isArray(opts.aliases))
+          label.aliases = [...new Set(opts.aliases)];
 
         if (typeof opts.name == "string") label.name = opts.name;
 

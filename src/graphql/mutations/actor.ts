@@ -35,9 +35,11 @@ export default {
       const actor = await Actor.getById(id);
 
       if (actor) {
-        if (Array.isArray(opts.aliases)) actor.aliases = opts.aliases;
+        if (Array.isArray(opts.aliases))
+          actor.aliases = [...new Set(opts.aliases)];
 
-        if (Array.isArray(opts.labels)) actor.labels = opts.labels;
+        if (Array.isArray(opts.labels))
+          actor.labels = [...new Set(opts.labels)];
 
         if (typeof opts.bookmark == "boolean") actor.bookmark = opts.bookmark;
 

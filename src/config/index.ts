@@ -29,6 +29,8 @@ export interface IConfig {
   PASSWORD: string | null;
 
   PORT: number;
+
+  APPLY_ACTOR_LABELS: boolean;
 }
 
 export const defaultConfig: IConfig = {
@@ -42,7 +44,8 @@ export const defaultConfig: IConfig = {
   GENERATE_THUMBNAILS: true,
   THUMBNAIL_INTERVAL: 60,
   PASSWORD: null,
-  PORT: 3000
+  PORT: 3000,
+  APPLY_ACTOR_LABELS: true
 };
 
 let config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;

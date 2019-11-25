@@ -38,16 +38,7 @@ export default {
   },
 
   async duration(movie: Movie) {
-    const scenesWithSource = (await Movie.getScenes(movie)).filter(
-      scene => scene.meta && scene.path
-    );
-
-    if (!scenesWithSource.length) return null;
-
-    return scenesWithSource.reduce(
-      (dur, scene) => dur + <number>scene.meta.duration,
-      0
-    );
+    return await Movie.calculateDuration(movie);
   },
 
   async size(movie: Movie) {

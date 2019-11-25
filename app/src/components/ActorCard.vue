@@ -16,7 +16,8 @@
       </v-btn>
     </div>
 
-    <v-card-title class="pb-1">{{ actor.name }}</v-card-title>
+    <v-card-title>{{ actor.name }}</v-card-title>
+    <v-card-subtitle>{{ actor.numScenes }} {{ actor.numScenes == 1 ? 'scene' : 'scenes' }}</v-card-subtitle>
     <v-rating
       half-increments
       @input="rate"

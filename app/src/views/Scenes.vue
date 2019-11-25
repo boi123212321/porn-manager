@@ -246,6 +246,10 @@ export default class SceneList extends Vue {
     {
       text: "Views",
       value: "views"
+    },
+    {
+      text: "Duration",
+      value: "duration"
     }
   ];
 

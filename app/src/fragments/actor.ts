@@ -9,6 +9,7 @@ export default gql`
     rating
     favorite
     bookmark
+    numScenes
     labels {
       _id
       name

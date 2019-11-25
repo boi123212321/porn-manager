@@ -52,6 +52,15 @@ let store = {} as {
   };
 })();
 
+export function count(store: DataStore, query: any): Promise<number> {
+  return new Promise((resolve, reject) => {
+    store.count(query, (err, num) => {
+      if (err) return reject(err);
+      resolve(num);
+    });
+  });
+}
+
 export function insert<T>(store: DataStore, doc: T | T[]) {
   return new Promise((resolve, reject) => {
     store.insert(doc, (err, doc) => {

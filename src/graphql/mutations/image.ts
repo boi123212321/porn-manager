@@ -11,6 +11,7 @@ import { Dictionary, libraryPath } from "../../types/utility";
 import Movie from "../../types/movie";
 import Jimp from "jimp";
 import { statAsync, unlinkAsync } from "../../fs/async";
+import { getConfig } from "../../config";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -40,6 +41,8 @@ export default {
 
       if (!sceneInDb) throw new Error(`Scene ${args.scene} not found`);
     }
+
+    const config = await getConfig();
 
     const { filename, mimetype, createReadStream } = await args.file;
     const ext = extname(filename);
@@ -117,8 +120,8 @@ export default {
     }
 
     // Extract actors
-    const extractedActors = await extractActors(image.name);
-    logger.log(`Found ${extractedActors.length} actors in image title.`);
+    const extractedActors = await extractActors(image.path);
+    logger.log(`Found ${extractedActors.length} actors in image path.`);
     image.actors.push(...extractedActors);
     image.actors = [...new Set(image.actors)];
 
@@ -127,9 +130,25 @@ export default {
     }
 
     // Extract labels
-    const extractedLabels = await extractLabels(image.name);
-    logger.log(`Found ${extractedLabels.length} labels in image title.`);
+    const extractedLabels = await extractLabels(image.path);
+    logger.log(`Found ${extractedLabels.length} labels in image path.`);
     image.labels.push(...extractedLabels);
+
+    if (config.APPLY_ACTOR_LABELS === true) {
+      logger.log("Applying actor labels to image");
+      image.labels.push(
+        ...(
+          await Promise.all(
+            extractedActors.map(async id => {
+              const actor = await Actor.getById(id);
+              if (!actor) return [];
+              return actor.labels;
+            })
+          )
+        ).flat()
+      );
+    }
+
     image.labels = [...new Set(image.labels)];
 
     // Done
@@ -167,9 +186,11 @@ export default {
       const image = await Image.getById(id);
 
       if (image) {
-        if (Array.isArray(opts.actors)) image.actors = opts.actors;
+        if (Array.isArray(opts.actors))
+          image.actors = [...new Set(opts.actors)];
 
-        if (Array.isArray(opts.labels)) image.labels = opts.labels;
+        if (Array.isArray(opts.labels))
+          image.labels = [...new Set(opts.labels)];
 
         if (typeof opts.bookmark == "boolean") image.bookmark = opts.bookmark;
 
@@ -189,10 +210,7 @@ export default {
     return updatedImages;
   },
 
-  async removeImages(
-    _,
-    { ids }: { ids: string[] }
-  ) {
+  async removeImages(_, { ids }: { ids: string[] }) {
     for (const id of ids) {
       const image = await Image.getById(id);
 

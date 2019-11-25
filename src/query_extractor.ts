@@ -3,7 +3,8 @@ export enum SortTarget {
   RATING = "rating",
   DATE = "date",
   ADDED_ON = "addedOn",
-  VIEWS = "views"
+  VIEWS = "views",
+  DURATION = "duration"
 }
 
 interface IQueryOptions {
