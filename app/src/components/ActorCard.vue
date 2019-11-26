@@ -3,12 +3,12 @@
     <a :href="`#/actor/${actor._id}`">
       <v-img aspect-ratio="1" class="hover" v-ripple eager :src="thumbnail">
         <div class="corner-actions">
-          <v-btn light class="elevation-2 mr-1" @click="favorite" icon style="background: #fafafa;">
+          <v-btn light class="elevation-2 mr-1" @click.stop.prevent="favorite" icon style="background: #fafafa;">
             <v-icon
               :color="actor.favorite ? 'red' : undefined"
             >{{ actor.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
           </v-btn>
-          <v-btn light class="elevation-2" @click="bookmark" icon style="background: #fafafa;">
+          <v-btn light class="elevation-2" @click.stop.prevent="bookmark" icon style="background: #fafafa;">
             <v-icon>{{ actor.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
           </v-btn>
         </div>

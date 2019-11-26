@@ -330,7 +330,7 @@ export default class SceneList extends Vue {
         this.createSceneDialog = false;
         this.createSceneName = "";
         this.createSceneActors = [];
-        this.selectedLabels = [];
+        this.createSelectedLabels = [];
       })
       .catch(() => {})
       .finally(() => {

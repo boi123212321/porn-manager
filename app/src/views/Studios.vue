@@ -2,7 +2,6 @@
   <div>
     <v-navigation-drawer v-model="drawer" :permanent="$vuetify.breakpoint.mdAndUp" clipped app>
       <v-container>
-        <v-checkbox v-model="useDVDCoverRatio" label="Use DVD Cover ratio"></v-checkbox>
         <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
 
         <v-subheader>Labels</v-subheader>
@@ -55,20 +54,30 @@
 
     <div v-if="!fetchLoader">
       <div class="d-flex align-center">
-        <h1 class="font-weight-light mr-3">Movies</h1>
+        <h1 class="font-weight-light mr-3">Studios</h1>
         <v-btn class="mr-3" @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </div>
       <v-row>
-        <v-col class="pa-1" v-for="movie in movies" :key="movie._id" cols="6" sm="6" md="4" lg="3" xl="2">
-          <MovieCard
-            :ratio="useDVDCoverRatio ? undefined : 1"
-            :movie="movie"
+        <v-col
+          class="pa-1"
+          v-for="studio in studios"
+          :key="studio._id"
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+          xl="2"
+        >
+          <!-- <scene-card
+            @rate="rate(scene._id, $event)"
+            @bookmark="bookmark(scene._id, $event)"
+            @favorite="favorite(scene._id, $event)"
+            :scene="scene"
             style="height: 100%"
-            @bookmark="bookmark(movie._id, $event)"
-            @favorite="favorite(movie._id, $event)"
-          />
+          />-->
+          <router-link :to="'/studio/' + studio._id">{{ studio }}</router-link>
         </v-col>
       </v-row>
     </div>
@@ -77,18 +86,17 @@
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
 
-    <v-dialog scrollable v-model="createMovieDialog" max-width="400px">
-      <v-card :loading="addMovieLoader">
-        <v-card-title>Add new movie</v-card-title>
+    <v-dialog scrollable v-model="createStudioDialog" max-width="400px">
+      <v-card :loading="addStudioLoader">
+        <v-card-title>Add new studio</v-card-title>
         <v-card-text style="max-height: 90vh">
           <v-form v-model="validCreation">
             <v-text-field
-              :rules="movieNameRules"
+              :rules="studioNameRules"
               color="accent"
-              v-model="createMovieName"
+              v-model="createStudioName"
               placeholder="Name"
             />
-            <SceneSelector :multiple="true" class="mb-2" v-model="createMovieScenes" />
           </v-form>
         </v-card-text>
         <v-divider></v-divider>
@@ -99,7 +107,7 @@
             class="text-none"
             :disabled="!validCreation"
             color="accent"
-            @click="addMovie"
+            @click="addStudio"
           >Add</v-btn>
         </v-card-actions>
       </v-card>
@@ -128,27 +136,18 @@
 import { Component, Vue, Watch } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
-import sceneFragment from "../fragments/scene";
-import actorFragment from "../fragments/actor";
 import { contextModule } from "../store/context";
 import InfiniteLoading from "vue-infinite-loading";
-import SceneSelector from "../components/SceneSelector.vue";
-import IScene from "../types/scene";
-import IActor from "../types/actor";
 import ILabel from "../types/label";
-import MovieCard from "../components/MovieCard.vue";
-import IMovie from "../types/movie";
-import movieFragment from "../fragments/movie";
+import studioFragment from "../fragments/studio";
 
 @Component({
   components: {
-    InfiniteLoading,
-    SceneSelector,
-    MovieCard
+    InfiniteLoading
   }
 })
-export default class MovieList extends Vue {
-  movies = [] as IMovie[];
+export default class StudioList extends Vue {
+  studios = [] as any[];
   fetchLoader = false;
 
   waiting = false;
@@ -156,12 +155,12 @@ export default class MovieList extends Vue {
   selectedLabels = [] as number[];
 
   validCreation = false;
-  createMovieDialog = false;
-  createMovieName = "";
-  createMovieScenes = [] as IScene[];
-  addMovieLoader = false;
+  createStudioDialog = false;
+  createStudioName = "";
+  labelSelectorDialog = false;
+  addStudioLoader = false;
 
-  movieNameRules = [v => (!!v && !!v.length) || "Invalid scene name"];
+  studioNameRules = [v => (!!v && !!v.length) || "Invalid studio name"];
 
   query = "";
   page = 0;
@@ -209,8 +208,6 @@ export default class MovieList extends Vue {
   infiniteId = 0;
   resetTimeout = null as NodeJS.Timeout | null;
 
-  useDVDCoverRatio = true;
-
   get drawer() {
     return contextModule.showFilters;
   }
@@ -219,116 +216,125 @@ export default class MovieList extends Vue {
     contextModule.toggleFilters(val);
   }
 
-  openCreateDialog() {
-    this.createMovieDialog = true;
+  labelIDs(indices: number[]) {
+    return indices.map(i => this.allLabels[i]).map(l => l._id);
   }
 
-  addMovie() {
-    this.addMovieLoader = true;
+  labelNames(indices: number[]) {
+    return indices.map(i => this.allLabels[i].name);
+  }
+
+  addStudio() {
+    this.addStudioLoader = true;
     ApolloClient.mutate({
       mutation: gql`
-        mutation($name: String!, $scenes: [String!]) {
-          addMovie(name: $name, scenes: $scenes) {
-            ...MovieFragment
-            actors {
-              ...ActorFragment
-            }
-            scenes {
-              ...SceneFragment
-              actors {
-                ...ActorFragment
-              }
-            }
+        mutation($name: String!) {
+          addStudio(name: $name) {
+            ...StudioFragment
           }
         }
-        ${movieFragment}
-        ${sceneFragment}
-        ${actorFragment}
+        ${studioFragment}
       `,
       variables: {
-        name: this.createMovieName,
-        scenes: this.createMovieScenes.map(a => a._id)
+        name: this.createStudioName
       }
     })
       .then(res => {
-        this.movies.unshift(res.data.addMovie);
-        this.createMovieDialog = false;
-        this.createMovieName = "";
-        this.createMovieScenes = [];
+        this.studios.unshift(res.data.addStudio);
+        this.createStudioDialog = false;
+        this.createStudioName = "";
       })
       .catch(() => {})
       .finally(() => {
-        this.addMovieLoader = false;
+        this.addStudioLoader = false;
       });
   }
 
-  favorite(id: any, favorite: boolean) {
-    const index = this.movies.findIndex(sc => sc._id == id);
+  openCreateDialog() {
+    this.createStudioDialog = true;
+  }
+
+  rate(id: any, rating: number) {
+    const index = this.studios.findIndex(sc => sc._id == id);
 
     if (index > -1) {
-      const movie = this.movies[index];
-      movie.favorite = favorite;
-      Vue.set(this.movies, index, movie);
+      const studio = this.studios[index];
+      studio.rating = rating;
+      Vue.set(this.studios, index, studio);
+    }
+  }
+
+  favorite(id: any, favorite: boolean) {
+    const index = this.studios.findIndex(sc => sc._id == id);
+
+    if (index > -1) {
+      const studio = this.studios[index];
+      studio.favorite = favorite;
+      Vue.set(this.studios, index, studio);
     }
   }
 
   bookmark(id: any, bookmark: boolean) {
-    const index = this.movies.findIndex(sc => sc._id == id);
+    const index = this.studios.findIndex(sc => sc._id == id);
 
     if (index > -1) {
-      const movie = this.movies[index];
-      movie.bookmark = bookmark;
-      Vue.set(this.movies, index, movie);
+      const studio = this.studios[index];
+      studio.bookmark = bookmark;
+      Vue.set(this.studios, index, studio);
     }
   }
 
-  movieLabels(movie: any) {
-    return movie.labels.map(l => l.name).sort();
+  studioLabels(studio: any) {
+    return studio.labels.map(l => l.name).sort();
   }
 
-  movieActorNames(movie: any) {
-    return movie.actors.map(a => a.name).join(", ");
+  studioThumbnail(studio: any) {
+    if (studio.thumbnail)
+      return `${serverBase}/image/${
+        studio.thumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    return "";
   }
 
   @Watch("ratingFilter", {})
   onRatingChange(newVal: number) {
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
     this.infiniteId++;
   }
 
   @Watch("favoritesOnly")
   onFavoriteChange() {
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
     this.infiniteId++;
   }
 
   @Watch("bookmarksOnly")
   onBookmarkChange() {
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
     this.infiniteId++;
   }
 
   @Watch("sortDir")
   onSortDirChange() {
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
     this.infiniteId++;
   }
 
   @Watch("sortBy")
   onSortChange() {
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
     this.infiniteId++;
   }
 
   @Watch("selectedLabels")
   onLabelChange() {
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
     this.infiniteId++;
   }
 
@@ -340,7 +346,7 @@ export default class MovieList extends Vue {
 
     this.waiting = true;
     this.page = 0;
-    this.movies = [];
+    this.studios = [];
 
     this.resetTimeout = setTimeout(() => {
       this.waiting = false;
@@ -352,7 +358,7 @@ export default class MovieList extends Vue {
     this.fetchPage().then(items => {
       if (items.length) {
         this.page++;
-        this.movies.push(...items);
+        this.studios.push(...items);
         $state.loaded();
       } else {
         $state.complete();
@@ -380,29 +386,18 @@ export default class MovieList extends Vue {
       const result = await ApolloClient.query({
         query: gql`
           query($query: String) {
-            getMovies(query: $query) {
-              ...MovieFragment
-              actors {
-                ...ActorFragment
-              }
-              scenes {
-                ...SceneFragment
-                actors {
-                  ...ActorFragment
-                }
-              }
+            getStudios(query: $query) {
+              ...StudioFragment
             }
           }
-          ${movieFragment}
-          ${sceneFragment}
-          ${actorFragment}
+          ${studioFragment}
         `,
         variables: {
           query
         }
       });
 
-      return result.data.getMovies;
+      return result.data.getStudios;
     } catch (err) {
       throw err;
     }

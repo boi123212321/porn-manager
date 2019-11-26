@@ -93,6 +93,7 @@ export default class App extends Vue {
       this.$route.name == "scenes" ||
       this.$route.name == "actors" ||
       this.$route.name == "images" ||
+      this.$route.name == "studios" ||
       this.$route.name == "movies"
     );
   }
@@ -137,6 +138,11 @@ export default class App extends Vue {
       text: "Labels",
       url: "/labels"
     },
+    /* {
+      icon: "mdi-camera",
+      text: "Studios",
+      url: "/studios"
+    }, */
     {
       icon: "mdi-image",
       text: "Images",

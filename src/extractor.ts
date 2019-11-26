@@ -7,7 +7,7 @@ import Actor from "./types/actor";
 function tokenPerms(str: string) {
   const tokens = str
     .toLowerCase()
-    .replace(/[^a-zA-Z0-9']/g, " ")
+    .replace(/[^a-zA-Z0-9]/g, " ")
     .split(" ")
     .filter(Boolean);
   const perms = [...tokens];

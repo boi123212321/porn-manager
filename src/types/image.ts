@@ -40,6 +40,14 @@ export default class Image {
     }
   }
 
+  static async filterStudio(studioId: string) {
+    await database.update(
+      database.store.images,
+      { studio: studioId },
+      { $set: { studio: null } }
+    );
+  }
+
   static async filterScene(scene: string) {
     await database.update(
       database.store.images,

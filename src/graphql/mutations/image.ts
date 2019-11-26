@@ -20,6 +20,7 @@ type IImageUpdateOpts = Partial<{
   actors: string[];
   favorite: boolean;
   bookmark: boolean;
+  studio: string;
 }>;
 
 export default {
@@ -58,6 +59,8 @@ export default {
 
     if (args.scene) image.scene = args.scene;
 
+    if (args.studio) image.studio = args.studio;
+
     const outPath = `tmp/${image._id}${ext}`;
 
     logger.log(`Getting file...`);
@@ -77,7 +80,12 @@ export default {
     // File written, now process
     logger.success(`File written to ${outPath}.`);
 
-    const sourcePath = await libraryPath(`images/${image._id}${ext}`);
+    let processedExt = ".jpg";
+    if (args.lossless === true) {
+      processedExt = ".png";
+    }
+
+    const sourcePath = await libraryPath(`images/${image._id}${processedExt}`);
     image.path = sourcePath;
 
     if (args.crop) {
@@ -199,6 +207,8 @@ export default {
         if (typeof opts.name == "string") image.name = opts.name.trim();
 
         if (typeof opts.rating == "number") image.rating = opts.rating;
+
+        if (typeof opts.studio == "string") image.studio = opts.studio;
 
         await database.update(database.store.images, { _id: image._id }, image);
         updatedImages.push(image);

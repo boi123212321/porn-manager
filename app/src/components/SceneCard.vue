@@ -8,12 +8,12 @@
         >{{ videoDuration }}</div>
 
         <div class="corner-actions">
-          <v-btn light class="elevation-2 mr-1" @click="favorite" icon style="background: #fafafa;">
+          <v-btn light class="elevation-2 mr-1" @click.stop.prevent="favorite" icon style="background: #fafafa;">
             <v-icon
               :color="scene.favorite ? 'red' : undefined"
             >{{ scene.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
           </v-btn>
-          <v-btn light class="elevation-2" @click="bookmark" icon style="background: #fafafa;">
+          <v-btn light class="elevation-2" @click.stop.prevent="bookmark" icon style="background: #fafafa;">
             <v-icon>{{ scene.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
           </v-btn>
         </div>

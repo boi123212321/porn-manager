@@ -32,6 +32,14 @@ export default class Movie {
     );
   }
 
+  static async filterStudio(studioId: string) {
+    await database.update(
+      database.store.movies,
+      { studio: studioId },
+      { $set: { studio: null } }
+    );
+  }
+
   static async filterScene(scene: string) {
     await database.update(
       database.store.movies,
@@ -66,6 +74,12 @@ export default class Movie {
 
   static async getAll() {
     return (await database.find(database.store.movies, {})) as Movie[];
+  }
+
+  static async getByStudio(id: string) {
+    return (await database.find(database.store.movies, {
+      studio: id
+    })) as Scene[];
   }
 
   static async getLabels(movie: Movie) {

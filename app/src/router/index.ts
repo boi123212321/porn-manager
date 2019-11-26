@@ -8,8 +8,10 @@ import Movies from "../views/Movies.vue";
 import SceneDetails from "../views/SceneDetails.vue";
 import ActorDetails from "../views/ActorDetails.vue";
 import MovieDetails from "../views/MovieDetails.vue";
+import StudioDetails from "../views/StudioDetails.vue";
 import Labels from "../views/Labels.vue";
 import Images from "../views/Images.vue";
+import Studios from "../views/Studios.vue";
 
 Vue.use(VueRouter);
 
@@ -41,6 +43,11 @@ const routes = [
     component: Movies
   },
   {
+    path: "/studios",
+    name: "studios",
+    component: Studios
+  },
+  {
     path: "/scene/:id",
     name: "scene-details",
     component: SceneDetails
@@ -54,6 +61,11 @@ const routes = [
     path: "/movie/:id",
     name: "movie-details",
     component: MovieDetails
+  },
+  {
+    path: "/studio/:id",
+    name: "studio-details",
+    component: StudioDetails
   },
   {
     path: "/labels",
