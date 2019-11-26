@@ -231,7 +231,7 @@ export default class SceneToolbar extends Vue {
           description: this.editDescription,
           streamLinks,
           actors: this.editActors.map(a => a._id),
-          studio: this.editStudio._id
+          studio: this.editStudio ? this.editStudio._id : null
         }
       }
     })
