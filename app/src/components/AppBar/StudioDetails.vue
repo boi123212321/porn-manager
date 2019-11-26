@@ -1,11 +1,11 @@
 <template>
-  <div style="width:100%" v-if="currentScene" class="d-flex align-center">
+  <div style="width:100%" v-if="currentStudio" class="d-flex align-center">
     <v-btn class="mr-1" icon @click="$router.go(-1)">
       <v-icon>mdi-chevron-left</v-icon>
     </v-btn>
-    <v-toolbar-title v-if="$vuetify.breakpoint.smAndUp" class="mr-1 title">{{ currentScene.name }}</v-toolbar-title>
+    <v-toolbar-title v-if="$vuetify.breakpoint.smAndUp" class="mr-1 title">{{ currentStudio.name }}</v-toolbar-title>
 
-    <v-menu v-if="currentScene.path || currentScene.streamLinks.length">
+    <v-menu v-if="currentStudio.path || currentStudio.streamLinks.length">
       <template v-slot:activator="{ on }">
         <v-btn v-on="on" class="mr-1" icon>
           <v-icon>mdi-play</v-icon>
@@ -13,12 +13,12 @@
       </template>
 
       <v-list>
-        <v-list-item v-ripple @click="watch(currentSceneURL)" v-if="currentScene.path">
+        <v-list-item v-ripple @click="watch(currentStudioURL)" v-if="currentStudio.path">
           <v-list-item-title>Local copy</v-list-item-title>
         </v-list-item>
 
         <v-list-item
-          v-for="link in currentScene.streamLinks"
+          v-for="link in currentStudio.streamLinks"
           :key="link"
           v-ripple
           @click="watch(link)"
@@ -30,12 +30,12 @@
 
     <v-btn @click="favorite" class="mr-1" icon>
       <v-icon
-        :color="currentScene.favorite ? 'error' : undefined"
-      >{{ currentScene.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
+        :color="currentStudio.favorite ? 'error' : undefined"
+      >{{ currentStudio.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
     </v-btn>
 
     <v-btn @click="bookmark" icon>
-      <v-icon>{{ currentScene.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
+      <v-icon>{{ currentStudio.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
     </v-btn>
 
     <v-spacer></v-spacer>
@@ -50,11 +50,11 @@
 
     <v-dialog scrollable v-model="editDialog" max-width="600px">
       <v-card>
-        <v-card-title>Edit '{{ currentScene.name }}'</v-card-title>
+        <v-card-title>Edit '{{ currentStudio.name }}'</v-card-title>
         <v-card-text style="max-height: 600px">
           <v-form v-model="validEdit">
             <v-text-field
-              :rules="sceneNameRules"
+              :rules="studioNameRules"
               color="accent"
               v-model="editName"
               placeholder="Name"
@@ -64,13 +64,11 @@
               auto-grow
               color="accent"
               v-model="editDescription"
-              placeholder="Scene description"
+              placeholder="Studio description"
               :rows="2"
             />
 
             <ActorSelector v-model="editActors" />
-
-            <StudioSelector v-model="editStudio" />
 
             <v-textarea
               auto-grow
@@ -87,7 +85,7 @@
           <v-btn
             text
             class="text-none"
-            @click="editScene"
+            @click="editStudio"
             color="accent"
             :disabled="!validEdit"
           >Edit</v-btn>
@@ -97,7 +95,7 @@
 
     <v-dialog v-model="removeDialog" max-width="400px">
       <v-card :loading="removeLoader">
-        <v-card-title>Really delete '{{ currentScene.name }}'?</v-card-title>
+        <v-card-title>Really delete '{{ currentStudio.name }}'?</v-card-title>
         <v-card-text>
           <v-checkbox color="error" v-model="deleteImages" label="Delete images as well"></v-checkbox>
         </v-card-text>
@@ -112,60 +110,28 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { sceneModule } from "../../store/scene";
 import ApolloClient, { serverBase } from "../../apollo";
 import gql from "graphql-tag";
-import ActorSelector from "../ActorSelector.vue";
 import IActor from "../../types/actor";
+import { studioModule } from "../../store/studio";
 import StudioSelector from "../../components/StudioSelector.vue";
-import studioFragment from "../../fragments/studio";
 
 @Component({
   components: {
-    ActorSelector,
     StudioSelector
   }
 })
-export default class SceneToolbar extends Vue {
+export default class StudioToolbar extends Vue {
   editDialog = false;
   validEdit = false;
   editName = "";
   editDescription = "";
-  editStreamLinks = null as string | null;
-  editActors = [] as IActor[];
-  editStudio = null as any;
 
-  sceneNameRules = [v => (!!v && !!v.length) || "Invalid scene name"];
+  studioNameRules = [v => (!!v && !!v.length) || "Invalid studio name"];
 
   removeDialog = false;
   deleteImages = false;
   removeLoader = false;
-
-  watch(url: string) {
-    if (!this.currentScene) return;
-
-    var win = window.open(url, "_blank");
-    if (win) win.focus();
-
-    ApolloClient.mutate({
-      mutation: gql`
-        mutation($id: String!) {
-          watchScene(id: $id) {
-            watches
-          }
-        }
-      `,
-      variables: {
-        id: this.currentScene._id
-      }
-    })
-      .then(res => {
-        sceneModule.pushWatch(res.data.watchScene.watches.pop());
-      })
-      .catch(err => {
-        console.error(err);
-      });
-  }
 
   getDomainName(url: string) {
     return new URL(url).hostname
@@ -175,23 +141,23 @@ export default class SceneToolbar extends Vue {
   }
 
   remove() {
-    if (!this.currentScene) return;
+    if (!this.currentStudio) return;
 
     this.removeLoader = true;
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $deleteImages: Boolean) {
-          removeScenes(ids: $ids, deleteImages: $deleteImages)
+          removeStudios(ids: $ids, deleteImages: $deleteImages)
         }
       `,
       variables: {
-        ids: [this.currentScene._id],
+        ids: [this.currentStudio._id],
         deleteImages: this.deleteImages
       }
     })
       .then(res => {
         this.removeDialog = false;
-        this.$router.replace("/scenes");
+        this.$router.replace("/studios");
       })
       .catch(err => {
         console.error(err);
@@ -205,42 +171,28 @@ export default class SceneToolbar extends Vue {
     this.removeDialog = true;
   }
 
-  editScene() {
-    if (!this.currentScene) return;
-
-    const streamLinks = (this.editStreamLinks || "")
-      .split("\n")
-      .filter(Boolean);
+  editStudio() {
+    if (!this.currentStudio) return;
 
     ApolloClient.mutate({
       mutation: gql`
-        mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
-          updateScenes(ids: $ids, opts: $opts) {
+        mutation($ids: [String!]!, $opts: StudioUpdateOpts!) {
+          updateStudios(ids: $ids, opts: $opts) {
             _id
-            studio {
-              ...StudioFragment
-            }
           }
         }
-        ${studioFragment}
       `,
       variables: {
-        ids: [this.currentScene._id],
+        ids: [this.currentStudio._id],
         opts: {
           name: this.editName,
-          description: this.editDescription,
-          streamLinks,
-          actors: this.editActors.map(a => a._id),
-          studio: this.editStudio._id
+          description: this.editDescription
         }
       }
     })
       .then(res => {
-        sceneModule.setName(this.editName.trim());
-        sceneModule.setDescription(this.editDescription.trim());
-        sceneModule.setStreamLinks(streamLinks);
-        sceneModule.setActors(this.editActors);
-        sceneModule.setStudio(res.data.updateScenes[0].studio);
+        studioModule.setName(this.editName.trim());
+        studioModule.setDescription(this.editDescription.trim());
         this.editDialog = false;
       })
       .catch(err => {
@@ -249,69 +201,59 @@ export default class SceneToolbar extends Vue {
   }
 
   openEditDialog() {
-    if (!this.currentScene) return;
+    if (!this.currentStudio) return;
 
-    this.editName = this.currentScene.name;
-    this.editDescription = this.currentScene.description || "";
-    this.editStreamLinks = this.currentScene.streamLinks.join("\n");
-    this.editActors = JSON.parse(JSON.stringify(this.currentScene.actors));
+    this.editName = this.currentStudio.name;
+    this.editDescription = this.currentStudio.description || "";
     this.editDialog = true;
-    this.editStudio = this.currentScene.studio;
   }
 
   favorite() {
-    if (!this.currentScene) return;
+    if (!this.currentStudio) return;
 
     ApolloClient.mutate({
       mutation: gql`
-        mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
-          updateScenes(ids: $ids, opts: $opts) {
+        mutation($ids: [String!]!, $opts: StudioUpdateOpts!) {
+          updateStudios(ids: $ids, opts: $opts) {
             favorite
           }
         }
       `,
       variables: {
-        ids: [this.currentScene._id],
+        ids: [this.currentStudio._id],
         opts: {
-          favorite: !this.currentScene.favorite
+          favorite: !this.currentStudio.favorite
         }
       }
     }).then(res => {
-      sceneModule.setFavorite(res.data.updateScenes[0].favorite);
+      studioModule.setFavorite(res.data.updateStudios[0].favorite);
     });
   }
 
   bookmark() {
-    if (!this.currentScene) return;
+    if (!this.currentStudio) return;
 
     ApolloClient.mutate({
       mutation: gql`
-        mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
-          updateScenes(ids: $ids, opts: $opts) {
+        mutation($ids: [String!]!, $opts: StudioUpdateOpts!) {
+          updateStudios(ids: $ids, opts: $opts) {
             bookmark
           }
         }
       `,
       variables: {
-        ids: [this.currentScene._id],
+        ids: [this.currentStudio._id],
         opts: {
-          bookmark: !this.currentScene.bookmark
+          bookmark: !this.currentStudio.bookmark
         }
       }
     }).then(res => {
-      sceneModule.setBookmark(res.data.updateScenes[0].bookmark);
+      studioModule.setBookmark(res.data.updateStudios[0].bookmark);
     });
   }
 
-  get currentScene() {
-    return sceneModule.current;
-  }
-
-  get currentSceneURL() {
-    if (this.currentScene)
-      return `${serverBase}/scene/${
-        this.currentScene._id
-      }?password=${localStorage.getItem("password")}`;
+  get currentStudio() {
+    return studioModule.current;
   }
 }
 </script>

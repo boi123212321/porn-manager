@@ -2,6 +2,8 @@ import * as database from "../database";
 import { generateHash } from "../hash";
 import Actor from "./actor";
 import Label from "./label";
+import * as logger from "../logger/index";
+import { unlinkAsync } from "../fs/async";
 
 export class ImageDimensions {
   width: number | null = null;
@@ -31,6 +33,19 @@ export default class Image {
 
   static async remove(image: Image) {
     await database.remove(database.store.images, { _id: image._id });
+    try {
+      if (image.path) await unlinkAsync(image.path);
+    } catch (error) {
+      logger.warn("Could not delete source file for image " + image._id);
+    }
+  }
+
+  static async filterStudio(studioId: string) {
+    await database.update(
+      database.store.images,
+      { studio: studioId },
+      { $set: { studio: null } }
+    );
   }
 
   static async filterScene(scene: string) {

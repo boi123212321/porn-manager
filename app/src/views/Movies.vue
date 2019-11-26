@@ -61,7 +61,7 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col class="pa-1" v-for="movie in movies" :key="movie._id" cols="6" sm="6" md="4" lg="3">
+        <v-col class="pa-1" v-for="movie in movies" :key="movie._id" cols="6" sm="6" md="4" lg="3" xl="2">
           <MovieCard
             :ratio="useDVDCoverRatio ? undefined : 1"
             :movie="movie"
@@ -255,7 +255,6 @@ export default class MovieList extends Vue {
         this.createMovieDialog = false;
         this.createMovieName = "";
         this.createMovieScenes = [];
-        this.selectedLabels = [];
       })
       .catch(() => {})
       .finally(() => {

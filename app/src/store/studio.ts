@@ -3,13 +3,8 @@ import IScene from "@/types/scene";
 import IActor from "@/types/actor";
 
 @Module
-class SceneModule extends VuexModule {
+class StudioModule extends VuexModule {
   current = null as IScene | null;
-
-  @Mutation
-  pushWatch(stamp: number) {
-    if (this.current) this.current.watches.push(stamp);
-  }
 
   @Mutation
   setName(name: string) {
@@ -48,27 +43,7 @@ class SceneModule extends VuexModule {
       else this.current.thumbnail._id = id;
     }
   }
-
-  @Mutation
-  setLabels(labels: { _id: string; name: string }[]) {
-    if (this.current) this.current.labels = labels;
-  }
-
-  @Mutation
-  setStreamLinks(streamLinks: string[]) {
-    if (this.current) this.current.streamLinks = streamLinks;
-  }
-
-  @Mutation
-  setStudio(studio: any) {
-    if (this.current) this.current.studio = studio;
-  }
-
-  @Mutation
-  setActors(actors: IActor[]) {
-    if (this.current) this.current.actors = actors;
-  }
 }
 
 import store from "./index";
-export const sceneModule = new SceneModule({ store, name: "scene" });
+export const studioModule = new StudioModule({ store, name: "studio" });

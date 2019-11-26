@@ -8,6 +8,7 @@ import Fuse from "fuse.js";
 import * as logger from "../../logger/index";
 import { Dictionary } from "../../types/utility";
 import ProcessingQueue from "../../queue/index";
+import Studio from "../../types/studio";
 
 const PAGE_SIZE = 20;
 
@@ -16,6 +17,93 @@ export default {
     return {
       length: await ProcessingQueue.getLength()
     };
+  },
+
+  async getStudios(_, { query }: { query: string | undefined }) {
+    const timeNow = +new Date();
+    logger.log("Searching...");
+
+    const options = extractQueryOptions(query);
+
+    const allStudios = await Studio.getAll();
+
+    let searchDocs = await Promise.all(
+      allStudios.map(async studio => ({
+        _id: studio._id,
+        name: studio.name,
+        favorite: studio.favorite,
+        bookmark: studio.bookmark,
+        //rating: await Mrating, // TODO:
+        actors: await Studio.getActors(studio),
+        labels: await Studio.getLabels(studio),
+        addedOn: studio.addedOn
+      }))
+    );
+
+    if (options.favorite === true)
+      searchDocs = searchDocs.filter(movie => movie.favorite);
+
+    if (options.bookmark === true)
+      searchDocs = searchDocs.filter(movie => movie.bookmark);
+
+    /* if (options.rating > 0)
+    searchDocs = searchDocs.filter(movie => movie.rating >= options.rating); */
+
+    if (options.include.length) {
+      searchDocs = searchDocs.filter(movie =>
+        options.include.every(id => movie.labels.map(l => l._id).includes(id))
+      );
+    }
+
+    if (options.exclude.length) {
+      searchDocs = searchDocs.filter(movie =>
+        options.exclude.every(id => !movie.labels.map(l => l._id).includes(id))
+      );
+    }
+
+    if (options.query) {
+      const searcher = new Fuse(searchDocs, {
+        shouldSort: options.sortBy == SortTarget.RELEVANCE,
+        tokenize: true,
+        threshold: 0,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 1,
+        keys: [
+          "name",
+          "labels.name",
+          "labels.aliases",
+          "actors.name",
+          "actors.aliases"
+        ]
+      });
+
+      searchDocs = searcher.search(options.query);
+    }
+
+    switch (options.sortBy) {
+      case SortTarget.ADDED_ON:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.addedOn - b.addedOn);
+        else searchDocs.sort((a, b) => b.addedOn - a.addedOn);
+        break;
+      /*  case SortTarget.RATING:
+      if (options.sortDir == "asc")
+        searchDocs.sort((a, b) => a.rating - b.rating);
+      else searchDocs.sort((a, b) => b.rating - a.rating);
+      break; */
+    }
+
+    const slice = await Promise.all(
+      searchDocs
+        .slice(options.page * PAGE_SIZE, options.page * PAGE_SIZE + PAGE_SIZE)
+        .map(studio => Studio.getById(studio._id))
+    );
+
+    logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
+
+    return slice;
   },
 
   async getMovies(_, { query }: { query: string | undefined }) {
@@ -37,7 +125,8 @@ export default {
         labels: await Movie.getLabels(movie),
         addedOn: movie.addedOn,
         releaseDate: movie.releaseDate,
-        duration: (await Movie.calculateDuration(movie)) || 0
+        duration: (await Movie.calculateDuration(movie)) || 0,
+        studio: movie.studio
       }))
     );
 
@@ -59,6 +148,12 @@ export default {
     if (options.exclude.length) {
       searchDocs = searchDocs.filter(movie =>
         options.exclude.every(id => !movie.labels.map(l => l._id).includes(id))
+      );
+    }
+
+    if (options.studios.length) {
+      searchDocs = searchDocs.filter(movie =>
+        options.studios.includes(movie.studio || "none")
       );
     }
 
@@ -234,7 +329,8 @@ export default {
         actors: await Scene.getActors(scene),
         addedOn: scene.addedOn,
         watches: scene.watches,
-        duration: scene.meta.duration || 0
+        duration: scene.meta.duration || 0,
+        studio: scene.studio
       }))
     );
 
@@ -262,6 +358,12 @@ export default {
     if (options.actors.length) {
       searchDocs = searchDocs.filter(scene =>
         options.actors.every(id => scene.actors.map(a => a._id).includes(id))
+      );
+    }
+
+    if (options.studios.length) {
+      searchDocs = searchDocs.filter(scene =>
+        options.studios.includes(scene.studio || "none")
       );
     }
 
@@ -348,7 +450,8 @@ export default {
         labels: await Image.getLabels(image),
         actors: await Image.getActors(image),
         addedOn: image.addedOn,
-        scene: image.scene
+        scene: image.scene,
+        studio: image.studio
       }))
     );
 
@@ -379,9 +482,15 @@ export default {
       );
     }
 
-    if (options.scene.length) {
+    if (options.scenes.length) {
       searchDocs = searchDocs.filter(image =>
-        options.scene.includes(image.scene || "none")
+        options.scenes.includes(image.scene || "none")
+      );
+    }
+
+    if (options.studios.length) {
+      searchDocs = searchDocs.filter(image =>
+        options.studios.includes(image.studio || "none")
       );
     }
 
@@ -443,6 +552,10 @@ export default {
 
   async getMovieById(_, args: Dictionary<any>) {
     return await Movie.getById(args.id);
+  },
+
+  async getStudioById(_, args: Dictionary<any>) {
+    return await Studio.getById(args.id);
   },
 
   async getLabelById(_, args: Dictionary<any>) {

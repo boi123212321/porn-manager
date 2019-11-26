@@ -1,12 +1,17 @@
 <template>
   <v-app>
     <v-app-bar clipped-left elevate-on-scroll app color="primary">
-      <v-app-bar-nav-icon @click="navDrawer = true" v-if="$vuetify.breakpoint.xsOnly"></v-app-bar-nav-icon>
+      <div class="d-flex align-center" v-if="$vuetify.breakpoint.xsOnly">
+        <v-app-bar-nav-icon class="mr-2" @click="navDrawer = true"></v-app-bar-nav-icon>
+        <v-toolbar-title v-if="currentScene" class="mr-1 title">{{ currentScene.name }}</v-toolbar-title>
+        <v-toolbar-title v-if="currentActor" class="mr-1 title">{{ currentActor.name }}</v-toolbar-title>
+        <v-toolbar-title v-if="currentMovie" class="mr-1 title">{{ currentMovie.name }}</v-toolbar-title>
+      </div>
 
       <span v-else>
-        <v-btn v-for="item in navItems" :key="item.icon" class="mr-2 text-none" text :to="item.url">
-          <v-icon left>{{ item.icon }}</v-icon>
-          {{ item.text }}
+        <v-btn :icon="$vuetify.breakpoint.smAndDown" v-for="item in navItems" :key="item.icon" class="mr-2 text-none" text :to="item.url">
+          <v-icon :left="$vuetify.breakpoint.mdAndUp">{{ item.icon }}</v-icon>
+          <span v-if="$vuetify.breakpoint.mdAndUp">{{ item.text }}</span>
         </v-btn>
       </span>
 
@@ -54,6 +59,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import { sceneModule } from "./store/scene";
 import { actorModule } from "./store/actor";
+import { movieModule } from "./store/movie";
 import { serverBase } from "./apollo";
 import SceneDetailsBar from "./components/AppBar/SceneDetails.vue";
 import ActorDetailsBar from "./components/AppBar/ActorDetails.vue";
@@ -70,11 +76,24 @@ import { contextModule } from "./store/context";
 export default class App extends Vue {
   navDrawer = false;
 
+  get currentActor() {
+    return actorModule.current;
+  }
+
+  get currentMovie() {
+    return movieModule.current;
+  }
+
+  get currentScene() {
+    return sceneModule.current;
+  }
+
   get showFilterButton() {
     return (
       this.$route.name == "scenes" ||
       this.$route.name == "actors" ||
       this.$route.name == "images" ||
+      this.$route.name == "studios" ||
       this.$route.name == "movies"
     );
   }
@@ -119,6 +138,11 @@ export default class App extends Vue {
       text: "Labels",
       url: "/labels"
     },
+    /* {
+      icon: "mdi-camera",
+      text: "Studios",
+      url: "/studios"
+    }, */
     {
       icon: "mdi-image",
       text: "Images",

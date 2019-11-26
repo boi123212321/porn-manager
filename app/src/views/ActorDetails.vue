@@ -92,6 +92,7 @@
               sm="6"
               md="4"
               lg="3"
+              xl="2"
             >
               <scene-card
                 @rate="rateScene(scene._id, $event)"
@@ -116,12 +117,22 @@
         </div>
         <v-container fluid>
           <v-row>
-            <v-col class="pa-1" v-for="(image, index) in images" :key="image._id" cols="6" sm="4">
+            <v-col
+              class="pa-1"
+              v-for="(image, index) in images"
+              :key="image._id"
+              cols="6"
+              sm="4"
+              md="3"
+              lg="3"
+              xl="2"
+            >
               <ImageCard @open="lightboxIndex = index" width="100%" height="100%" :image="image">
                 <template v-slot:action>
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
                       <v-btn
+                        light
                         v-on="on"
                         @click.native.stop="setAsThumbnail(image._id)"
                         class="elevation-2 mb-2"
@@ -246,6 +257,7 @@ import gql from "graphql-tag";
 import sceneFragment from "../fragments/scene";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
+import studioFragment from "../fragments/studio";
 import { actorModule } from "../store/actor";
 import SceneCard from "../components/SceneCard.vue";
 import moment from "moment";
@@ -605,7 +617,7 @@ export default class ActorDetails extends Vue {
   }
 
   get labelNames() {
-    if (!this.currentActor) return "";
+    if (!this.currentActor) return [];
     return this.currentActor.labels.map(l => l.name).sort();
   }
 
@@ -658,11 +670,15 @@ export default class ActorDetails extends Vue {
               actors {
                 ...ActorFragment
               }
+              studio {
+                ...StudioFragment
+              }
             }
           }
         }
         ${actorFragment}
         ${sceneFragment}
+        ${studioFragment}
       `,
       variables: {
         id: (<any>this).$route.params.id

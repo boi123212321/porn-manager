@@ -9,7 +9,7 @@ import Image from "../types/image";
 import { getConfig } from "../config";
 import { extractLabels, extractActors } from "../extractor";
 import ora from "ora";
-import { existsAsync, unlinkAsync, statAsync } from "../fs/async";
+import { existsAsync, statAsync } from "../fs/async";
 import { fileHash } from "../hash";
 
 export interface IQueueItem {
@@ -106,11 +106,6 @@ class Queue {
       });
     } catch (err) {
       logger.error("Error ffprobing file - perhaps a permission problem?");
-      try {
-        await unlinkAsync(sourcePath);
-      } catch (error) {
-        logger.warn(`Could not cleanup source file - ${sourcePath}`);
-      }
       throw new Error("Error");
     }
 
@@ -174,6 +169,7 @@ class Queue {
           image.meta.size = file.size;
           image.actors = scene.actors;
           image.labels = scene.labels;
+          image.studio = scene.studio;
           logger.log(`Creating image with id ${image._id}...`);
           await database.insert(database.store.images, image);
           images.push(image);

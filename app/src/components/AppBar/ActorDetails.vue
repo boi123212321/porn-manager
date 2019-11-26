@@ -3,7 +3,7 @@
     <v-btn class="mr-1" icon @click="$router.go(-1)">
       <v-icon>mdi-chevron-left</v-icon>
     </v-btn>
-    <v-toolbar-title class="mr-1 title">{{ currentActor.name }}</v-toolbar-title>
+    <v-toolbar-title v-if="$vuetify.breakpoint.smAndUp" class="mr-1 title">{{ currentActor.name }}</v-toolbar-title>
 
     <v-btn @click="favorite" class="mr-1" icon>
       <v-icon

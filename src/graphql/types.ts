@@ -27,6 +27,7 @@ type Query {
   getActors(query: String): [Actor!]!
   getMovies(query: String): [Movie!]!
   getImages(query: String): [Image!]!
+  getStudios(query: String): [Studio!]!
 
   getSceneById(id: String!): Scene
 
@@ -39,6 +40,8 @@ type Query {
 
   getMovieById(id: String!): Movie
 
+  getStudioById(id: String!): Studio
+
   getQueueInfo: QueueInfo!
 }
 
@@ -48,17 +51,18 @@ type Actor {
   aliases: [String!]!
   addedOn: Long!
   bornOn: Long
-  thumbnail: Image
-  images: [Image!]!
   favorite: Boolean!
   bookmark: Boolean!
   rating: Int
-  labels: [Label!]!
-  scenes: [Scene!]
   watches: [Long!]!
   #customFields
-
+  
+  # Resolvers
+  labels: [Label!]!
+  scenes: [Scene!]
   numScenes: Int!
+  thumbnail: Image
+  images: [Image!]!
 }
 
 type Label {
@@ -66,6 +70,8 @@ type Label {
   name: String!
   aliases: [String!]!
   addedOn: Long!
+  
+  # Resolvers
   thumbnail: Image
 }
 
@@ -75,18 +81,21 @@ type Scene {
   description: String
   addedOn: Long!
   releaseDate: Long
-  thumbnail: Image
-  images: [Image!]!
   favorite: Boolean!
   bookmark: Boolean!
   rating: Int
-  actors: [Actor!]!
-  labels: [Label!]!
   path: String
   streamLinks: [String!]!
   watches: [Long!]!
   meta: SceneMeta!
   #customFields
+  
+  # Resolvers
+  thumbnail: Image
+  images: [Image!]!
+  actors: [Actor!]!
+  labels: [Label!]!
+  studio: Studio
 }
 
 type Image {
@@ -97,11 +106,14 @@ type Image {
   bookmark: Boolean!
   rating: Int
   #customFields
-  labels: [Label!]!
   meta: ImageMeta!
+  
+  # Resolvers
   scene: Scene
   actors: [Actor!]!
+  labels: [Label!]!
   thumbnail: Image
+  studio: Studio
 }
 
 type Movie {
@@ -110,18 +122,40 @@ type Movie {
   description: String
   addedOn: Long!
   releaseDate: Long
-  frontCover: Image
-  backCover: Image
   favorite: Boolean!
   bookmark: Boolean!
-  rating: Int
+  #customFields
+  
+  # Resolvers
+  rating: Int # Inferred from scene ratings
+  frontCover: Image
+  backCover: Image
   scenes: [Scene!]!
-
   actors: [Actor!]!
-  labels: [Label!]!
-
+  labels: [Label!]! # Inferred from scene labels
   duration: Long
   size: Long
+  studio: Studio
+}
+
+type Studio {
+  _id: String!
+  name: String!
+  description: String
+  addedOn: Long!
+  favorite: Boolean!
+  bookmark: Boolean!
+  #customFields
+  
+  # Resolvers
+  parent: Studio
+  numScenes: Int!
+  thumbnail: Image
+  rating: Int # Inferred from scene ratings
+  scenes: [Scene!]!
+  labels: [Label!]! # Inferred from scene labels
+  actors: [Actor!]! # Inferred from scene actors
+  movies: [Movie!]!
 }
 
 input ActorUpdateOpts {
@@ -142,6 +176,7 @@ input ImageUpdateOpts {
   actors: [String!]
   favorite: Boolean
   bookmark: Boolean
+  studio: String
 }
 
 input LabelUpdateOpts {
@@ -161,6 +196,7 @@ input SceneUpdateOpts {
   streamLinks: [String!]
   thumbnail: String
   releaseDate: Long
+  studio: String
 }
 
 input MovieUpdateOpts {
@@ -173,6 +209,16 @@ input MovieUpdateOpts {
   bookmark: Boolean
   rating: Int
   scenes: [String!]
+  studio: String
+}
+
+input StudioUpdateOpts {
+  name: String
+  description: String
+  thumbnail: String
+  favorite: Boolean
+  bookmark: Boolean
+  parent: String
 }
 
 input Crop {
@@ -187,7 +233,7 @@ type Mutation {
   updateActors(ids: [String!]!, opts: ActorUpdateOpts!): [Actor!]!
   removeActors(ids: [String!]!): Boolean!
 
-  uploadImage(file: Upload!, name: String, actors: [String!], labels: [String!], scene: String, crop: Crop): Image!
+  uploadImage(file: Upload!, name: String, actors: [String!], labels: [String!], scene: String, crop: Crop, studio: String, lossless: Boolean): Image!
   addActorsToImage(id: String!, actors: [String!]!): Image!
   updateImages(ids: [String!]!, opts: ImageUpdateOpts!): [Image!]!
   removeImages(ids: [String!]!): Boolean!
@@ -201,11 +247,14 @@ type Mutation {
   watchScene(id: String!): Scene!
   uploadScene(file: Upload!, name: String, actors: [String!], labels: [String!]): Boolean!
   updateScenes(ids: [String!]!, opts: SceneUpdateOpts!): [Scene!]!
-  removeScenes(ids: [String!]!): Boolean!
+  removeScenes(ids: [String!]!, deleteImages: Boolean): Boolean!
 
   addMovie(name: String!, scenes: [String!]): Movie!
   addScenesToMovie(id: String!, scenes: [String!]!): Movie!
   updateMovies(ids: [String!]!, opts: MovieUpdateOpts!): [Movie!]!
   removeMovies(ids: [String!]!): Boolean!
+
+  addStudio(name: String!): Studio!
+  updateStudios(ids: [String!]!, opts: StudioUpdateOpts!): [Studio!]!
 }
 `;

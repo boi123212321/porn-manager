@@ -23,6 +23,7 @@ type ISceneUpdateOpts = Partial<{
   streamLinks: string[];
   thumbnail: string;
   releaseDate: number;
+  studio: string;
 }>;
 
 export default {
@@ -157,12 +158,14 @@ export default {
       const scene = await Scene.getById(id);
 
       if (scene) {
-        if (typeof opts.name == "string") scene.name = opts.name;
+        if (typeof opts.name == "string") scene.name = opts.name.trim();
 
         if (typeof opts.description == "string")
-          scene.description = opts.description;
+          scene.description = opts.description.trim();
 
         if (typeof opts.thumbnail == "string") scene.thumbnail = opts.thumbnail;
+
+        if (typeof opts.studio == "string") scene.studio = opts.studio;
 
         if (Array.isArray(opts.actors))
           scene.actors = [...new Set(opts.actors)];
@@ -190,7 +193,10 @@ export default {
     return updatedScenes;
   },
 
-  async removeScenes(_, { ids }: { ids: string[] }) {
+  async removeScenes(
+    _,
+    { ids, deleteImages }: { ids: string[]; deleteImages?: boolean }
+  ) {
     for (const id of ids) {
       const scene = await Scene.getById(id);
 
@@ -198,6 +204,14 @@ export default {
         await Scene.remove(scene);
         await Image.filterScene(scene._id);
         await Movie.filterScene(scene._id);
+
+        if (deleteImages === true) {
+          for (const image of await Image.getByScene(scene._id)) {
+            await Image.remove(image);
+          }
+          logger.success("Deleted images of scene " + scene._id);
+        }
+        logger.success("Deleted scene " + scene._id);
       }
     }
     return true;

@@ -6,6 +6,7 @@ import MutationResolver from "./mutation";
 import ImageResolver from "./resolvers/image";
 import LabelResolver from "./resolvers/label";
 import MovieResolver from "./resolvers/movie";
+import StudioResolver from "./resolvers/studio";
 
 const resolvers = {
   Long: GraphQLLong,
@@ -15,7 +16,8 @@ const resolvers = {
   Query: QueryResolvers,
   Mutation: MutationResolver,
   Label: LabelResolver,
-  Movie: MovieResolver
+  Movie: MovieResolver,
+  Studio: StudioResolver
 };
 
 export default resolvers;
