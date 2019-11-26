@@ -235,6 +235,7 @@ import gql from "graphql-tag";
 import sceneFragment from "../fragments/scene";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
+import studioFragment from "../fragments/studio";
 import SceneCard from "../components/SceneCard.vue";
 import ActorCard from "../components/ActorCard.vue";
 import moment from "moment";
@@ -488,7 +489,7 @@ export default class SceneDetails extends Vue {
     try {
       const query = `page:${
         this.page
-      } sortDir:asc sortBy:addedOn scene:${this.scenes
+      } sortDir:asc sortBy:addedOn scenes:${this.scenes
         .map(s => s._id)
         .join(",")}`;
 
@@ -626,7 +627,7 @@ export default class SceneDetails extends Vue {
   }
 
   get labelNames() {
-    if (!this.currentMovie) return "";
+    if (!this.currentMovie) return [];
     return this.currentMovie.labels.map(l => l.name).sort();
   }
 
@@ -644,12 +645,16 @@ export default class SceneDetails extends Vue {
               actors {
                 ...ActorFragment
               }
+              studio {
+                ...StudioFragment
+              }
             }
           }
         }
         ${movieFragment}
         ${sceneFragment}
         ${actorFragment}
+        ${studioFragment}
       `,
       variables: {
         id: (<any>this).$route.params.id

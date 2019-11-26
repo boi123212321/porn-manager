@@ -114,9 +114,11 @@ import ApolloClient, { serverBase } from "../../apollo";
 import gql from "graphql-tag";
 import IActor from "../../types/actor";
 import { studioModule } from "../../store/studio";
+import StudioSelector from "../../components/StudioSelector.vue";
 
 @Component({
   components: {
+    StudioSelector
   }
 })
 export default class StudioToolbar extends Vue {

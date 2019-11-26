@@ -70,6 +70,8 @@
 
             <ActorSelector v-model="editActors" />
 
+            <StudioSelector v-model="editStudio" />
+
             <v-textarea
               auto-grow
               color="accent"
@@ -115,10 +117,13 @@ import ApolloClient, { serverBase } from "../../apollo";
 import gql from "graphql-tag";
 import ActorSelector from "../ActorSelector.vue";
 import IActor from "../../types/actor";
+import StudioSelector from "../../components/StudioSelector.vue";
+import studioFragment from "../../fragments/studio";
 
 @Component({
   components: {
-    ActorSelector
+    ActorSelector,
+    StudioSelector
   }
 })
 export default class SceneToolbar extends Vue {
@@ -128,6 +133,7 @@ export default class SceneToolbar extends Vue {
   editDescription = "";
   editStreamLinks = null as string | null;
   editActors = [] as IActor[];
+  editStudio = null as any;
 
   sceneNameRules = [v => (!!v && !!v.length) || "Invalid scene name"];
 
@@ -211,8 +217,12 @@ export default class SceneToolbar extends Vue {
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
           updateScenes(ids: $ids, opts: $opts) {
             _id
+            studio {
+              ...StudioFragment
+            }
           }
         }
+        ${studioFragment}
       `,
       variables: {
         ids: [this.currentScene._id],
@@ -220,7 +230,8 @@ export default class SceneToolbar extends Vue {
           name: this.editName,
           description: this.editDescription,
           streamLinks,
-          actors: this.editActors.map(a => a._id)
+          actors: this.editActors.map(a => a._id),
+          studio: this.editStudio._id
         }
       }
     })
@@ -229,6 +240,7 @@ export default class SceneToolbar extends Vue {
         sceneModule.setDescription(this.editDescription.trim());
         sceneModule.setStreamLinks(streamLinks);
         sceneModule.setActors(this.editActors);
+        sceneModule.setStudio(res.data.updateScenes[0].studio);
         this.editDialog = false;
       })
       .catch(err => {
@@ -244,6 +256,7 @@ export default class SceneToolbar extends Vue {
     this.editStreamLinks = this.currentScene.streamLinks.join("\n");
     this.editActors = JSON.parse(JSON.stringify(this.currentScene.actors));
     this.editDialog = true;
+    this.editStudio = this.currentScene.studio;
   }
 
   favorite() {

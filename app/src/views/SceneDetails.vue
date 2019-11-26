@@ -25,6 +25,12 @@
           </v-container>
         </v-col>
         <v-col cols="12" sm="8" md="8" lg="9" xl="10">
+          <div class="d-flex" v-if="currentScene.studio">
+            <v-spacer></v-spacer>
+            <router-link :to="`/studio/${currentScene.studio._id}`">
+              <v-img v-ripple max-width="200px" :src="studioLogo"></v-img>
+            </router-link>
+          </div>
           <div v-if="currentScene.releaseDate">
             <div class="d-flex align-center">
               <v-icon>mdi-calendar</v-icon>
@@ -291,6 +297,7 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
 import sceneFragment from "../fragments/scene";
+import studioFragment from "../fragments/studio";
 import { sceneModule } from "../store/scene";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
@@ -491,7 +498,7 @@ export default class SceneDetails extends Vue {
     if (!this.currentScene) return;
 
     try {
-      const query = `page:${this.page} sortDir:asc sortBy:addedOn scene:${this.currentScene._id}`;
+      const query = `page:${this.page} sortDir:asc sortBy:addedOn scenes:${this.currentScene._id}`;
 
       const result = await ApolloClient.query({
         query: gql`
@@ -706,7 +713,7 @@ export default class SceneDetails extends Vue {
   }
 
   get labelNames() {
-    if (!this.currentScene) return "";
+    if (!this.currentScene) return [];
     return this.currentScene.labels.map(l => l.name).sort();
   }
 
@@ -714,6 +721,18 @@ export default class SceneDetails extends Vue {
     if (this.currentScene && this.currentScene.thumbnail)
       return `${serverBase}/image/${
         this.currentScene.thumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    return "";
+  }
+
+  get studioLogo() {
+    if (
+      this.currentScene &&
+      this.currentScene.studio &&
+      this.currentScene.studio.thumbnail
+    )
+      return `${serverBase}/image/${
+        this.currentScene.studio.thumbnail._id
       }?password=${localStorage.getItem("password")}`;
     return "";
   }
@@ -727,10 +746,14 @@ export default class SceneDetails extends Vue {
             actors {
               ...ActorFragment
             }
+            studio {
+              ...StudioFragment
+            }
           }
         }
         ${sceneFragment}
         ${actorFragment}
+        ${studioFragment}
       `,
       variables: {
         id: (<any>this).$route.params.id

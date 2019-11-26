@@ -60,6 +60,11 @@ class SceneModule extends VuexModule {
   }
 
   @Mutation
+  setStudio(studio: any) {
+    if (this.current) this.current.studio = studio;
+  }
+
+  @Mutation
   setActors(actors: IActor[]) {
     if (this.current) this.current.actors = actors;
   }

@@ -63,7 +63,16 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col class="pa-1" v-for="scene in scenes" :key="scene._id" cols="12" sm="6" md="4" lg="3" xl="2">
+        <v-col
+          class="pa-1"
+          v-for="scene in scenes"
+          :key="scene._id"
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+          xl="2"
+        >
           <scene-card
             @rate="rate(scene._id, $event)"
             @bookmark="bookmark(scene._id, $event)"
@@ -138,12 +147,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            @click="labelSelectorDialog = false"
-            text
-            color="accent"
-            class="text-none"
-          >OK</v-btn>
+          <v-btn @click="labelSelectorDialog = false" text color="accent" class="text-none">OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -178,6 +182,7 @@ import gql from "graphql-tag";
 import SceneCard from "../components/SceneCard.vue";
 import sceneFragment from "../fragments/scene";
 import actorFragment from "../fragments/actor";
+import studioFragment from "../fragments/studio";
 import LabelSelector from "../components/LabelSelector.vue";
 import { contextModule } from "../store/context";
 import InfiniteLoading from "vue-infinite-loading";
@@ -315,9 +320,17 @@ export default class SceneList extends Vue {
         mutation($name: String!, $labels: [String!], $actors: [String!]) {
           addScene(name: $name, labels: $labels, actors: $actors) {
             ...SceneFragment
+            actors {
+              ...ActorFragment
+            }
+            studio {
+              ...StudioFragment
+            }
           }
         }
         ${sceneFragment}
+        ${actorFragment}
+        ${studioFragment}
       `,
       variables: {
         name: this.createSceneName,
@@ -483,10 +496,14 @@ export default class SceneList extends Vue {
               actors {
                 ...ActorFragment
               }
+              studio {
+                ...StudioFragment
+              }
             }
           }
           ${sceneFragment}
           ${actorFragment}
+          ${studioFragment}
         `,
         variables: {
           query

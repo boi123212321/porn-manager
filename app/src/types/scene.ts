@@ -9,6 +9,7 @@ export default interface IScene {
   favorite: boolean;
   bookmark: boolean;
   actors: IActor[];
+  studio: any;
   labels: {
     _id: string;
     name: string;

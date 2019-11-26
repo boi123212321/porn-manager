@@ -125,7 +125,8 @@ export default {
         labels: await Movie.getLabels(movie),
         addedOn: movie.addedOn,
         releaseDate: movie.releaseDate,
-        duration: (await Movie.calculateDuration(movie)) || 0
+        duration: (await Movie.calculateDuration(movie)) || 0,
+        studio: movie.studio
       }))
     );
 
@@ -147,6 +148,12 @@ export default {
     if (options.exclude.length) {
       searchDocs = searchDocs.filter(movie =>
         options.exclude.every(id => !movie.labels.map(l => l._id).includes(id))
+      );
+    }
+
+    if (options.studios.length) {
+      searchDocs = searchDocs.filter(movie =>
+        options.studios.includes(movie.studio || "none")
       );
     }
 
@@ -322,7 +329,8 @@ export default {
         actors: await Scene.getActors(scene),
         addedOn: scene.addedOn,
         watches: scene.watches,
-        duration: scene.meta.duration || 0
+        duration: scene.meta.duration || 0,
+        studio: scene.studio
       }))
     );
 
@@ -350,6 +358,12 @@ export default {
     if (options.actors.length) {
       searchDocs = searchDocs.filter(scene =>
         options.actors.every(id => scene.actors.map(a => a._id).includes(id))
+      );
+    }
+
+    if (options.studios.length) {
+      searchDocs = searchDocs.filter(scene =>
+        options.studios.includes(scene.studio || "none")
       );
     }
 
@@ -436,7 +450,8 @@ export default {
         labels: await Image.getLabels(image),
         actors: await Image.getActors(image),
         addedOn: image.addedOn,
-        scene: image.scene
+        scene: image.scene,
+        studio: image.studio
       }))
     );
 
@@ -467,9 +482,15 @@ export default {
       );
     }
 
-    if (options.scene.length) {
+    if (options.scenes.length) {
       searchDocs = searchDocs.filter(image =>
-        options.scene.includes(image.scene || "none")
+        options.scenes.includes(image.scene || "none")
+      );
+    }
+
+    if (options.studios.length) {
+      searchDocs = searchDocs.filter(image =>
+        options.studios.includes(image.studio || "none")
       );
     }
 

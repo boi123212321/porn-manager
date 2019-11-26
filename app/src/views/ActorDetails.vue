@@ -257,6 +257,7 @@ import gql from "graphql-tag";
 import sceneFragment from "../fragments/scene";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
+import studioFragment from "../fragments/studio";
 import { actorModule } from "../store/actor";
 import SceneCard from "../components/SceneCard.vue";
 import moment from "moment";
@@ -616,7 +617,7 @@ export default class ActorDetails extends Vue {
   }
 
   get labelNames() {
-    if (!this.currentActor) return "";
+    if (!this.currentActor) return [];
     return this.currentActor.labels.map(l => l.name).sort();
   }
 
@@ -669,11 +670,15 @@ export default class ActorDetails extends Vue {
               actors {
                 ...ActorFragment
               }
+              studio {
+                ...StudioFragment
+              }
             }
           }
         }
         ${actorFragment}
         ${sceneFragment}
+        ${studioFragment}
       `,
       variables: {
         id: (<any>this).$route.params.id

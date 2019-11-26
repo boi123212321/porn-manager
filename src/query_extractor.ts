@@ -18,7 +18,8 @@ interface IQueryOptions {
   sortBy: SortTarget;
   sortDir: "asc" | "desc";
   page: number;
-  scene: string[];
+  scenes: string[];
+  studios: string[];
 }
 
 export default (query?: string) => {
@@ -30,7 +31,8 @@ export default (query?: string) => {
     sortBy: SortTarget.ADDED_ON,
     sortDir: "desc",
     page: 0,
-    scene: []
+    scenes: [],
+    studios: []
   };
 
   if (!query) return options;
@@ -56,7 +58,10 @@ export default (query?: string) => {
       case "actors":
         options[operation] = value.split(",");
         break;
-      case "scene":
+      case "scenes":
+        options[operation] = value.split(",");
+        break;
+      case "studios":
         options[operation] = value.split(",");
         break;
       case "rating":

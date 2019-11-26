@@ -7,9 +7,48 @@
       <div class="d-flex" v-else>
         <v-spacer></v-spacer>
         <v-img eager :src="thumbnail"></v-img>
-          <v-spacer></v-spacer>
+        <v-spacer></v-spacer>
       </div>
-      {{ currentStudio }}
+
+      <div v-if="currentStudio.description" class="pa-2">{{ currentStudio.description }}</div>
+
+      <div class="pt-5 pa-2">
+        <v-chip
+          label
+          class="mr-1 mb-1"
+          small
+          outlined
+          v-for="label in labelNames"
+          :key="label"
+        >{{ label }}</v-chip>
+      </div>
+
+      <v-row v-if="scenes.length">
+        <v-col cols="12">
+          <h1 class="text-center font-weight-light">{{ scenes.length }} Scenes</h1>
+
+          <v-row>
+            <v-col
+              class="pa-1"
+              v-for="scene in scenes"
+              :key="scene._id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              xl="2"
+            >
+              <scene-card
+                @rate="rateScene(scene._id, $event)"
+                @bookmark="bookmarkScene(scene._id, $event)"
+                @favorite="favoriteScene(scene._id, $event)"
+                :scene="scene"
+                style="height: 100%"
+              />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
     </div>
 
     <v-dialog v-model="thumbnailDialog" max-width="400px">
@@ -24,6 +63,23 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <infinite-loading v-if="currentStudio" :identifier="infiniteId" @infinite="infiniteHandler">
+      <div slot="no-results">
+        <v-icon large>mdi-close</v-icon>
+        <div>Nothing found!</div>
+      </div>
+
+      <div slot="spinner">
+        <v-progress-circular indeterminate></v-progress-circular>
+        <div>Loading...</div>
+      </div>
+
+      <div slot="no-more">
+        <v-icon large>mdi-emoticon-wink</v-icon>
+        <div>That's all!</div>
+      </div>
+    </infinite-loading>
   </div>
 </template>
 
@@ -35,29 +91,22 @@ import sceneFragment from "../fragments/scene";
 import { studioModule } from "../store/studio";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
-import ActorCard from "../components/ActorCard.vue";
 import moment from "moment";
 import Lightbox from "../components/Lightbox.vue";
 import SceneCard from "../components/SceneCard.vue";
-import ImageCard from "../components/ImageCard.vue";
 import InfiniteLoading from "vue-infinite-loading";
-import { Cropper } from "vue-advanced-cropper";
-import ImageUploader from "../components/ImageUploader.vue";
 import { actorModule } from "../store/actor";
 import IActor from "../types/actor";
 import IImage from "../types/image";
 import ILabel from "../types/label";
 import studioFragment from "../fragments/studio";
+import IScene from "../types/scene";
 
 @Component({
   components: {
-    ActorCard,
     Lightbox,
     SceneCard,
-    ImageCard,
-    InfiniteLoading,
-    Cropper,
-    ImageUploader
+    InfiniteLoading
   },
   beforeRouteLeave(_to, _from, next) {
     studioModule.setCurrent(null);
@@ -66,7 +115,7 @@ import studioFragment from "../fragments/studio";
 })
 export default class SceneDetails extends Vue {
   actors = [] as IActor[];
-  images = [] as IImage[];
+  scenes = [] as IScene[];
   lightboxIndex = null as number | null;
 
   infiniteId = 0;
@@ -83,8 +132,18 @@ export default class SceneDetails extends Vue {
 
     ApolloClient.mutate({
       mutation: gql`
-        mutation($file: Upload!, $name: String, $studio: String, $lossless: Boolean) {
-          uploadImage(file: $file, name: $name, studio: $studio, lossless: $lossless) {
+        mutation(
+          $file: Upload!
+          $name: String
+          $studio: String
+          $lossless: Boolean
+        ) {
+          uploadImage(
+            file: $file
+            name: $name
+            studio: $studio
+            lossless: $lossless
+          ) {
             ...ImageFragment
           }
         }
@@ -99,7 +158,6 @@ export default class SceneDetails extends Vue {
     })
       .then(res => {
         const image = res.data.uploadImage;
-        this.images.unshift(image);
         this.setAsThumbnail(image._id);
         this.thumbnailDialog = false;
         this.selectedThumbnail = null;
@@ -113,7 +171,7 @@ export default class SceneDetails extends Vue {
     this.thumbnailDialog = true;
   }
 
-  removeImage(index: number) {
+  /* removeImage(index: number) {
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!) {
@@ -146,33 +204,63 @@ export default class SceneDetails extends Vue {
     const images = this.images[index];
     images[key] = value;
     Vue.set(this.images, index, images);
-  }
+  } */
 
   get currentStudio() {
     return studioModule.current;
+  }
+
+  rateScene(id: any, rating: number) {
+    const index = this.scenes.findIndex(sc => sc._id == id);
+
+    if (index > -1) {
+      const actor = this.scenes[index];
+      actor.rating = rating;
+      Vue.set(this.scenes, index, actor);
+    }
+  }
+
+  favoriteScene(id: any, favorite: boolean) {
+    const index = this.scenes.findIndex(sc => sc._id == id);
+
+    if (index > -1) {
+      const actor = this.scenes[index];
+      actor.favorite = favorite;
+      Vue.set(this.scenes, index, actor);
+    }
+  }
+
+  bookmarkScene(id: any, bookmark: boolean) {
+    const index = this.scenes.findIndex(sc => sc._id == id);
+
+    if (index > -1) {
+      const actor = this.scenes[index];
+      actor.bookmark = bookmark;
+      Vue.set(this.scenes, index, actor);
+    }
   }
 
   async fetchPage() {
     if (!this.currentStudio) return;
 
     try {
-      const query = `page:${this.page} sortDir:asc sortBy:addedOn studio:${this.currentStudio._id}`;
+      const query = `page:${this.page} sortDir:asc sortBy:addedOn studios:${this.currentStudio._id}`;
 
       const result = await ApolloClient.query({
         query: gql`
           query($query: String) {
-            getImages(query: $query) {
-              ...ImageFragment
+            getScenes(query: $query) {
+              ...SceneFragment
               actors {
                 ...ActorFragment
               }
-              scene {
+              studio {
                 _id
                 name
               }
             }
           }
-          ${imageFragment}
+          ${sceneFragment}
           ${actorFragment}
         `,
         variables: {
@@ -180,7 +268,7 @@ export default class SceneDetails extends Vue {
         }
       });
 
-      return result.data.getImages;
+      return result.data.getScenes;
     } catch (err) {
       throw err;
     }
@@ -190,7 +278,7 @@ export default class SceneDetails extends Vue {
     this.fetchPage().then(items => {
       if (items.length) {
         this.page++;
-        this.images.push(...items);
+        this.scenes.push(...items);
         $state.loaded();
       } else {
         $state.complete();
@@ -226,13 +314,13 @@ export default class SceneDetails extends Vue {
       });
   }
 
-  imageLink(image: any) {
+  /* imageLink(image: any) {
     return `${serverBase}/image/${image._id}?password=${localStorage.getItem(
       "password"
     )}`;
-  }
+  } */
 
-  rateActor(id: any, rating: number) {
+  /*  rateActor(id: any, rating: number) {
     const index = this.actors.findIndex(sc => sc._id == id);
 
     if (index > -1) {
@@ -260,10 +348,10 @@ export default class SceneDetails extends Vue {
       actor.bookmark = bookmark;
       Vue.set(this.actors, index, actor);
     }
-  }
+  } */
 
   get labelNames() {
-    if (!this.currentStudio) return "";
+    if (!this.currentStudio) return [];
     return this.currentStudio.labels.map(l => l.name).sort();
   }
 
