@@ -9,8 +9,11 @@ import * as logger from "../../logger/index";
 import { Dictionary } from "../../types/utility";
 import ProcessingQueue from "../../queue/index";
 import Studio from "../../types/studio";
+import { getConfig } from "../../config";
 
 const PAGE_SIZE = 20;
+
+const FALLBACK_FUZZINESS = 0.25;
 
 export default {
   async getQueueInfo() {
@@ -61,25 +64,59 @@ export default {
       );
     }
 
-    if (options.query) {
-      const searcher = new Fuse(searchDocs, {
-        shouldSort: options.sortBy == SortTarget.RELEVANCE,
-        tokenize: true,
-        threshold: 0,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: [
-          "name",
-          "labels.name",
-          "labels.aliases",
-          "actors.name",
-          "actors.aliases"
-        ]
-      });
+    const config = await getConfig();
 
-      searchDocs = searcher.search(options.query);
+    if (options.query) {
+      if (config.USE_FUZZY_SEARCH) {
+        logger.log("Using fuzzy search...");
+        const searcher = new Fuse(searchDocs, {
+          shouldSort: options.sortBy == SortTarget.RELEVANCE,
+          tokenize: true,
+          threshold: config.FUZZINESS || FALLBACK_FUZZINESS,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: [
+            "name",
+            "labels.name",
+            "labels.aliases",
+            "actors.name",
+            "actors.aliases"
+          ]
+        });
+
+        searchDocs = searcher.search(options.query);
+      } else {
+        logger.log("Using simple search...");
+        const tokens = options.query.toLowerCase().split(" ");
+        searchDocs = searchDocs
+          .map(doc => {
+            let score = 0;
+            for (const token of tokens) {
+              if (doc.name.toLowerCase().includes(token)) score++;
+              for (const actor of doc.actors) {
+                if (actor.name.toLowerCase().includes(token)) score++;
+                for (const alias of actor.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+              for (const label of doc.labels) {
+                if (label.name.toLowerCase().includes(token)) score++;
+                for (const alias of label.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+            }
+            return {
+              doc,
+              score
+            };
+          })
+          .filter(doc => doc.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(doc => doc.doc);
+      }
     }
 
     switch (options.sortBy) {
@@ -157,25 +194,59 @@ export default {
       );
     }
 
-    if (options.query) {
-      const searcher = new Fuse(searchDocs, {
-        shouldSort: options.sortBy == SortTarget.RELEVANCE,
-        tokenize: true,
-        threshold: 0,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: [
-          "name",
-          "labels.name",
-          "labels.aliases",
-          "actors.name",
-          "actors.aliases"
-        ]
-      });
+    const config = await getConfig();
 
-      searchDocs = searcher.search(options.query);
+    if (options.query) {
+      if (config.USE_FUZZY_SEARCH) {
+        logger.log("Using fuzzy search...");
+        const searcher = new Fuse(searchDocs, {
+          shouldSort: options.sortBy == SortTarget.RELEVANCE,
+          tokenize: true,
+          threshold: config.FUZZINESS || FALLBACK_FUZZINESS,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: [
+            "name",
+            "labels.name",
+            "labels.aliases",
+            "actors.name",
+            "actors.aliases"
+          ]
+        });
+
+        searchDocs = searcher.search(options.query);
+      } else {
+        logger.log("Using simple search...");
+        const tokens = options.query.toLowerCase().split(" ");
+        searchDocs = searchDocs
+          .map(doc => {
+            let score = 0;
+            for (const token of tokens) {
+              if (doc.name.toLowerCase().includes(token)) score++;
+              for (const actor of doc.actors) {
+                if (actor.name.toLowerCase().includes(token)) score++;
+                for (const alias of actor.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+              for (const label of doc.labels) {
+                if (label.name.toLowerCase().includes(token)) score++;
+                for (const alias of label.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+            }
+            return {
+              doc,
+              score
+            };
+          })
+          .filter(doc => doc.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(doc => doc.doc);
+      }
     }
 
     switch (options.sortBy) {
@@ -260,19 +331,47 @@ export default {
       );
     }
 
-    if (options.query) {
-      const searcher = new Fuse(searchDocs, {
-        shouldSort: options.sortBy == SortTarget.RELEVANCE,
-        tokenize: true,
-        threshold: 0,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: ["name", "labels.name", "labels.aliases"]
-      });
+    const config = await getConfig();
 
-      searchDocs = searcher.search(options.query);
+    if (options.query) {
+      if (config.USE_FUZZY_SEARCH) {
+        logger.log("Using fuzzy search...");
+        const searcher = new Fuse(searchDocs, {
+          shouldSort: options.sortBy == SortTarget.RELEVANCE,
+          tokenize: true,
+          threshold: config.FUZZINESS || FALLBACK_FUZZINESS,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: ["name", "labels.name", "labels.aliases"]
+        });
+
+        searchDocs = searcher.search(options.query);
+      } else {
+        logger.log("Using simple search...");
+        const tokens = options.query.toLowerCase().split(" ");
+        searchDocs = searchDocs
+          .map(doc => {
+            let score = 0;
+            for (const token of tokens) {
+              if (doc.name.toLowerCase().includes(token)) score++;
+              for (const label of doc.labels) {
+                if (label.name.toLowerCase().includes(token)) score++;
+                for (const alias of label.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+            }
+            return {
+              doc,
+              score
+            };
+          })
+          .filter(doc => doc.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(doc => doc.doc);
+      }
     }
 
     switch (options.sortBy) {
@@ -367,25 +466,59 @@ export default {
       );
     }
 
-    if (options.query) {
-      const searcher = new Fuse(searchDocs, {
-        shouldSort: options.sortBy == SortTarget.RELEVANCE,
-        tokenize: true,
-        threshold: 0,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: [
-          "name",
-          "labels.name",
-          "labels.aliases",
-          "actors.name",
-          "actors.aliases"
-        ]
-      });
+    const config = await getConfig();
 
-      searchDocs = searcher.search(options.query);
+    if (options.query) {
+      if (config.USE_FUZZY_SEARCH) {
+        logger.log("Using fuzzy search...");
+        const searcher = new Fuse(searchDocs, {
+          shouldSort: options.sortBy == SortTarget.RELEVANCE,
+          tokenize: true,
+          threshold: config.FUZZINESS || FALLBACK_FUZZINESS,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: [
+            "name",
+            "labels.name",
+            "labels.aliases",
+            "actors.name",
+            "actors.aliases"
+          ]
+        });
+
+        searchDocs = searcher.search(options.query);
+      } else {
+        logger.log("Using simple search...");
+        const tokens = options.query.toLowerCase().split(" ");
+        searchDocs = searchDocs
+          .map(doc => {
+            let score = 0;
+            for (const token of tokens) {
+              if (doc.name.toLowerCase().includes(token)) score++;
+              for (const actor of doc.actors) {
+                if (actor.name.toLowerCase().includes(token)) score++;
+                for (const alias of actor.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+              for (const label of doc.labels) {
+                if (label.name.toLowerCase().includes(token)) score++;
+                for (const alias of label.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+            }
+            return {
+              doc,
+              score
+            };
+          })
+          .filter(doc => doc.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(doc => doc.doc);
+      }
     }
 
     switch (options.sortBy) {
@@ -494,25 +627,58 @@ export default {
       );
     }
 
-    if (options.query) {
-      const searcher = new Fuse(searchDocs, {
-        shouldSort: options.sortBy == SortTarget.RELEVANCE,
-        tokenize: true,
-        threshold: 0,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: [
-          "name",
-          "labels.name",
-          "labels.aliases",
-          "actors.name",
-          "actors.aliases"
-        ]
-      });
+    const config = await getConfig();
 
-      searchDocs = searcher.search(options.query);
+    if (options.query) {
+      if (config.USE_FUZZY_SEARCH) {
+        logger.log("Using fuzzy search...");
+        const searcher = new Fuse(searchDocs, {
+          shouldSort: options.sortBy == SortTarget.RELEVANCE,
+          tokenize: true,
+          threshold: config.FUZZINESS || FALLBACK_FUZZINESS,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: [
+            "name",
+            "labels.name",
+            "labels.aliases",
+            "actors.name",
+            "actors.aliases"
+          ]
+        });
+        searchDocs = searcher.search(options.query);
+      } else {
+        logger.log("Using simple search...");
+        const tokens = options.query.toLowerCase().split(" ");
+        searchDocs = searchDocs
+          .map(doc => {
+            let score = 0;
+            for (const token of tokens) {
+              if (doc.name.toLowerCase().includes(token)) score++;
+              for (const actor of doc.actors) {
+                if (actor.name.toLowerCase().includes(token)) score++;
+                for (const alias of actor.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+              for (const label of doc.labels) {
+                if (label.name.toLowerCase().includes(token)) score++;
+                for (const alias of label.aliases) {
+                  if (alias.toLowerCase().includes(token)) score++;
+                }
+              }
+            }
+            return {
+              doc,
+              score
+            };
+          })
+          .filter(doc => doc.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(doc => doc.doc);
+      }
     }
 
     switch (options.sortBy) {
