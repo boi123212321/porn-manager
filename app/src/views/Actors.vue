@@ -60,7 +60,16 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col class="pa-1" v-for="actor in actors" :key="actor._id" cols="12" sm="6" md="4" lg="3" xl="2">
+        <v-col
+          class="pa-1"
+          v-for="actor in actors"
+          :key="actor._id"
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+          xl="2"
+        >
           <actor-card
             @rate="rate(actor._id, $event)"
             @bookmark="bookmark(actor._id, $event)"
@@ -142,12 +151,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            @click="labelSelectorDialog = false"
-            text
-            color="accent"
-            class="text-none"
-          >OK</v-btn>
+          <v-btn @click="labelSelectorDialog = false" text color="accent" class="text-none">OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -496,6 +500,7 @@ export default class SceneList extends Vue {
       .catch(err => {
         console.error(err);
       });
+    document.title = "Actors";
   }
 }
 </script>

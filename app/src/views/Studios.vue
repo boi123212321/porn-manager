@@ -398,6 +398,7 @@ export default class StudioList extends Vue {
       .catch(err => {
         console.error(err);
       });
+    document.title = "Studios";
   }
 }
 </script>

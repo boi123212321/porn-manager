@@ -534,6 +534,7 @@ export default class SceneList extends Vue {
       .catch(err => {
         console.error(err);
       });
+    document.title = "Scenes";
   }
 }
 </script>

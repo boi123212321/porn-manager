@@ -446,6 +446,7 @@ export default class ImagesView extends Vue {
       .catch(err => {
         console.error(err);
       });
+    document.title = "Images";
   }
 }
 </script>
