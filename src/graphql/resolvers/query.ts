@@ -429,7 +429,8 @@ export default {
         addedOn: scene.addedOn,
         watches: scene.watches,
         duration: scene.meta.duration || 0,
-        studio: scene.studio
+        studio: scene.studio,
+        movies: await Movie.getByScene(scene._id)
       }))
     );
 
@@ -484,7 +485,8 @@ export default {
             "labels.name",
             "labels.aliases",
             "actors.name",
-            "actors.aliases"
+            "actors.aliases",
+            "movies.name"
           ]
         });
 
@@ -508,6 +510,9 @@ export default {
                 for (const alias of label.aliases) {
                   if (alias.toLowerCase().includes(token)) score++;
                 }
+              }
+              for (const movie of doc.movies) {
+                if (movie.name.toLowerCase().includes(token)) score++;
               }
             }
             return {
