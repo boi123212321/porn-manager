@@ -164,6 +164,7 @@ class Queue {
 
       try {
         thumbnailFiles = await Scene.generateThumbnails(scene);
+
         for (let i = 0; i < thumbnailFiles.length; i++) {
           const file = thumbnailFiles[i];
           const image = new Image(`${sceneName} ${i + 1}`);
@@ -178,11 +179,13 @@ class Queue {
           images.push(image);
         }
 
-        scene.thumbnail = images[Math.floor(images.length / 2)]._id;
-        loader.succeed(`Created ${thumbnailFiles.length} thumbnails.`);
+        if (thumbnailFiles.length > 0) {
+          scene.thumbnail = images[Math.floor(images.length / 2)]._id;
+          loader.succeed(`Created ${thumbnailFiles.length} thumbnails.`);
+        } else loader.warn(`Created 0 thumbnails.`);
       } catch (error) {
         logger.error(error);
-        loader.warn(`Error generating thumbnails.`);
+        loader.fail(`Error generating thumbnails.`);
       }
     }
 
