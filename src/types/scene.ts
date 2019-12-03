@@ -167,17 +167,26 @@ export default class Scene {
 
   static async generateThumbnails(scene: Scene): Promise<ThumbnailFile[]> {
     return new Promise(async (resolve, reject) => {
-      if (!scene.path || !scene.meta.duration) {
-        logger.warn("No scene path or duration, aborting thumbnail generation");
+      if (!scene.path) {
+        logger.warn("No scene path, aborting thumbnail generation.");
         return resolve([]);
       }
 
       const config = await getConfig();
 
-      const amount = Math.max(
-        2,
-        Math.floor((scene.meta.duration || 30) / config.THUMBNAIL_INTERVAL)
-      );
+      let amount;
+
+      if (scene.meta.duration) {
+        amount = Math.max(
+          2,
+          Math.floor((scene.meta.duration || 30) / config.THUMBNAIL_INTERVAL)
+        );
+      } else {
+        logger.warn(
+          "No duration of scene found, defaulting to 10 thumbnails..."
+        );
+        amount = 10;
+      }
 
       const options = {
         file: scene.path,
