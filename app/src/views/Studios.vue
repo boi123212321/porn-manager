@@ -186,14 +186,6 @@ export default class StudioList extends Vue {
     {
       text: "Rating",
       value: "rating"
-    },
-    {
-      text: "Views",
-      value: "views"
-    },
-    {
-      text: "Duration",
-      value: "duration"
     }
   ];
 

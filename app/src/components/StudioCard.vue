@@ -6,7 +6,10 @@
       </div>
     </router-link>
     <v-card-title class="pb-3">
-      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ studio.name }}</span>
+      <span
+        :title="studio.name"
+        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
+      >{{ studio.name }}</span>
     </v-card-title>
     <v-card-subtitle
       class="py-0"

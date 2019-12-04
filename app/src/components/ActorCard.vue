@@ -28,7 +28,7 @@
     </a>
 
     <v-card-title>
-      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
+      <span :title="actor.name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
         {{ actor.name }}
         <span class="subtitle-1 med--text" v-if="actor.bornOn">({{ age }})</span>
       </span>

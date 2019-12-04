@@ -202,13 +202,10 @@ export default class MovieList extends Vue {
       value: "rating"
     },
     {
-      text: "Views",
-      value: "views"
-    },
-    {
       text: "Duration",
       value: "duration"
     }
+    /* TODO: amount of scenes */
   ];
 
   favoritesOnly = localStorage.getItem("pm_movieFavorite") == "true";

@@ -10,6 +10,7 @@ import { Dictionary, filterAsync } from "../../types/utility";
 import ProcessingQueue from "../../queue/index";
 import Studio from "../../types/studio";
 import { getConfig } from "../../config";
+import * as database from "../../database/index";
 
 const PAGE_SIZE = 20;
 
@@ -157,13 +158,13 @@ export default {
         name: movie.name,
         favorite: movie.favorite,
         bookmark: movie.bookmark,
-        rating: movie.rating,
         actors: await Movie.getActors(movie),
         labels: await Movie.getLabels(movie),
         addedOn: movie.addedOn,
         releaseDate: movie.releaseDate,
         duration: (await Movie.calculateDuration(movie)) || 0,
-        studio: movie.studio
+        studio: movie.studio,
+        rating: await Movie.getRating(movie)
       }))
     );
 
@@ -751,5 +752,23 @@ export default {
   },
   async findLabel(_, args: Dictionary<any>) {
     return await Label.find(args.name);
+  },
+  async numScenes() {
+    return await database.count(database.store.scenes, {});
+  },
+  async numActors() {
+    return await database.count(database.store.actors, {});
+  },
+  async numMovies() {
+    return await database.count(database.store.movies, {});
+  },
+  async numLabels() {
+    return await database.count(database.store.labels, {});
+  },
+  async numStudios() {
+    return await database.count(database.store.studios, {});
+  },
+  async numImages() {
+    return await database.count(database.store.images, {});
   }
 };

@@ -5,6 +5,7 @@ const sha = require("js-sha512").sha512;
 import * as path from "path";
 import { existsAsync } from "./fs/async";
 import * as logger from "./logger/index";
+import { chmodSync } from "fs";
 
 export default async () => {
   const { downloadFFMPEG } = await inquirer.prompt([
@@ -132,6 +133,14 @@ export default async () => {
 
     await downloadFile(ffmpegURL, ffmpegPath);
     await downloadFile(ffprobeURL, ffprobePath);
+
+    try {
+      logger.log("CHMOD binaries...");
+      chmodSync(ffmpegPath, "111");
+      chmodSync(ffprobePath, "111");
+    } catch (error) {
+      logger.error("Could not make FFMPEG binaries executable");
+    }
 
     config.FFMPEG_PATH = path.resolve(ffmpegPath);
     config.FFPROBE_PATH = path.resolve(ffprobePath);

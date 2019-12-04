@@ -33,7 +33,10 @@
     </a>
 
     <v-card-title>
-      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ scene.name }}</span>
+      <span
+        :title="scene.name"
+        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
+      >{{ scene.name }}</span>
     </v-card-title>
     <v-card-subtitle v-if="scene.actors.length" class="pb-1">
       Featuring

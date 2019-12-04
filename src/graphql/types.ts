@@ -23,6 +23,13 @@ type QueueInfo {
 }
 
 type Query {
+  numScenes: Int!
+  numActors: Int!
+  numMovies: Int!
+  numLabels: Int!
+  numStudios: Int!
+  numImages: Int!
+
   getScenes(query: String): [Scene!]!
   getActors(query: String): [Actor!]!
   getMovies(query: String): [Movie!]!

@@ -37,7 +37,10 @@
     </v-hover>
 
     <v-card-title>
-      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ movie.name }}</span>
+      <span
+        :title="movie.name"
+        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
+      >{{ movie.name }}</span>
     </v-card-title>
     <v-card-subtitle v-if="movie.actors.length" class="pt-0 pb-0">
       Featuring

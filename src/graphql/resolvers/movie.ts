@@ -26,16 +26,7 @@ export default {
   },
 
   async rating(movie: Movie) {
-    const scenesWithScore = (await Movie.getScenes(movie)).filter(
-      scene => !!scene.rating
-    );
-
-    if (!scenesWithScore.length) return null;
-
-    return Math.round(
-      scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) /
-        scenesWithScore.length
-    );
+    return await Movie.getRating(movie);
   },
 
   async duration(movie: Movie) {

@@ -127,6 +127,19 @@ export default class Movie {
     return scenes;
   }
 
+  static async getRating(movie: Movie) {
+    const scenesWithScore = (await Movie.getScenes(movie)).filter(
+      scene => !!scene.rating
+    );
+
+    if (!scenesWithScore.length) return 0;
+
+    return Math.round(
+      scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) /
+        scenesWithScore.length
+    );
+  }
+
   constructor(name: string, scenes: string[] = []) {
     this._id = generateHash();
     this.name = name.trim();
