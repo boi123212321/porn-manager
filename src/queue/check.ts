@@ -9,6 +9,7 @@ import * as logger from "../logger/index";
 import * as database from "../database";
 import { extractLabels, extractActors } from "../extractor";
 import Jimp from "jimp";
+import asyncPool = require("tiny-async-pool");
 
 async function getAll() {
   return (await database.find(database.store.queue, {})) as IQueueItem[];
@@ -57,6 +58,7 @@ export async function checkImageFolders() {
 
   let files = [] as string[];
 
+  logger.log("Checking image folders...");
   for (const folder of config.IMAGE_PATHS) {
     let _files = await walk(folder, [".jpg", ".jpeg", ".png"]);
     files.push(..._files);
@@ -67,11 +69,11 @@ export async function checkImageFolders() {
     return !image;
   });
 
-  logger.log(`Found ${unknownImages.length} images.`);
+  logger.log(`Found ${unknownImages.length} new images.`);
 
   let numAddedImages = 0;
 
-  for (const imagePath of unknownImages) {
+  await asyncPool(1, unknownImages, async imagePath => {
     try {
       const imageName = basename(imagePath);
       const image = new Image(imageName);
@@ -103,7 +105,7 @@ export async function checkImageFolders() {
       logger.error(error);
       logger.error(`Failed to add image '${imagePath}'`);
     }
-  }
+  });
 
   logger.warn(`Added ${numAddedImages} new images`);
 }

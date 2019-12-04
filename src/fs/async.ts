@@ -1,6 +1,7 @@
 import { exists, stat, unlink, readdir, readFile, writeFile } from "fs";
 import { promisify } from "util";
 import { join, extname } from "path";
+import * as logger from "../logger/index";
 
 export const existsAsync = promisify(exists);
 export const statAsync = promisify(stat);
@@ -12,16 +13,28 @@ export const writeFileAsync = promisify(writeFile);
 export async function walk(dir: string, exts = [] as string[]) {
   const files = [] as string[];
 
-  const filesInDir = await readdirAsync(dir);
+  logger.log("Walking folder " + dir + "...");
 
-  for (const file of filesInDir) {
-    const path = join(dir, file);
-    const stat = await statAsync(path);
+  let folderStack = [] as string[];
+  folderStack.push(dir);
 
-    if (stat.isDirectory()) {
-      files.push(...(await walk(path, exts)));
-    } else files.push(path);
+  while (folderStack.length) {
+    const top = folderStack.pop();
+    if (!top) break;
+    const filesInDir = await readdirAsync(top);
+
+    for (const file of filesInDir) {
+      const path = join(top, file);
+      const stat = await statAsync(path);
+
+      if (stat.isDirectory()) {
+        logger.log("Pushed folder " + path);
+        folderStack.push(path);
+      } else if (exts.includes(extname(file))) {
+        files.push(path);
+      }
+    }
   }
 
-  return files.filter(file => exts.includes(extname(file)));
+  return files;
 }
