@@ -20,6 +20,10 @@
       <div v-if="currentStudio.description" class="med--text pa-2">{{ currentStudio.description }}</div>
 
       <div class="pt-5 pa-2">
+        <div class="d-flex align-center">
+          <v-icon>mdi-label</v-icon>
+          <v-subheader>Labels</v-subheader>
+        </div>
         <v-chip
           label
           class="mr-1 mb-1"
@@ -28,6 +32,14 @@
           v-for="label in labelNames"
           :key="label"
         >{{ label }}</v-chip>
+        <v-chip
+          label
+          color="accent"
+          v-ripple
+          @click="openLabelSelector"
+          small
+          :class="`mr-1 mb-1 hover ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
+        >+ Add</v-chip>
       </div>
 
       <v-row>
@@ -100,6 +112,22 @@
       </v-row>
     </div>
 
+    <v-dialog scrollable v-model="labelSelectorDialog" max-width="400px">
+      <v-card :loading="labelEditLoader" v-if="currentStudio">
+        <v-card-title>Select labels for '{{ currentStudio.name }}'</v-card-title>
+
+        <v-card-text style="max-height: 400px">
+          <LabelSelector :items="allLabels" v-model="selectedLabels" />
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="editLabels" text color="accent" class="text-none">Edit</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-dialog v-model="thumbnailDialog" max-width="400px">
       <v-card v-if="currentStudio" :loading="thumbnailLoader">
         <v-card-title>Set front cover for '{{ currentStudio.name }}'</v-card-title>
@@ -154,6 +182,7 @@ import studioFragment from "../fragments/studio";
 import IScene from "../types/scene";
 import IMovie from "../types/movie";
 import StudioCard from "../components/StudioCard.vue";
+import LabelSelector from "../components/LabelSelector.vue";
 
 @Component({
   components: {
@@ -161,7 +190,8 @@ import StudioCard from "../components/StudioCard.vue";
     SceneCard,
     MovieCard,
     InfiniteLoading,
-    StudioCard
+    StudioCard,
+    LabelSelector
   },
   beforeRouteLeave(_to, _from, next) {
     studioModule.setCurrent(null);
@@ -172,6 +202,11 @@ export default class StudioDetails extends Vue {
   movies = [] as IMovie[];
   scenes = [] as IScene[];
   lightboxIndex = null as number | null;
+
+  labelSelectorDialog = false;
+  allLabels = [] as ILabel[];
+  selectedLabels = [] as number[];
+  labelEditLoader = false;
 
   infiniteId = 0;
   page = 0;
@@ -369,6 +404,75 @@ export default class StudioDetails extends Vue {
       });
   }
 
+  editLabels() {
+    if (!this.currentStudio) return;
+
+    this.labelEditLoader = true;
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($ids: [String!]!, $opts: StudioUpdateOpts!) {
+          updateStudios(ids: $ids, opts: $opts) {
+            labels {
+              _id
+              name
+              aliases
+            }
+          }
+        }
+      `,
+      variables: {
+        ids: [this.currentStudio._id],
+        opts: {
+          labels: this.selectedLabels
+            .map(i => this.allLabels[i])
+            .map(l => l._id)
+        }
+      }
+    })
+      .then(res => {
+        studioModule.setLabels(res.data.updateStudios[0].labels);
+        this.labelSelectorDialog = false;
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => {
+        this.labelEditLoader = false;
+      });
+  }
+
+  openLabelSelector() {
+    if (!this.currentStudio) return;
+
+    if (!this.allLabels.length) {
+      ApolloClient.query({
+        query: gql`
+          {
+            getLabels {
+              _id
+              name
+              aliases
+            }
+          }
+        `
+      })
+        .then(res => {
+          if (!this.currentStudio) return;
+
+          this.allLabels = res.data.getLabels;
+          this.selectedLabels = this.currentStudio.labels.map(l =>
+            this.allLabels.findIndex(k => k._id == l._id)
+          );
+          this.labelSelectorDialog = true;
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    } else {
+      this.labelSelectorDialog = true;
+    }
+  }
+
   /* imageLink(image: any) {
     return `${serverBase}/image/${image._id}?password=${localStorage.getItem(
       "password"
@@ -418,7 +522,16 @@ export default class StudioDetails extends Vue {
     return "";
   }
 
-  beforeCreate() {
+  @Watch("$route.params.id")
+  onRouteChange() {
+    studioModule.setCurrent(null);
+    this.movies = [];
+    this.scenes = [];
+    this.selectedLabels = [];
+    this.onLoad();
+  }
+
+  onLoad() {
     ApolloClient.query({
       query: gql`
         query($id: String!) {
@@ -460,6 +573,10 @@ export default class StudioDetails extends Vue {
       this.movies = res.data.getStudioById.movies;
       document.title = res.data.getStudioById.name;
     });
+  }
+
+  beforeMount() {
+    this.onLoad();
   }
 }
 </script>

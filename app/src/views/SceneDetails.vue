@@ -736,7 +736,7 @@ export default class SceneDetails extends Vue {
     return "";
   }
 
-  beforeCreate() {
+  onLoad() {
     ApolloClient.query({
       query: gql`
         query($id: String!) {
@@ -762,6 +762,10 @@ export default class SceneDetails extends Vue {
       this.actors = res.data.getSceneById.actors;
       document.title = res.data.getSceneById.name;
     });
+  }
+
+  beforeMount() {
+    this.onLoad();
   }
 }
 </script>

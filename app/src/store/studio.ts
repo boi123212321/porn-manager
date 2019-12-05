@@ -35,6 +35,11 @@ class StudioModule extends VuexModule {
   }
 
   @Mutation
+  setLabels(labels: { _id: string; name: string }[]) {
+    if (this.current) this.current.labels = labels;
+  }
+
+  @Mutation
   setThumbnail(id: string) {
     if (this.current) {
       if (!this.current.thumbnail) this.current.thumbnail = { _id: id };

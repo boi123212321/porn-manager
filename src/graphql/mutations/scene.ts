@@ -12,6 +12,7 @@ import { unlinkAsync } from "../../fs/async";
 import ProcessingQueue from "../../queue/index";
 import { extname } from "path";
 import { getConfig } from "../../config/index";
+import Studio from "../../types/studio";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
@@ -169,7 +170,16 @@ export default {
 
         if (opts.studio !== undefined) {
           scene.studio = opts.studio;
-          // TODO: apply studio labels if enabled
+
+          if (config.APPLY_STUDIO_LABELS === true && opts.studio) {
+            const studio = await Studio.getById(opts.studio);
+
+            if (studio) {
+              logger.log("Applying studio labels to scene");
+              logger.log(studio.labels);
+              scene.labels = [...new Set(scene.labels.concat(studio.labels))];
+            }
+          }
         }
 
         if (Array.isArray(opts.labels))

@@ -227,6 +227,7 @@ input StudioUpdateOpts {
   favorite: Boolean
   bookmark: Boolean
   parent: String
+  labels: [String!]
 }
 
 input Crop {
