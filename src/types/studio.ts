@@ -4,6 +4,7 @@ import Label from "./label";
 import Actor from "./actor";
 import Scene from "./scene";
 import Movie from "./movie";
+import { mapAsync } from "./utility";
 
 export default class Studio {
   _id: string;
@@ -61,7 +62,6 @@ export default class Studio {
 
   static async getScenes(studio: Studio): Promise<Scene[]> {
     const scenes = await Scene.getByStudio(studio._id);
-
     const subStudios = await Studio.getSubStudios(studio._id);
 
     const scenesOfSubStudios = (
@@ -94,28 +94,18 @@ export default class Studio {
   static async getActors(studio: Studio) {
     const scenes = await Studio.getScenes(studio);
     const actorIds = [...new Set(scenes.map(scene => scene.actors).flat())];
-
-    const actors = [] as Actor[];
-
-    for (const id of actorIds) {
-      const actor = await Actor.getById(id);
-      if (actor) actors.push(actor);
-    }
-
-    return actors;
+    return (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
   }
 
   static async getLabels(studio: Studio) {
+    return (await mapAsync(studio.labels, Label.getById)).filter(
+      Boolean
+    ) as Label[];
+  }
+
+  static async inferLabels(studio: Studio) {
     const scenes = await Studio.getScenes(studio);
     const labelIds = [...new Set(scenes.map(scene => scene.labels).flat())];
-
-    const labels = [] as Label[];
-
-    for (const id of labelIds) {
-      const label = await Label.getById(id);
-      if (label) labels.push(label);
-    }
-
-    return labels;
+    return (await mapAsync(labelIds, Label.getById)).filter(Boolean) as Label[];
   }
 }

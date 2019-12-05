@@ -4,7 +4,7 @@ import ffmpeg from "fluent-ffmpeg";
 import asyncPool from "tiny-async-pool";
 import { getConfig } from "../config";
 import * as logger from "../logger";
-import { libraryPath } from "./utility";
+import { libraryPath, mapAsync } from "./utility";
 import Label from "./label";
 import Actor from "./actor";
 import { statAsync, readdirAsync, unlinkAsync } from "../fs/async";
@@ -125,29 +125,21 @@ export default class Scene {
   }
 
   static async getActors(scene: Scene) {
-    const actors = [] as Actor[];
-
-    for (const id of scene.actors) {
-      const actor = await Actor.getById(id);
-      if (actor) actors.push(actor);
-    }
-
-    return actors;
+    return (await mapAsync(scene.actors, Actor.getById)).filter(
+      Boolean
+    ) as Actor[];
   }
 
   static async getLabels(scene: Scene) {
-    const labels = [] as Label[];
-
-    for (const id of scene.labels) {
-      const label = await Label.getById(id);
-      if (label) labels.push(label);
-    }
-
-    return labels;
+    return (await mapAsync(scene.labels, Label.getById)).filter(
+      Boolean
+    ) as Label[];
   }
 
   static async getSceneByPath(path: string) {
-    return (await Scene.getAll()).filter(scene => scene.path == path)[0];
+    return (await database.findOne(database.store.scenes, {
+      path
+    })) as Scene | null;
   }
 
   static async getById(_id: string) {

@@ -3,6 +3,7 @@ import { generateHash } from "../hash";
 import Scene from "./scene";
 import Actor from "./actor";
 import Label from "./label";
+import { mapAsync } from "./utility";
 
 export default class Movie {
   _id: string;
@@ -91,40 +92,19 @@ export default class Movie {
   static async getLabels(movie: Movie) {
     const scenes = await Movie.getScenes(movie);
     const labelIds = [...new Set(scenes.map(scene => scene.labels).flat())];
-
-    const labels = [] as Label[];
-
-    for (const id of labelIds) {
-      const label = await Label.getById(id);
-      if (label) labels.push(label);
-    }
-
-    return labels;
+    return (await mapAsync(labelIds, Label.getById)).filter(Boolean) as Label[];
   }
 
   static async getActors(movie: Movie) {
     const scenes = await Movie.getScenes(movie);
     const actorIds = [...new Set(scenes.map(scene => scene.actors).flat())];
-
-    const actors = [] as Actor[];
-
-    for (const id of actorIds) {
-      const actor = await Actor.getById(id);
-      if (actor) actors.push(actor);
-    }
-
-    return actors;
+    return (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
   }
 
   static async getScenes(movie: Movie) {
-    const scenes = [] as Scene[];
-
-    for (const id of movie.scenes) {
-      const scene = await Scene.getById(id);
-      if (scene) scenes.push(scene);
-    }
-
-    return scenes;
+    return (await mapAsync(movie.scenes, Scene.getById)).filter(
+      Boolean
+    ) as Scene[];
   }
 
   static async getRating(movie: Movie) {

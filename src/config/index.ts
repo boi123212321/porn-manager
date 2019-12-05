@@ -31,6 +31,7 @@ export interface IConfig {
   PORT: number;
 
   APPLY_ACTOR_LABELS: boolean;
+  APPLY_STUDIO_LABELS: boolean;
 
   USE_FUZZY_SEARCH: boolean;
   FUZZINESS: number;
@@ -51,6 +52,7 @@ export const defaultConfig: IConfig = {
   PASSWORD: null,
   PORT: 3000,
   APPLY_ACTOR_LABELS: true,
+  APPLY_STUDIO_LABELS: true,
   USE_FUZZY_SEARCH: true,
   FUZZINESS: 0.25,
   READ_IMAGES_ON_IMPORT: true

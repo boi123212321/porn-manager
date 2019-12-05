@@ -1,6 +1,7 @@
 import DataStore from "nedb";
 import mkdirp from "mkdirp";
 import { libraryPath } from "../types/utility";
+import * as logger from "../logger/index";
 
 let store = {} as {
   scenes: DataStore;
@@ -12,7 +13,27 @@ let store = {} as {
   queue: DataStore;
 };
 
-(async () => {
+function loadStore(path: string): Promise<DataStore> {
+  return new Promise((resolve, reject) => {
+    try {
+      const store = new DataStore({
+        autoload: true,
+        filename: path,
+        onload: err => {
+          if (err) reject(err);
+          else {
+            logger.log("Loaded store " + path);
+            resolve(store);
+          }
+        }
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+export async function loadStores() {
   try {
     mkdirp.sync("tmp/");
     mkdirp.sync(await libraryPath("scenes/"));
@@ -21,36 +42,19 @@ let store = {} as {
   } catch (err) {}
 
   store = {
-    scenes: new DataStore({
-      autoload: true,
-      filename: await libraryPath("scenes.db")
-    }),
-    actors: new DataStore({
-      autoload: true,
-      filename: await libraryPath("actors.db")
-    }),
-    images: new DataStore({
-      autoload: true,
-      filename: await libraryPath("images.db")
-    }),
-    labels: new DataStore({
-      autoload: true,
-      filename: await libraryPath("labels.db")
-    }),
-    movies: new DataStore({
-      autoload: true,
-      filename: await libraryPath("movies.db")
-    }),
-    studios: new DataStore({
-      autoload: true,
-      filename: await libraryPath("studios.db")
-    }),
-    queue: new DataStore({
-      autoload: true,
-      filename: await libraryPath("queue.db")
-    })
+    scenes: await loadStore(await libraryPath("scenes.db")),
+    actors: await loadStore(await libraryPath("actors.db")),
+    images: await loadStore(await libraryPath("images.db")),
+    labels: await loadStore(await libraryPath("labels.db")),
+    movies: await loadStore(await libraryPath("movies.db")),
+    studios: await loadStore(await libraryPath("studios.db")),
+    queue: await loadStore(await libraryPath("queue.db"))
   };
-})();
+
+  store.scenes.find({}, data => {
+    console.log(data);
+  });
+}
 
 export function count(store: DataStore, query: any): Promise<number> {
   return new Promise((resolve, reject) => {

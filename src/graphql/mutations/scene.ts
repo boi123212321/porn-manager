@@ -11,6 +11,8 @@ import Movie from "../../types/movie";
 import { unlinkAsync } from "../../fs/async";
 import ProcessingQueue from "../../queue/index";
 import { extname } from "path";
+import { getConfig } from "../../config/index";
+import Studio from "../../types/studio";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
@@ -152,6 +154,7 @@ export default {
     _,
     { ids, opts }: { ids: string[]; opts: ISceneUpdateOpts }
   ) {
+    const config = await getConfig();
     const updatedScenes = [] as Scene[];
 
     for (const id of ids) {
@@ -165,24 +168,37 @@ export default {
 
         if (typeof opts.thumbnail == "string") scene.thumbnail = opts.thumbnail;
 
-        if (opts.studio !== undefined) scene.studio = opts.studio;
+        if (opts.studio !== undefined) {
+          scene.studio = opts.studio;
+
+          if (config.APPLY_STUDIO_LABELS === true && opts.studio) {
+            const studio = await Studio.getById(opts.studio);
+
+            if (studio) {
+              logger.log("Applying studio labels to scene");
+              logger.log(studio.labels);
+              scene.labels = [...new Set(scene.labels.concat(studio.labels))];
+            }
+          }
+        }
 
         if (Array.isArray(opts.labels))
           scene.labels = [...new Set(opts.labels)];
 
         if (Array.isArray(opts.actors)) {
           const actorIds = [...new Set(opts.actors)];
-
           scene.actors = actorIds;
 
-          const actors = (await mapAsync(actorIds, Actor.getById)).filter(
-            Boolean
-          ) as Actor[];
-          const labelIds = actors.map(ac => ac.labels).flat();
+          if (config.APPLY_ACTOR_LABELS === true) {
+            const actors = (await mapAsync(actorIds, Actor.getById)).filter(
+              Boolean
+            ) as Actor[];
+            const labelIds = actors.map(ac => ac.labels).flat();
 
-          logger.log("Applying actor labels to scene");
-          logger.log(labelIds);
-          scene.labels = [...new Set(scene.labels.concat(labelIds))];
+            logger.log("Applying actor labels to scene");
+            logger.log(labelIds);
+            scene.labels = [...new Set(scene.labels.concat(labelIds))];
+          }
         }
 
         if (Array.isArray(opts.streamLinks))

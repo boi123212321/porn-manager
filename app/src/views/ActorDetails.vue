@@ -667,6 +667,9 @@ export default class ActorDetails extends Vue {
   @Watch("$route.params.id")
   onRouteChange() {
     actorModule.setCurrent(null);
+    this.images = [];
+    this.scenes = [];
+    this.selectedLabels = [];
     this.onLoad();
   }
 

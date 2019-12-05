@@ -12,8 +12,7 @@ import Studio from "../../types/studio";
 import { getConfig } from "../../config";
 import * as database from "../../database/index";
 
-const PAGE_SIZE = 20;
-
+const PAGE_SIZE = 24;
 const FALLBACK_FUZZINESS = 0.25;
 
 export default {

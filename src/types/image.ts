@@ -4,6 +4,7 @@ import Actor from "./actor";
 import Label from "./label";
 import * as logger from "../logger/index";
 import { unlinkAsync } from "../fs/async";
+import { mapAsync } from "./utility";
 
 export class ImageDimensions {
   width: number | null = null;
@@ -95,29 +96,21 @@ export default class Image {
   }
 
   static async getActors(image: Image) {
-    const actors = [] as Actor[];
-
-    for (const id of image.actors) {
-      const actor = await Actor.getById(id);
-      if (actor) actors.push(actor);
-    }
-
-    return actors;
+    return (await mapAsync(image.actors, Actor.getById)).filter(
+      Boolean
+    ) as Actor[];
   }
 
   static async getLabels(image: Image) {
-    const labels = [] as Label[];
-
-    for (const id of image.labels) {
-      const label = await Label.getById(id);
-      if (label) labels.push(label);
-    }
-
-    return labels;
+    return (await mapAsync(image.labels, Label.getById)).filter(
+      Boolean
+    ) as Label[];
   }
 
   static async getImageByPath(path: string) {
-    return (await Image.getAll()).filter(image => image.path == path)[0];
+    return (await database.findOne(database.store.images, {
+      path
+    })) as Image | null;
   }
 
   constructor(name: string) {

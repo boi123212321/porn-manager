@@ -11,6 +11,7 @@ import { extractLabels, extractActors, extractStudios } from "../extractor";
 import ora from "ora";
 import { existsAsync, statAsync } from "../fs/async";
 import { fileHash } from "../hash";
+import Studio from "../types/studio";
 
 export interface IQueueItem {
   _id: string;
@@ -146,14 +147,26 @@ class Queue {
       );
     }
 
-    scene.labels = [...new Set(scene.labels)];
-
     // Extract studio
     const extractedStudios = await extractStudios(scene.name);
 
     scene.studio = extractedStudios[0] || null;
 
-    if (scene.studio) logger.log("Found studio in scene path");
+    if (scene.studio) {
+      logger.log("Found studio in scene path");
+
+      if (config.APPLY_STUDIO_LABELS === true) {
+        const studio = await Studio.getById(scene.studio);
+
+        if (studio) {
+          logger.log("Applying studio labels to scene");
+          logger.log(studio.labels);
+          scene.labels.push(...studio.labels);
+        }
+      }
+    }
+
+    scene.labels = [...new Set(scene.labels)];
 
     // Thumbnails
     if (config.GENERATE_THUMBNAILS) {

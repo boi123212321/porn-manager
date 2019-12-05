@@ -2,6 +2,7 @@ import * as database from "../database";
 import { generateHash } from "../hash";
 import Label from "./label";
 import Scene from "./scene";
+import { mapAsync } from "./utility";
 
 export default class Actor {
   _id: string;
@@ -38,14 +39,9 @@ export default class Actor {
   }
 
   static async getLabels(scene: Actor) {
-    const labels = [] as Label[];
-
-    for (const id of scene.labels) {
-      const label = await Label.getById(id);
-      if (label) labels.push(label);
-    }
-
-    return labels;
+    return (await mapAsync(scene.labels, Label.getById)).filter(
+      Boolean
+    ) as Label[];
   }
 
   static async find(name: string) {

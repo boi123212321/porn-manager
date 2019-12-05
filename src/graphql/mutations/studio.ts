@@ -11,6 +11,7 @@ type IStudioUpdateOpts = Partial<{
   favorite: boolean;
   bookmark: boolean;
   parent: string | null;
+  labels: string[];
 }>;
 
 export default {
@@ -43,6 +44,9 @@ export default {
         if (typeof opts.bookmark == "boolean") studio.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") studio.favorite = opts.favorite;
+
+        if (Array.isArray(opts.labels))
+          studio.labels = [...new Set(opts.labels)];
 
         await database.update(
           database.store.studios,
