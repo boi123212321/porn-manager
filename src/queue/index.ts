@@ -160,7 +160,6 @@ class Queue {
 
         if (studio) {
           logger.log("Applying studio labels to scene");
-          logger.log(studio.labels);
           scene.labels.push(...studio.labels);
         }
       }

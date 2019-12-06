@@ -203,6 +203,10 @@ export default class ImagesView extends Vue {
       value: "relevance"
     },
     {
+      text: "A-Z",
+      value: "alpha"
+    },
+    {
       text: "Added to collection",
       value: "addedOn"
     },

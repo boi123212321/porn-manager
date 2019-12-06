@@ -253,6 +253,10 @@ export default class MovieList extends Vue {
       value: "relevance"
     },
     {
+      text: "A-Z",
+      value: "alpha"
+    },
+    {
       text: "Added to collection",
       value: "addedOn"
     },

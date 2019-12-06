@@ -176,7 +176,6 @@ export default {
 
             if (studio) {
               logger.log("Applying studio labels to scene");
-              logger.log(studio.labels);
               scene.labels = [...new Set(scene.labels.concat(studio.labels))];
             }
           }
@@ -196,7 +195,6 @@ export default {
             const labelIds = actors.map(ac => ac.labels).flat();
 
             logger.log("Applying actor labels to scene");
-            logger.log(labelIds);
             scene.labels = [...new Set(scene.labels.concat(labelIds))];
           }
         }

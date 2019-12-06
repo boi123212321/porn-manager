@@ -125,6 +125,11 @@ export default {
           searchDocs.sort((a, b) => a.addedOn - b.addedOn);
         else searchDocs.sort((a, b) => b.addedOn - a.addedOn);
         break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       /*  case SortTarget.RATING:
       if (options.sortDir == "asc")
         searchDocs.sort((a, b) => a.rating - b.rating);
@@ -265,6 +270,11 @@ export default {
           searchDocs.sort((a, b) => a.duration - b.duration);
         else searchDocs.sort((a, b) => b.duration - a.duration);
         break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case SortTarget.DATE:
         if (options.sortDir == "asc")
           searchDocs.sort(
@@ -394,6 +404,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => (a.bornOn || 0) - (b.bornOn || 0));
         else searchDocs.sort((a, b) => (b.bornOn || 0) - (a.bornOn || 0));
+        break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
         break;
     }
 
@@ -560,6 +575,11 @@ export default {
           searchDocs.sort((a, b) => a.duration - b.duration);
         else searchDocs.sort((a, b) => b.duration - a.duration);
         break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case SortTarget.DATE:
         if (options.sortDir == "asc")
           searchDocs.sort(
@@ -709,6 +729,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => a.rating - b.rating);
         else searchDocs.sort((a, b) => b.rating - a.rating);
+        break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
         break;
     }
 
