@@ -58,6 +58,9 @@
         <v-btn @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
+        <v-btn @click="bulkImportDialog = true" icon>
+          <v-icon>mdi-account-multiple-plus</v-icon>
+        </v-btn>
       </div>
       <v-row>
         <v-col
@@ -156,6 +159,36 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog :persistent="bulkLoader" scrollable v-model="bulkImportDialog" max-width="400px">
+      <v-card :loading="bulkLoader">
+        <v-card-title>Bulk import actor names</v-card-title>
+
+        <v-card-text style="max-height: 400px">
+          <v-textarea
+            color="accent"
+            v-model="actorsBulkText"
+            auto-grow
+            :rows="3"
+            placeholder="Actor names"
+            persistent-hint
+            hint="1 actor name per line"
+          ></v-textarea>
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="runBulkImport"
+            text
+            color="accent"
+            class="text-none"
+            :disabled="!actorsBulkImport.length"
+          >Add {{ actorsBulkImport.length }} actors</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <infinite-loading :identifier="infiniteId" @infinite="infiniteHandler">
       <div slot="no-results">
         <v-icon large>mdi-close</v-icon>
@@ -197,6 +230,32 @@ import ILabel from "../types/label";
 export default class SceneList extends Vue {
   actors = [] as IActor[];
   fetchLoader = false;
+
+  actorsBulkText = "" as string | null;
+  bulkImportDialog = false;
+  bulkLoader = false;
+
+  async runBulkImport() {
+    this.bulkLoader = true;
+
+    try {
+      for (const name of this.actorsBulkImport) {
+        await this.createActorWithName(name);
+      }
+      this.bulkImportDialog = false;
+    } catch (error) {
+      console.error(error);
+    }
+
+    this.actorsBulkText = "";
+    this.bulkLoader = false;
+  }
+
+  get actorsBulkImport() {
+    if (this.actorsBulkText)
+      return this.actorsBulkText.split("\n").filter(Boolean);
+    return [];
+  }
 
   waiting = false;
   allLabels = [] as ILabel[];
@@ -260,6 +319,31 @@ export default class SceneList extends Vue {
 
   set drawer(val: boolean) {
     contextModule.toggleFilters(val);
+  }
+
+  createActorWithName(name: string) {
+    return new Promise((resolve, reject) => {
+      ApolloClient.mutate({
+        mutation: gql`
+          mutation($name: String!) {
+            addActor(name: $name) {
+              ...ActorFragment
+            }
+          }
+          ${actorFragment}
+        `,
+        variables: {
+          name
+        }
+      })
+        .then(res => {
+          this.actors.unshift(res.data.addActor);
+          resolve();
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
   }
 
   addActor() {
