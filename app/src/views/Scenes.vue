@@ -1,5 +1,18 @@
 <template>
   <div>
+    <v-banner sticky v-if="selectedScenes.length">
+      {{ selectedScenes.length }} scenes selected
+      <template v-slot:actions>
+        <v-btn text @click="selectedScenes = []" class="text-none">Deselect</v-btn>
+        <v-btn
+          @click="deleteSelectedScenesDialog = true"
+          text
+          class="text-none"
+          color="error"
+        >Delete</v-btn>
+      </template>
+    </v-banner>
+
     <v-navigation-drawer v-model="drawer" :permanent="$vuetify.breakpoint.mdAndUp" clipped app>
       <v-container>
         <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
@@ -79,7 +92,19 @@
             @favorite="favorite(scene._id, $event)"
             :scene="scene"
             style="height: 100%"
-          />
+          >
+            <template v-slot:action>
+              <v-checkbox
+                color="accent"
+                :input-value="selectedScenes.includes(scene._id)"
+                @change="selectScene(scene._id)"
+                @click.native.stop.prevent
+                class="mt-0"
+                hide-details
+                :contain="true"
+              ></v-checkbox>
+            </template>
+          </scene-card>
         </v-col>
       </v-row>
     </div>
@@ -154,6 +179,17 @@
 
     <v-dialog :persistent="isUploadingScene" v-model="uploadDialog" max-width="400px">
       <SceneUploader @update-state="isUploadingScene = $event" @uploaded="scenes.unshift($event)" />
+    </v-dialog>
+
+    <v-dialog v-model="deleteSelectedScenesDialog" max-width="400px">
+      <v-card>
+        <v-card-title>Really delete {{ selectedScenes.length }} scenes?</v-card-title>
+        <v-card-text></v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn class="text-none" color="error" text @click="deleteSelection">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
 
     <infinite-loading :identifier="infiniteId" @infinite="infiniteHandler">
@@ -267,6 +303,39 @@ export default class SceneList extends Vue {
 
   uploadDialog = false;
   isUploadingScene = false;
+
+  selectedScenes = [] as string[];
+  deleteSelectedScenesDialog = false;
+
+  selectScene(id: string) {
+    if (this.selectedScenes.includes(id))
+      this.selectedScenes = this.selectedScenes.filter(i => i != id);
+    else this.selectedScenes.push(id);
+  }
+
+  deleteSelection() {
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($ids: [String!]!) {
+          removeScenes(ids: $ids)
+        }
+      `,
+      variables: {
+        ids: this.selectedScenes
+      }
+    })
+      .then(res => {
+        for (const id of this.selectedScenes) {
+          this.scenes = this.scenes.filter(scene => scene._id != id);
+        }
+        this.selectedScenes = [];
+        this.deleteSelectedScenesDialog = false;
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => {});
+  }
 
   openUploadDialog() {
     this.uploadDialog = true;

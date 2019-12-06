@@ -3,6 +3,9 @@ import Studio from "../../types/studio";
 import Scene from "../../types/scene";
 import Movie from "../../types/movie";
 import Image from "../../types/image";
+import { tokenPerms } from "../../extractor";
+import * as logger from "../../logger/index";
+import { getConfig } from "../../config/index";
 
 type IStudioUpdateOpts = Partial<{
   name: string;
@@ -17,6 +20,32 @@ type IStudioUpdateOpts = Partial<{
 export default {
   async addStudio(_, { name }: { name: string }) {
     const studio = new Studio(name);
+
+    for (const scene of await Scene.getAll()) {
+      const perms = tokenPerms(scene.path || scene.name);
+
+      if (scene.studio === null && perms.includes(studio.name.toLowerCase())) {
+        const config = await getConfig();
+
+        let newLabels = scene.labels;
+        if (config.APPLY_STUDIO_LABELS === true) {
+          newLabels = [...new Set(scene.labels.concat(studio.labels))];
+        }
+
+        await database.update(
+          database.store.scenes,
+          { _id: scene._id },
+          {
+            $set: {
+              studio: studio._id,
+              labels: newLabels
+            }
+          }
+        );
+        logger.log(`Updated studio of ${scene._id}`);
+      }
+    }
+
     await database.insert(database.store.studios, studio);
     return studio;
   },

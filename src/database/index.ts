@@ -50,10 +50,6 @@ export async function loadStores() {
     studios: await loadStore(await libraryPath("studios.db")),
     queue: await loadStore(await libraryPath("queue.db"))
   };
-
-  store.scenes.find({}, data => {
-    console.log(data);
-  });
 }
 
 export function count(store: DataStore, query: any): Promise<number> {

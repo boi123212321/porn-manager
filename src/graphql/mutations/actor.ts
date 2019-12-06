@@ -3,6 +3,9 @@ import Actor from "../../types/actor";
 import Scene from "../../types/scene";
 import Image from "../../types/image";
 import { Dictionary } from "../../types/utility";
+import { tokenPerms } from "../../extractor";
+import * as logger from "../../logger/index";
+import { getConfig } from "../../config/index";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -20,6 +23,36 @@ export default {
     const actor = new Actor(args.name, args.aliases);
 
     if (args.labels) actor.labels = args.labels;
+
+    for (const scene of await Scene.getAll()) {
+      const perms = tokenPerms(scene.path || scene.name);
+
+      if (
+        perms.includes(actor.name.toLowerCase()) ||
+        actor.aliases.some(alias => perms.includes(alias.toLowerCase()))
+      ) {
+        const config = await getConfig();
+
+        let newLabels = scene.labels;
+        if (config.APPLY_ACTOR_LABELS === true) {
+          newLabels = [...new Set(scene.labels.concat(actor.labels))];
+        }
+
+        await database.update(
+          database.store.scenes,
+          { _id: scene._id },
+          {
+            $push: {
+              actors: actor._id
+            },
+            $set: {
+              labels: newLabels
+            }
+          }
+        );
+        logger.log(`Updated actors of ${scene._id}`);
+      }
+    }
 
     await database.insert(database.store.actors, actor);
     return actor;

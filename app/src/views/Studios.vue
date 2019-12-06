@@ -55,7 +55,10 @@
     <div v-if="!fetchLoader">
       <div class="d-flex align-center">
         <h1 class="font-weight-light mr-3">Studios</h1>
-        <v-btn class="mr-3" @click="openCreateDialog" icon>
+        <!-- <v-btn class="mr-3" @click="openCreateDialog" icon>
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>-->
+        <v-btn @click="bulkImportDialog = true" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </div>
@@ -79,7 +82,7 @@
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
 
-    <v-dialog scrollable v-model="createStudioDialog" max-width="400px">
+    <!--  <v-dialog scrollable v-model="createStudioDialog" max-width="400px">
       <v-card :loading="addStudioLoader">
         <v-card-title>Add new studio</v-card-title>
         <v-card-text style="max-height: 90vh">
@@ -102,6 +105,36 @@
             color="accent"
             @click="addStudio"
           >Add</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>-->
+
+    <v-dialog :persistent="bulkLoader" scrollable v-model="bulkImportDialog" max-width="400px">
+      <v-card :loading="bulkLoader">
+        <v-card-title>Create studio(s)</v-card-title>
+
+        <v-card-text style="max-height: 400px">
+          <v-textarea
+            color="accent"
+            v-model="studiosBulkText"
+            auto-grow
+            :rows="3"
+            placeholder="Studio names"
+            persistent-hint
+            hint="1 studio name per line"
+          ></v-textarea>
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="runBulkImport"
+            text
+            color="accent"
+            class="text-none"
+            :disabled="!studiosBulkImport.length"
+          >Add {{ studiosBulkImport.length }} studios</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -145,17 +178,43 @@ export default class StudioList extends Vue {
   studios = [] as any[];
   fetchLoader = false;
 
+  studiosBulkText = "" as string | null;
+  bulkImportDialog = false;
+  bulkLoader = false;
+
+  async runBulkImport() {
+    this.bulkLoader = true;
+
+    try {
+      for (const name of this.studiosBulkImport) {
+        await this.createStudioWithName(name);
+      }
+      this.bulkImportDialog = false;
+    } catch (error) {
+      console.error(error);
+    }
+
+    this.studiosBulkText = "";
+    this.bulkLoader = false;
+  }
+
+  get studiosBulkImport() {
+    if (this.studiosBulkText)
+      return this.studiosBulkText.split("\n").filter(Boolean);
+    return [];
+  }
+
   waiting = false;
   allLabels = [] as ILabel[];
   selectedLabels = [] as number[]; // TODO: try to retrieve from localStorage
 
-  validCreation = false;
+  /* validCreation = false;
   createStudioDialog = false;
   createStudioName = "";
   labelSelectorDialog = false;
   addStudioLoader = false;
 
-  studioNameRules = [v => (!!v && !!v.length) || "Invalid studio name"];
+  studioNameRules = [v => (!!v && !!v.length) || "Invalid studio name"]; */
 
   query = localStorage.getItem("pm_studioQuery") || "";
 
@@ -212,23 +271,33 @@ export default class StudioList extends Vue {
     return indices.map(i => this.allLabels[i].name);
   }
 
-  addStudio() {
-    this.addStudioLoader = true;
-    ApolloClient.mutate({
-      mutation: gql`
-        mutation($name: String!) {
-          addStudio(name: $name) {
-            ...StudioFragment
+  async createStudioWithName(name: string) {
+    try {
+      const res = await ApolloClient.mutate({
+        mutation: gql`
+          mutation($name: String!) {
+            addStudio(name: $name) {
+              ...StudioFragment
+            }
           }
+          ${studioFragment}
+        `,
+        variables: {
+          name
         }
-        ${studioFragment}
-      `,
-      variables: {
-        name: this.createStudioName
-      }
-    })
+      });
+
+      this.studios.unshift(res.data.addStudio);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  /* addStudio() {
+    this.addStudioLoader = true;
+
+    this.createStudioWithName(this.createStudioName)
       .then(res => {
-        this.studios.unshift(res.data.addStudio);
         this.createStudioDialog = false;
         this.createStudioName = "";
       })
@@ -236,11 +305,11 @@ export default class StudioList extends Vue {
       .finally(() => {
         this.addStudioLoader = false;
       });
-  }
+  } */
 
-  openCreateDialog() {
+  /* openCreateDialog() {
     this.createStudioDialog = true;
-  }
+  } */
 
   /* favorite(id: any, favorite: boolean) {
     const index = this.studios.findIndex(sc => sc._id == id);

@@ -22,7 +22,6 @@ script.
 
       res.json()
         .then(json => {
-          console.log(json);
           localStorage.setItem("password", pw);
           window.location = window.location + "?password=" + pw;
         })

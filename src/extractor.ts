@@ -5,7 +5,7 @@ import Studio from "./types/studio";
 // Calculate token permutation in string
 // "a test string"
 // -> ["a", "test", "string", "a test", "test string", "a test string"]
-function tokenPerms(str: string) {
+export function tokenPerms(str: string) {
   const tokens = str
     .toLowerCase()
     .replace(/[^a-zA-Z0-9]/g, " ")
@@ -36,9 +36,8 @@ export async function extractLabels(str: string) {
   const allLabels = await Label.getAll();
 
   allLabels.forEach(label => {
-    if (perms.includes(label.name.toLowerCase())) {
-      foundLabels.push(label._id);
-    } else if (
+    if (
+      perms.includes(label.name.toLowerCase()) ||
       label.aliases.some(alias => perms.includes(alias.toLowerCase()))
     ) {
       foundLabels.push(label._id);
@@ -55,9 +54,8 @@ export async function extractActors(str: string) {
   const allActors = await Actor.getAll();
 
   allActors.forEach(actor => {
-    if (perms.includes(actor.name.toLowerCase())) {
-      foundActors.push(actor._id);
-    } else if (
+    if (
+      perms.includes(actor.name.toLowerCase()) ||
       actor.aliases.some(alias => perms.includes(alias.toLowerCase()))
     ) {
       foundActors.push(actor._id);

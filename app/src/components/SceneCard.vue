@@ -7,6 +7,10 @@
           v-if="scene.meta.duration"
         >{{ videoDuration }}</div>
 
+        <div class="corner-slot">
+          <slot name="action"></slot>
+        </div>
+
         <div class="corner-actions">
           <v-btn
             light
@@ -181,6 +185,12 @@ export default class SceneCard extends Vue {
   position: absolute;
   bottom: 5px;
   right: 5px;
+}
+
+.corner-slot {
+  position: absolute;
+  right: 5px;
+  top: 5px;
 }
 
 .corner-actions {

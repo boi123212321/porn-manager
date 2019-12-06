@@ -59,6 +59,9 @@
         <v-btn class="mr-3" @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
+        <v-btn @click="bulkImportDialog = true" icon>
+          <v-icon>mdi-file-import</v-icon>
+        </v-btn>
       </div>
       <v-row>
         <v-col
@@ -114,6 +117,36 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog :persistent="bulkLoader" scrollable v-model="bulkImportDialog" max-width="400px">
+      <v-card :loading="bulkLoader">
+        <v-card-title>Bulk import movie names</v-card-title>
+
+        <v-card-text style="max-height: 400px">
+          <v-textarea
+            color="accent"
+            v-model="moviesBulkText"
+            auto-grow
+            :rows="3"
+            placeholder="Movie names"
+            persistent-hint
+            hint="1 movie name per line"
+          ></v-textarea>
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="runBulkImport"
+            text
+            color="accent"
+            class="text-none"
+            :disabled="!moviesBulkImport.length"
+          >Add {{ moviesBulkImport.length }} movies</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <infinite-loading :identifier="infiniteId" @infinite="infiniteHandler">
       <div slot="no-results">
         <v-icon large>mdi-close</v-icon>
@@ -159,6 +192,32 @@ import movieFragment from "../fragments/movie";
 export default class MovieList extends Vue {
   movies = [] as IMovie[];
   fetchLoader = false;
+
+  moviesBulkText = "" as string | null;
+  bulkImportDialog = false;
+  bulkLoader = false;
+
+  async runBulkImport() {
+    this.bulkLoader = true;
+
+    try {
+      for (const name of this.moviesBulkImport) {
+        await this.createMovieWithName(name);
+      }
+      this.bulkImportDialog = false;
+    } catch (error) {
+      console.error(error);
+    }
+
+    this.moviesBulkText = "";
+    this.bulkLoader = false;
+  }
+
+  get moviesBulkImport() {
+    if (this.moviesBulkText)
+      return this.moviesBulkText.split("\n").filter(Boolean);
+    return [];
+  }
 
   waiting = false;
   allLabels = [] as ILabel[];
@@ -236,6 +295,42 @@ export default class MovieList extends Vue {
 
   openCreateDialog() {
     this.createMovieDialog = true;
+  }
+
+  createMovieWithName(name: string) {
+    return new Promise((resolve, reject) => {
+      ApolloClient.mutate({
+        mutation: gql`
+          mutation($name: String!) {
+            addMovie(name: $name) {
+              ...MovieFragment
+              actors {
+                ...ActorFragment
+              }
+              scenes {
+                ...SceneFragment
+                actors {
+                  ...ActorFragment
+                }
+              }
+            }
+          }
+          ${movieFragment}
+          ${sceneFragment}
+          ${actorFragment}
+        `,
+        variables: {
+          name
+        }
+      })
+        .then(res => {
+          this.movies.unshift(res.data.addMovie);
+          resolve(res.data.addMovie);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
   }
 
   addMovie() {
