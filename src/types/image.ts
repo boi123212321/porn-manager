@@ -170,9 +170,13 @@ export default class Image {
   }
 
   static async getByActor(id: string) {
-    return (await database.find(database.store.images, {
-      actors: id
-    })) as Image[];
+    const references = await CrossReference.getByDest(id);
+    return (
+      await mapAsync(
+        references.filter(r => r.from.startsWith("im_")),
+        r => Image.getById(r.from)
+      )
+    ).filter(Boolean) as Image[];
   }
 
   static async getById(_id: string) {

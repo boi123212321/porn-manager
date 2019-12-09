@@ -150,6 +150,25 @@ export default class Actor {
       .sort();
   }
 
+  static async getTopActors() {
+    const actors = await Actor.getAll();
+
+    const scores = await mapAsync(actors, async actor => {
+      const score =
+        (await Actor.getWatches(actor)).length +
+        +actor.favorite * 5 +
+        actor.rating;
+
+      return {
+        actor,
+        score
+      };
+    });
+
+    scores.sort((a, b) => b.score - a.score);
+    return scores.map(s => s.actor);
+  }
+
   constructor(name: string, aliases: string[] = []) {
     this._id = "ac_" + generateHash();
     this.name = name.trim();

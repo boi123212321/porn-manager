@@ -16,6 +16,10 @@ const PAGE_SIZE = 24;
 const FALLBACK_FUZZINESS = 0.25;
 
 export default {
+  async topActors(_, { num }: { num: number }) {
+    return (await Actor.getTopActors()).slice(0, num || 12);
+  },
+
   async getQueueInfo() {
     return {
       length: await ProcessingQueue.getLength()
@@ -610,9 +614,18 @@ export default {
     const options = extractQueryOptions(query);
 
     let allImages = [] as Image[];
+
     if (options.scenes.length) {
       for (const sceneId of options.scenes) {
         allImages.push(...(await Image.getByScene(sceneId)));
+      }
+    } else if (options.actors.length) {
+      if (options.actors.length) {
+        for (const actorId of options.actors) {
+          allImages.push(...(await Image.getByActor(actorId)));
+        }
+      } else {
+        allImages = await Image.getAll();
       }
     } else {
       allImages = await Image.getAll();
@@ -651,12 +664,6 @@ export default {
     if (options.exclude.length) {
       searchDocs = searchDocs.filter(image =>
         options.exclude.every(id => !image.labels.map(l => l._id).includes(id))
-      );
-    }
-
-    if (options.actors.length) {
-      searchDocs = searchDocs.filter(image =>
-        options.actors.every(id => image.actors.map(a => a._id).includes(id))
       );
     }
 

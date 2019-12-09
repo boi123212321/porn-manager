@@ -77,6 +77,14 @@
               :class="`hover mr-1 mb-1 ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
             >+ Add</v-chip>
           </div>
+          <div class="px-2 d-flex align-center">
+            <v-subheader>View counter</v-subheader>
+            {{ currentActor.watches.length }}
+          </div>
+          <div v-if="currentActor.watches.length" class="px-2 d-flex align-center">
+            <v-subheader>Last time watched</v-subheader>
+            {{ new Date(currentActor.watches[currentActor.watches.length - 1]).toLocaleString() }}
+          </div>
         </v-col>
       </v-row>
       <v-row v-if="scenes.length">

@@ -35,7 +35,7 @@ export async function checkSceneSources() {
     logger.log(`Removed ${removedReferences}/${scenes.length} references.`);
   else if (removedReferences > 0)
     logger.warn(
-      `REMOVE_DANGLING_FILE_REFERENCES would have removed ${removedReferences} video references. However, the changes are not committed, because the options is disabled in config.json.`
+      `REMOVE_DANGLING_FILE_REFERENCES would have removed ${removedReferences} video references. However, the changes are not committed, because the option is disabled in config.json.`
     );
   logger.log("Scene source check done.");
 }

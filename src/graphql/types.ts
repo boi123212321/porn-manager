@@ -36,6 +36,8 @@ type Query {
   getImages(query: String): [Image!]!
   getStudios(query: String): [Studio!]!
 
+  topActors(num: Int): [Actor!]!
+
   getSceneById(id: String!): Scene
 
   getActorById(id: String!): Actor
@@ -61,10 +63,10 @@ type Actor {
   favorite: Boolean!
   bookmark: Boolean!
   rating: Int
-  watches: [Long!]!
   #customFields
   
   # Resolvers
+  watches: [Long!]!
   labels: [Label!]!
   scenes: [Scene!]
   numScenes: Int!

@@ -81,7 +81,7 @@
             <v-subheader>Movie duration</v-subheader>
             {{ movieDuration }}
           </div>
-          <div v-if="scenes.length" class="px-2 pb-2 d-flex align-center">
+          <div v-if="scenes.length" class="px-2 d-flex align-center">
             <v-subheader>Movie size</v-subheader>
             {{ (currentMovie.size /1000/ 1000).toFixed(0) }} MB
           </div>
