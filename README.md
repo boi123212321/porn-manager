@@ -43,14 +43,18 @@ Note: this is by no means finished, but useable.
 - PORT: Port server is running on
 - APPLY_ACTOR_LABELS: Whether actor labels should be applied to scenes and images the actor is starring in
   - Example: Kali Roses has labels "blonde" & "tattoos". Importing a new video featuring Kali Roses (will be matched if "Kali Roses" is in the video title or path), the newly created scene will automatically inherit "blonde" & "tattoos" + other labels that have been extracted from the title or path.
+- APPLY_STUDIO_LABELS: Same as APPLY_ACTOR_LABELS, but for studios
 - USE_FUZZY_SEARCH: Use fuzzy search. Fuzzy search decreases search performance, but may forgive misspellings. Disabling fuzzy search approx. halves the search time, which can be helpful on every large collections (5000+) items.
 - FUZZINESS: How hard the fuzzy search should be matching; 0 requires a perfect match, while 1 will match everything, effectively turning off the search.
+- READ_IMAGES_ON_IMPORT: Read image dimensions/hash on import, will greatly increase import time for a big image library (10000+)
+- REMOVE_DANGLING_FILE_REFERENCES: Remove scenes/images from the database that can not be found on disk
+- BACKUP_ON_STARTUP: Whether to create a backup when starting the server
+- MAX_BACKUP_AMOUNT: Max amount of backups in backups/ folder. Oldest one will be deleted, if max amount has been reached.
 
 ## Roadmap
 
 - Image albums
 - Recommend similar scenes/actors/images
-- Statistics?
 - visit [Issues](https://github.com/boi123212321/porn-manager/issues) to see what's up
 
 ## How to run

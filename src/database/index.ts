@@ -10,6 +10,9 @@ import ora from "ora";
 import Movie from "../types/movie";
 import Studio from "../types/studio";
 
+mkdirp.sync("backups/");
+mkdirp.sync("tmp/");
+
 let store = {} as {
   cross_references: DataStore;
   scenes: DataStore;
@@ -51,7 +54,6 @@ function loadStore(path: string): Promise<DataStore> {
 
 export async function loadStores() {
   try {
-    mkdirp.sync("tmp/");
     mkdirp.sync(await libraryPath("scenes/"));
     mkdirp.sync(await libraryPath("images/"));
     mkdirp.sync(await libraryPath("thumbnails/"));

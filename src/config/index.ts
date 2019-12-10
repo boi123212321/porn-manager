@@ -38,6 +38,9 @@ export interface IConfig {
 
   READ_IMAGES_ON_IMPORT: boolean;
   REMOVE_DANGLING_FILE_REFERENCES: boolean;
+
+  BACKUP_ON_STARTUP: boolean;
+  MAX_BACKUP_AMOUNT: number;
 }
 
 export const defaultConfig: IConfig = {
@@ -57,7 +60,9 @@ export const defaultConfig: IConfig = {
   USE_FUZZY_SEARCH: true,
   FUZZINESS: 0.25,
   READ_IMAGES_ON_IMPORT: true,
-  REMOVE_DANGLING_FILE_REFERENCES: false
+  REMOVE_DANGLING_FILE_REFERENCES: false,
+  BACKUP_ON_STARTUP: true,
+  MAX_BACKUP_AMOUNT: 10
 };
 
 let config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;

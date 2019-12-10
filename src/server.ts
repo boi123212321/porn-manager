@@ -16,6 +16,7 @@ import * as database from "./database/index";
 import { checkSceneSources, checkImageSources } from "./integrity";
 import { loadStores } from "./database/index";
 import { existsAsync } from "./fs/async";
+import { createBackup } from "./backup";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
@@ -91,7 +92,10 @@ export default async () => {
   );
 
   const config = await getConfig();
-  const port = config.PORT || 3000;
+
+  if (config.BACKUP_ON_STARTUP === true) {
+    await createBackup(config.MAX_BACKUP_AMOUNT || 10);
+  }
 
   async function scanFolders() {
     logger.warn("Scanning folders...");
@@ -106,6 +110,7 @@ export default async () => {
 
   await loadStores();
 
+  const port = config.PORT || 3000;
   app.listen(port, () => {
     console.log(`Server running on Port ${port}`);
 
