@@ -7,11 +7,12 @@ import { ReadStream, createWriteStream } from "fs";
 import { extname } from "path";
 import * as logger from "../../logger";
 import { extractLabels, extractActors } from "../../extractor";
-import { Dictionary, libraryPath } from "../../types/utility";
+import { Dictionary, libraryPath, mapAsync } from "../../types/utility";
 import Movie from "../../types/movie";
 import Jimp from "jimp";
 import { statAsync, unlinkAsync } from "../../fs/async";
 import { getConfig } from "../../config";
+import Studio from "../../types/studio";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -56,10 +57,6 @@ export default {
     if (!mimetype.includes("image/")) throw new Error("Invalid file");
 
     const image = new Image(imageName);
-
-    if (args.scene) image.scene = args.scene;
-
-    if (args.studio) image.studio = args.studio;
 
     const outPath = `tmp/${image._id}${ext}`;
 
@@ -123,41 +120,61 @@ export default {
       logger.success(`Image processing done.`);
     }
 
+    let actors = [] as string[];
     if (args.actors) {
-      image.actors = args.actors;
+      actors = args.actors;
+    }
+
+    let labels = [] as string[];
+    if (args.labels) {
+      labels = args.labels;
+    }
+
+    if (args.scene) {
+      const scene = await Scene.getById(args.scene);
+
+      if (scene) {
+        image.scene = args.scene;
+
+        const sceneActors = (await Scene.getActors(scene)).map(a => a._id);
+        actors.push(...sceneActors);
+        const sceneLabels = (await Scene.getLabels(scene)).map(a => a._id);
+        labels.push(...sceneLabels);
+      }
+    }
+
+    if (args.studio) {
+      const studio = await Studio.getById(args.studio);
+      if (studio) image.studio = args.studio;
     }
 
     // Extract actors
     const extractedActors = await extractActors(image.path);
     logger.log(`Found ${extractedActors.length} actors in image path.`);
-    image.actors.push(...extractedActors);
-    image.actors = [...new Set(image.actors)];
-
-    if (args.labels) {
-      image.labels = args.labels;
-    }
+    actors.push(...extractedActors);
+    await Image.setActors(image, actors);
 
     // Extract labels
     const extractedLabels = await extractLabels(image.path);
     logger.log(`Found ${extractedLabels.length} labels in image path.`);
-    image.labels.push(...extractedLabels);
+    labels.push(...extractedLabels);
 
     if (config.APPLY_ACTOR_LABELS === true) {
       logger.log("Applying actor labels to image");
-      image.labels.push(
+      labels.push(
         ...(
           await Promise.all(
             extractedActors.map(async id => {
               const actor = await Actor.getById(id);
               if (!actor) return [];
-              return actor.labels;
+              return (await Actor.getLabels(actor)).map(l => l._id);
             })
           )
         ).flat()
       );
     }
 
-    image.labels = [...new Set(image.labels)];
+    await Image.setLabels(image, labels);
 
     // Done
 
@@ -167,38 +184,36 @@ export default {
     return image;
   },
 
-  async addActorsToImage(_, { id, actors }: { id: string; actors: string[] }) {
-    const image = await Image.getById(id);
-
-    if (image) {
-      if (Array.isArray(actors)) image.actors.push(...actors);
-      image.actors = [...new Set(image.actors)];
-      await database.update(
-        database.store.images,
-        { _id: image._id },
-        { $set: { actors: image.actors } }
-      );
-      return image;
-    } else {
-      throw new Error(`Image ${id} not found`);
-    }
-  },
-
   async updateImages(
     _,
     { ids, opts }: { ids: string[]; opts: IImageUpdateOpts }
   ) {
+    const config = await getConfig();
     const updatedImages = [] as Image[];
 
     for (const id of ids) {
       const image = await Image.getById(id);
 
       if (image) {
-        if (Array.isArray(opts.actors))
-          image.actors = [...new Set(opts.actors)];
+        if (Array.isArray(opts.actors)) {
+          const actorIds = [...new Set(opts.actors)];
+          await Image.setActors(image, actorIds);
 
-        if (Array.isArray(opts.labels))
-          image.labels = [...new Set(opts.labels)];
+          const existingLabels = (await Image.getLabels(image)).map(l => l._id);
+
+          if (config.APPLY_ACTOR_LABELS === true) {
+            const actors = (await mapAsync(actorIds, Actor.getById)).filter(
+              Boolean
+            ) as Actor[];
+            const labelIds = actors.map(ac => ac.labels).flat();
+
+            logger.log("Applying actor labels to image");
+            await Image.setLabels(image, existingLabels.concat(labelIds));
+          }
+        } else {
+          if (Array.isArray(opts.labels))
+            await Image.setLabels(image, opts.labels);
+        }
 
         if (typeof opts.bookmark == "boolean") image.bookmark = opts.bookmark;
 
@@ -230,6 +245,12 @@ export default {
         await Scene.filterImage(image._id);
         await Label.filterImage(image._id);
         await Movie.filterImage(image._id);
+        await database.remove(database.store.cross_references, {
+          from: image._id
+        });
+        await database.remove(database.store.cross_references, {
+          to: image._id
+        });
       }
     }
     return true;

@@ -19,6 +19,10 @@ export default {
   async addMovie(_, args: Dictionary<any>) {
     const movie = new Movie(args.name, args.scenes);
     await database.insert(database.store.movies, movie);
+
+    if (args.scenes) {
+      if (Array.isArray(args.scenes)) await Movie.setScenes(movie, args.scenes);
+    }
     return movie;
   },
 
@@ -28,29 +32,15 @@ export default {
 
       if (movie) {
         await Movie.remove(movie._id);
+        await database.remove(database.store.cross_references, {
+          from: movie._id
+        });
+        await database.remove(database.store.cross_references, {
+          to: movie._id
+        });
       }
     }
     return true;
-  },
-
-  async addScenesToMovie(_, { id, scenes }: { id: string; scenes: string[] }) {
-    const movie = await Movie.getById(id);
-
-    if (movie) {
-      if (Array.isArray(scenes)) movie.scenes.push(...scenes);
-
-      movie.scenes = [...new Set(movie.scenes)];
-
-      await database.update(
-        database.store.movies,
-        { _id: movie._id },
-        { $set: { scenes: movie.scenes } }
-      );
-
-      return movie;
-    } else {
-      throw new Error(`Movie ${id} not found`);
-    }
   },
 
   async updateMovies(
@@ -76,7 +66,7 @@ export default {
           movie.frontCover = opts.frontCover;
 
         if (Array.isArray(opts.scenes))
-          movie.scenes = [...new Set(opts.scenes)];
+          await Movie.setScenes(movie, opts.scenes);
 
         if (typeof opts.bookmark == "boolean") movie.bookmark = opts.bookmark;
 

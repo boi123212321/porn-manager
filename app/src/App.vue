@@ -169,6 +169,11 @@ export default class App extends Vue {
 
   navItems = [
     {
+      icon: "mdi-home",
+      text: "Home",
+      url: "/"
+    },
+    {
       icon: "mdi-camcorder-box",
       text: "Scenes",
       url: "/scenes"

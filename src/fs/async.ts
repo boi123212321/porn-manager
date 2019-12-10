@@ -1,7 +1,16 @@
-import { exists, stat, unlink, readdir, readFile, writeFile } from "fs";
+import {
+  exists,
+  stat,
+  unlink,
+  readdir,
+  readFile,
+  writeFile,
+  copyFile
+} from "fs";
 import { promisify } from "util";
 import { join, extname } from "path";
 import * as logger from "../logger/index";
+import rimraf from "rimraf";
 
 export const existsAsync = promisify(exists);
 export const statAsync = promisify(stat);
@@ -9,6 +18,8 @@ export const unlinkAsync = promisify(unlink);
 export const readdirAsync = promisify(readdir);
 export const readFileAsync = promisify(readFile);
 export const writeFileAsync = promisify(writeFile);
+export const copyFileAsync = promisify(copyFile);
+export const rimrafAsync = promisify(rimraf);
 
 export async function walk(
   dir: string,

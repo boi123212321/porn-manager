@@ -6,7 +6,23 @@
       </div>
       <div class="d-flex" v-else>
         <v-spacer></v-spacer>
-        <v-img style="width: 50vw; max-width: 400px;" eager :src="thumbnail"></v-img>
+        <v-hover>
+          <template v-slot:default="{ hover }">
+            <v-img
+              @click="openThumbnailDialog"
+              v-ripple
+              style="width: 50vw; max-width: 400px;"
+              eager
+              :src="thumbnail"
+            >
+              <v-fade-transition>
+                <v-overlay v-if="hover" absolute color="accent">
+                  <v-icon x-large>mdi-upload</v-icon>
+                </v-overlay>
+              </v-fade-transition>
+            </v-img>
+          </template>
+        </v-hover>
         <v-spacer></v-spacer>
       </div>
       <div class="mt-3" v-if="currentStudio.parent">
@@ -130,7 +146,7 @@
 
     <v-dialog v-model="thumbnailDialog" max-width="400px">
       <v-card v-if="currentStudio" :loading="thumbnailLoader">
-        <v-card-title>Set front cover for '{{ currentStudio.name }}'</v-card-title>
+        <v-card-title>Set logo for '{{ currentStudio.name }}'</v-card-title>
         <v-card-text>
           <v-file-input color="accent" placeholder="Select an image" v-model="selectedThumbnail"></v-file-input>
         </v-card-text>
@@ -528,6 +544,7 @@ export default class StudioDetails extends Vue {
     this.movies = [];
     this.scenes = [];
     this.selectedLabels = [];
+    this.page = 0;
     this.onLoad();
   }
 

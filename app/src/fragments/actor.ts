@@ -17,5 +17,6 @@ export default gql`
     thumbnail {
       _id
     }
+    watches
   }
 `;

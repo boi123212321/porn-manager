@@ -36,7 +36,7 @@ class Queue {
 
   async process(item: IQueueItem) {
     const sourcePath = item.path;
-    logger.log(`Processing ${sourcePath}...`);
+    logger.message(`Processing ${sourcePath}...`);
 
     for (const actor of item.actors || []) {
       const actorInDb = await Actor.getById(actor);
@@ -110,37 +110,37 @@ class Queue {
       throw new Error("Error");
     }
 
+    let actors = [] as string[];
     if (item.actors) {
-      scene.actors = item.actors;
+      actors = item.actors;
     }
 
     // Extract actors
     let extractedActors = [] as string[];
     extractedActors = await extractActors(sourcePath);
+    actors.push(...extractedActors);
+    await Scene.setActors(scene, actors);
+    logger.log(`Found ${extractedActors.length} actors in scene path.`);
 
-    scene.actors.push(...extractedActors);
-    scene.actors = [...new Set(scene.actors)];
-    logger.log(`Found ${scene.actors.length} actors in scene path.`);
-
+    let labels = [] as string[];
     if (item.labels) {
-      scene.labels = item.labels;
+      labels = item.labels;
     }
 
     // Extract labels
     const extractedLabels = await extractLabels(sourcePath);
-
-    scene.labels.push(...extractedLabels);
-    logger.log(`Found ${scene.labels.length} labels in scene path.`);
+    labels.push(...extractedLabels);
+    logger.log(`Found ${extractedLabels.length} labels in scene path.`);
 
     if (config.APPLY_ACTOR_LABELS === true) {
       logger.log("Applying actor labels to scene");
-      scene.labels.push(
+      labels.push(
         ...(
           await Promise.all(
             extractedActors.map(async id => {
               const actor = await Actor.getById(id);
               if (!actor) return [];
-              return actor.labels;
+              return (await Actor.getLabels(actor)).map(l => l._id);
             })
           )
         ).flat()
@@ -160,13 +160,12 @@ class Queue {
 
         if (studio) {
           logger.log("Applying studio labels to scene");
-          logger.log(studio.labels);
-          scene.labels.push(...studio.labels);
+          labels.push(...(await Studio.getLabels(studio)).map(l => l._id));
         }
       }
     }
 
-    scene.labels = [...new Set(scene.labels)];
+    await Scene.setLabels(scene, labels);
 
     // Thumbnails
     if (config.GENERATE_THUMBNAILS) {
@@ -184,9 +183,9 @@ class Queue {
           image.path = file.path;
           image.scene = scene._id;
           image.meta.size = file.size;
-          image.actors = scene.actors;
           image.labels = scene.labels;
-          image.studio = scene.studio;
+          await Image.setLabels(image, labels);
+          await Image.setActors(image, actors);
           logger.log(`Creating image with id ${image._id}...`);
           await database.insert(database.store.images, image);
           images.push(image);

@@ -16,6 +16,10 @@ const PAGE_SIZE = 24;
 const FALLBACK_FUZZINESS = 0.25;
 
 export default {
+  async topActors(_, { num }: { num: number }) {
+    return (await Actor.getTopActors()).slice(0, num || 12);
+  },
+
   async getQueueInfo() {
     return {
       length: await ProcessingQueue.getLength()
@@ -124,6 +128,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => a.addedOn - b.addedOn);
         else searchDocs.sort((a, b) => b.addedOn - a.addedOn);
+        break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
         break;
       /*  case SortTarget.RATING:
       if (options.sortDir == "asc")
@@ -265,6 +274,11 @@ export default {
           searchDocs.sort((a, b) => a.duration - b.duration);
         else searchDocs.sort((a, b) => b.duration - a.duration);
         break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case SortTarget.DATE:
         if (options.sortDir == "asc")
           searchDocs.sort(
@@ -394,6 +408,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => (a.bornOn || 0) - (b.bornOn || 0));
         else searchDocs.sort((a, b) => (b.bornOn || 0) - (a.bornOn || 0));
+        break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
         break;
     }
 
@@ -560,6 +579,11 @@ export default {
           searchDocs.sort((a, b) => a.duration - b.duration);
         else searchDocs.sort((a, b) => b.duration - a.duration);
         break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case SortTarget.DATE:
         if (options.sortDir == "asc")
           searchDocs.sort(
@@ -589,7 +613,23 @@ export default {
 
     const options = extractQueryOptions(query);
 
-    const allImages = await Image.getAll();
+    let allImages = [] as Image[];
+
+    if (options.scenes.length) {
+      for (const sceneId of options.scenes) {
+        allImages.push(...(await Image.getByScene(sceneId)));
+      }
+    } else if (options.actors.length) {
+      if (options.actors.length) {
+        for (const actorId of options.actors) {
+          allImages.push(...(await Image.getByActor(actorId)));
+        }
+      } else {
+        allImages = await Image.getAll();
+      }
+    } else {
+      allImages = await Image.getAll();
+    }
 
     let searchDocs = await Promise.all(
       allImages.map(async image => ({
@@ -624,12 +664,6 @@ export default {
     if (options.exclude.length) {
       searchDocs = searchDocs.filter(image =>
         options.exclude.every(id => !image.labels.map(l => l._id).includes(id))
-      );
-    }
-
-    if (options.actors.length) {
-      searchDocs = searchDocs.filter(image =>
-        options.actors.every(id => image.actors.map(a => a._id).includes(id))
       );
     }
 
@@ -709,6 +743,11 @@ export default {
         if (options.sortDir == "asc")
           searchDocs.sort((a, b) => a.rating - b.rating);
         else searchDocs.sort((a, b) => b.rating - a.rating);
+        break;
+      case SortTarget.ALPHABETIC:
+        if (options.sortDir == "asc")
+          searchDocs.sort((a, b) => a.name.localeCompare(b.name));
+        else searchDocs.sort((a, b) => b.name.localeCompare(a.name));
         break;
     }
 

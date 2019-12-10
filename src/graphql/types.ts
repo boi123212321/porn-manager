@@ -36,6 +36,8 @@ type Query {
   getImages(query: String): [Image!]!
   getStudios(query: String): [Studio!]!
 
+  topActors(num: Int): [Actor!]!
+
   getSceneById(id: String!): Scene
 
   getActorById(id: String!): Actor
@@ -61,10 +63,10 @@ type Actor {
   favorite: Boolean!
   bookmark: Boolean!
   rating: Int
-  watches: [Long!]!
   #customFields
   
   # Resolvers
+  watches: [Long!]!
   labels: [Label!]!
   scenes: [Scene!]
   numScenes: Int!
@@ -243,7 +245,6 @@ type Mutation {
   removeActors(ids: [String!]!): Boolean!
 
   uploadImage(file: Upload!, name: String, actors: [String!], labels: [String!], scene: String, crop: Crop, studio: String, lossless: Boolean): Image!
-  addActorsToImage(id: String!, actors: [String!]!): Image!
   updateImages(ids: [String!]!, opts: ImageUpdateOpts!): [Image!]!
   removeImages(ids: [String!]!): Boolean!
   
@@ -252,14 +253,12 @@ type Mutation {
   removeLabels(ids: [String!]!): Boolean!
   
   addScene(name: String!, actors: [String!], labels: [String!]): Scene!
-  addActorsToScene(id: String!, actors: [String!]!): Scene!
   watchScene(id: String!): Scene!
   uploadScene(file: Upload!, name: String, actors: [String!], labels: [String!]): Boolean!
   updateScenes(ids: [String!]!, opts: SceneUpdateOpts!): [Scene!]!
   removeScenes(ids: [String!]!, deleteImages: Boolean): Boolean!
 
   addMovie(name: String!, scenes: [String!]): Movie!
-  addScenesToMovie(id: String!, scenes: [String!]!): Movie!
   updateMovies(ids: [String!]!, opts: MovieUpdateOpts!): [Movie!]!
   removeMovies(ids: [String!]!): Boolean!
 

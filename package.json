@@ -9,15 +9,15 @@
     "watch": "tsc -w",
     "start": "node build",
     "mon": "NODE_ENV=development nodemon build/",
-    "dev": "NODE_ENV=development node build/",
+    "dev": "NODE_ENV=development node --max_old_space_size=8192 -r ts-node/register ./src/index.ts",
     "test": "exit 1",
     "build": "mkdir -p release/app/dist && npm run build:server && npm run build:app && cp -r ./views ./release && cp -r ./app/dist ./release/app",
     "build:app": "cd app && npm run build && cd ..",
-    "build:server": "tsc && pkg . --targets node8 --out-path ./release",
+    "build:server": "tsc && pkg . --targets node8 --options max_old_space_size=8192 --out-path ./release",
     "build:all": "npm run build:app && tsc && npm run build:linux && npm run build:win && npm run build:mac",
-    "build:linux": "mkdir -p releases/linux/app/dist && pkg . --out-path ./releases/linux --targets node8-linux-x64 && cp -r ./views ./releases/linux && cp -r ./app/dist ./releases/linux/app && npm run zip:linux",
-    "build:win": "mkdir -p releases/win/app/dist && pkg . --out-path ./releases/win --targets node8-win-x64 && cp -r ./views ./releases/win && cp -r ./app/dist ./releases/win/app && npm run zip:win",
-    "build:mac": "mkdir -p releases/mac/app/dist && pkg . --out-path ./releases/mac --targets node8-macos-x64 && cp -r ./views ./releases/mac && cp -r ./app/dist ./releases/mac/app && npm run zip:mac",
+    "build:linux": "mkdir -p releases/linux/app/dist && pkg . --out-path ./releases/linux --targets node8-linux-x64 --options max_old_space_size=8192 && cp -r ./views ./releases/linux && cp -r ./app/dist ./releases/linux/app && npm run zip:linux",
+    "build:win": "mkdir -p releases/win/app/dist && pkg . --out-path ./releases/win --targets node8-win-x64 --options max_old_space_size=8192 && cp -r ./views ./releases/win && cp -r ./app/dist ./releases/win/app && npm run zip:win",
+    "build:mac": "mkdir -p releases/mac/app/dist && pkg . --out-path ./releases/mac --targets node8-macos-x64 --options max_old_space_size=8192 && cp -r ./views ./releases/mac && cp -r ./app/dist ./releases/mac/app && npm run zip:mac",
     "zip:linux": "zip -r ./releases/linux.zip ./releases/linux",
     "zip:win": "zip -r ./releases/win.zip ./releases/win",
     "zip:mac": "zip -r ./releases/mac.zip ./releases/mac"
@@ -55,6 +55,7 @@
     "node-filter-async": "^1.1.3",
     "ora": "^4.0.3",
     "pug": "^2.0.4",
+    "rimraf": "^3.0.0",
     "tiny-async-pool": "^1.1.0"
   },
   "devDependencies": {
@@ -66,9 +67,12 @@
     "@types/mkdirp": "^0.5.2",
     "@types/nedb": "^1.8.9",
     "@types/pug": "^2.0.4",
+    "@types/rimraf": "^2.0.3",
     "@types/tiny-async-pool": "^1.0.0",
     "nodemon": "^2.0.1",
-    "pkg": "^4.4.0"
+    "pkg": "^4.4.0",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
   },
   "nodemonConfig": {
     "ignore": [

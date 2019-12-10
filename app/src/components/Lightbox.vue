@@ -103,7 +103,7 @@
             :key="actor._id"
           >
             <a :href="`#/actor/${actor._id}`">
-              <v-avatar size="80">
+              <v-avatar color="pink" size="80">
                 <v-img class="hover" v-ripple eager :src="thumbnail(actor)"></v-img>
               </v-avatar>
             </a>

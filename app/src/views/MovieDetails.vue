@@ -81,7 +81,7 @@
             <v-subheader>Movie duration</v-subheader>
             {{ movieDuration }}
           </div>
-          <div v-if="scenes.length" class="px-2 pb-2 d-flex align-center">
+          <div v-if="scenes.length" class="px-2 d-flex align-center">
             <v-subheader>Movie size</v-subheader>
             {{ (currentMovie.size /1000/ 1000).toFixed(0) }} MB
           </div>
@@ -297,6 +297,7 @@ export default class SceneDetails extends Vue {
     this.images = [];
     this.infiniteId++;
     this.refreshRating();
+    this.refreshLabels();
   }
 
   uploadFrontCover() {
@@ -573,6 +574,28 @@ export default class SceneDetails extends Vue {
       actor.bookmark = bookmark;
       Vue.set(this.actors, index, actor);
     }
+  }
+
+  refreshLabels() {
+    if (!this.currentMovie) return;
+
+    ApolloClient.query({
+      query: gql`
+        query($id: String!) {
+          getMovieById(id: $id) {
+            labels {
+              _id
+              name
+            }
+          }
+        }
+      `,
+      variables: {
+        id: this.currentMovie._id
+      }
+    }).then(res => {
+      movieModule.setLabels(res.data.getMovieById.labels);
+    });
   }
 
   refreshRating() {
