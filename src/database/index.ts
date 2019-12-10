@@ -88,6 +88,9 @@ export async function loadStores() {
   await buildIndex(store.images, {
     fieldName: "studio"
   });
+  await buildIndex(store.studios, {
+    fieldName: "parent"
+  });
 
   const loader = ora(
     "Checking database integrity. This might take a minute..."
