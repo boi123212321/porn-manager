@@ -19,7 +19,6 @@ export default gql`
     }
     backCover {
       _id
-      color
     }
     duration
     size
