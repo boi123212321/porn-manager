@@ -99,7 +99,7 @@
       <v-row v-if="scenes.length">
         <v-col cols="12">
           <h1 class="font-weight-light text-center">Scenes</h1>
-
+          <!--  
           <v-row>
             <v-col
               class="pa-1"
@@ -113,7 +113,39 @@
             >
               <scene-card style="height: 100%" v-model="scenes[i]" />
             </v-col>
-          </v-row>
+          </v-row>-->
+          <div v-for="(scene, i) in scenes" :key="scene._id" class="mb-2">
+            <div class="pa-2 mb-2 d-flex align-center">
+              <div class="mr-4 display-1 med--text">{{ i + 1}}</div>
+
+              <v-avatar class="mr-3" tile size="200">
+                <v-img
+                  :src="`http://localhost:3000/image/${
+          scene.thumbnail._id
+        }?password=xxx`"
+                ></v-img>
+              </v-avatar>
+              <div>
+                <div class="title">{{ scene.name }}</div>
+                <div class="med--text">Featuring {{ scene.actors.map(a => a.name).join(", ") }}</div>
+                <div class="mt-1" style="max-width: 300px">
+                  <v-chip
+                    small
+                    outlined
+                    label
+                    class="mr-1 mb-1"
+                    v-for="label in scene.labels"
+                    :key="label._id"
+                  >{{ label.name }}</v-chip>
+                </div>
+              </div>
+              <v-spacer></v-spacer>
+              <v-btn fab color="accent">
+                <v-icon :class="`${$vuetify.theme.dark ? 'black--text' : 'white--text'}`">mdi-play</v-icon>
+              </v-btn>
+            </div>
+            <v-divider></v-divider>
+          </div>
         </v-col>
       </v-row>
 
