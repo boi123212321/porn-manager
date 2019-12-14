@@ -6,7 +6,12 @@
           <v-container>
             <v-hover>
               <template v-slot:default="{ hover }">
-                <v-img contain aspect-ratio="1" :src="hover ? backCover : frontCover">
+                <v-img
+                  style=" max-height: 400px"
+                  contain
+                  :aspect-ratio="0.71"
+                  :src="hover ? backCover : frontCover"
+                >
                   <template v-slot:placeholder>
                     <v-sheet style="width: 100%; height: 100%;" color="grey" />
                   </template>
@@ -116,17 +121,26 @@
           </v-row>-->
           <div v-for="(scene, i) in scenes" :key="scene._id" class="mb-2">
             <div class="pa-2 mb-2 d-flex align-center">
-              <div class="mr-4 display-1 med--text">{{ i + 1}}</div>
+              <div class="mr-4 font-weight-light display-1 med--text">{{ i + 1}}</div>
 
-              <v-avatar class="mr-3" tile size="200">
-                <v-img
-                  :src="`http://localhost:3000/image/${
+              <a :href="`#/scene/${scene._id}`">
+                <v-avatar style="border-radius: 4px" class="mr-3" tile size="200">
+                  <v-img
+                    v-ripple
+                    :src="`http://localhost:3000/image/${
           scene.thumbnail._id
         }?password=xxx`"
-                ></v-img>
-              </v-avatar>
+                  ></v-img>
+                </v-avatar>
+              </a>
               <div>
-                <div class="title">{{ scene.name }}</div>
+                <a
+                  :class="$vuetify.theme.dark ? 'white--text' : 'black--text'"
+                  style="text-decoration: none !important"
+                  :href="`#/scene/${scene._id}`"
+                >
+                  <div class="title">{{ scene.name }}</div>
+                </a>
                 <div class="med--text">Featuring {{ scene.actors.map(a => a.name).join(", ") }}</div>
                 <div class="mt-1" style="max-width: 300px">
                   <v-chip
