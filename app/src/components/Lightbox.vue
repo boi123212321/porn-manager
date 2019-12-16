@@ -227,13 +227,22 @@ export default class Lightbox extends Vue {
 
   mounted() {
     window.addEventListener("keydown", ev => {
-      console.log(ev.keyCode);
       if (ev.keyCode === 27) {
         this.close();
       } else if (ev.keyCode === 37 || ev.keyCode === 65) {
         this.decrementIndex();
       } else if (ev.keyCode === 39 || ev.keyCode === 68) {
         this.incrementIndex();
+      } else if (ev.keyCode === 70) {
+        this.favorite();
+      } else if (ev.keyCode === 66) {
+        this.bookmark();
+      } else if (ev.keyCode >= 48 && ev.keyCode <= 53) {
+        const rating = ev.keyCode - 48;
+        this.rate(rating);
+      } else if (ev.keyCode >= 96 && ev.keyCode <= 101) {
+        const rating = ev.keyCode - 96;
+        this.rate(rating);
       }
     });
   }

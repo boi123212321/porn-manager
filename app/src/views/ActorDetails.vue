@@ -102,10 +102,7 @@
               lg="3"
               xl="2"
             >
-              <scene-card
-                v-model="scenes[i]"
-                style="height: 100%"
-              />
+              <scene-card v-model="scenes[i]" style="height: 100%" />
             </v-col>
           </v-row>
         </v-col>
@@ -682,6 +679,18 @@ export default class ActorDetails extends Vue {
 
   beforeMount() {
     this.onLoad();
+  }
+
+  mounted() {
+    window.addEventListener("keydown", ev => {
+      if (ev.keyCode >= 48 && ev.keyCode <= 53) {
+        const rating = ev.keyCode - 48;
+        this.rate(rating);
+      } else if (ev.keyCode >= 96 && ev.keyCode <= 101) {
+        const rating = ev.keyCode - 96;
+        this.rate(rating);
+      }
+    });
   }
 }
 </script>
