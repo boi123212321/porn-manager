@@ -3,8 +3,8 @@
     <div v-if="currentScene">
       <v-row>
         <v-col cols="12">
-          <v-container>
-            <vue-d-player :options="{autoplay: false, preload:true, video: {url: 'http://localhost:3000/scene/' + currentScene._id, poster: thumbnail}}"></vue-d-player>
+          <v-container fluid>
+            <div id="dplayer" ref="dplayer"></div>
           </v-container>
         </v-col>
       </v-row>
@@ -320,8 +320,9 @@ import IActor from '../types/actor';
 import IImage from '../types/image';
 import ILabel from '../types/label';
 import {contextModule} from '../store/context';
-import VueDPlayer from 'vue-dplayer';
-import 'vue-dplayer/dist/vue-dplayer.css';
+
+import 'dplayer/dist/DPlayer.min.css';
+import DPlayer from 'dplayer';
 
 interface ICropCoordinates {
     left: number;
@@ -342,8 +343,7 @@ interface ICropResult {
         ImageCard,
         InfiniteLoading,
         Cropper,
-        ImageUploader,
-        VueDPlayer
+        ImageUploader
     },
     beforeRouteLeave(_to, _from, next) {
         sceneModule.setCurrent(null);
@@ -374,6 +374,33 @@ export default class SceneDetails extends Vue {
 
     get aspectRatio() {
         return contextModule.sceneAspectRatio;
+    }
+
+    get dplayerOptions() {
+        if(this.currentScene) {
+            return {
+                container: this.$refs.dplayer,
+                autoplay: false,
+                preload: true,
+                video: {
+                    url: 'http://localhost:3000/scene/' + this.currentScene._id,
+                    poster: this.thumbnail,
+                    pic: this.thumbnail,
+                    type: 'normal',
+                    thumbnails: (this.currentScene.preview) ? this.imageLink(this.currentScene.preview) : null
+                },
+                highlight: [
+                    {
+                        text: 'marker for 20s',
+                        time: 20
+                    },
+                    {
+                        text: 'marker for 2mins',
+                        time: 120
+                    }
+                ]
+            };
+        }
     }
 
     @Watch('currentScene.actors', {deep: true})
@@ -741,6 +768,8 @@ export default class SceneDetails extends Vue {
             sceneModule.setCurrent(res.data.getSceneById);
             this.actors = res.data.getSceneById.actors;
             document.title = res.data.getSceneById.name;
+
+            const dp = new DPlayer(this.dplayerOptions);
         });
     }
 
@@ -758,6 +787,7 @@ export default class SceneDetails extends Vue {
             this.rate(rating);
           }
         }); */
+
     }
 }
 </script>

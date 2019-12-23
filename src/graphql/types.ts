@@ -101,6 +101,7 @@ type Scene {
   
   # Resolvers
   thumbnail: Image
+  preview: Image
   images: [Image!]!
   actors: [Actor!]!
   labels: [Label!]!

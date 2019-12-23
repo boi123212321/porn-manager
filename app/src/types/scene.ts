@@ -18,6 +18,9 @@ export default interface IScene {
     _id: string;
     color: string | null;
   } | null;
+  preview: {
+    _id: string;
+  } | null;
   meta: {
     size: number;
     duration: number;

@@ -57,6 +57,7 @@ export async function loadStores() {
     mkdirp.sync(await libraryPath("scenes/"));
     mkdirp.sync(await libraryPath("images/"));
     mkdirp.sync(await libraryPath("thumbnails/"));
+    mkdirp.sync(await libraryPath("previews/"));
   } catch (err) {}
 
   store = {
