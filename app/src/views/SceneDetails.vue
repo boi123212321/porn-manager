@@ -9,17 +9,17 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="12" sm="4" md="4" lg="3" xl="2">
+        <!-- <v-col cols="12" sm="4" md="4" lg="3" xl="2">
           <v-container>
             <v-hover>
               <template v-slot:default="{ hover }">
                 <v-img
-                        v-ripple
-                        @click="openThumbnailDialog"
-                        class="elevation-4 hover"
-                        :aspect-ratio="aspectRatio"
-                        cover
-                        :src="thumbnail"
+                  v-ripple
+                  @click="openThumbnailDialog"
+                  class="elevation-4 hover"
+                  :aspect-ratio="aspectRatio"
+                  cover
+                  :src="thumbnail"
                 >
                   <v-fade-transition>
                     <v-overlay v-if="hover" absolute color="accent">
@@ -30,8 +30,16 @@
               </template>
             </v-hover>
           </v-container>
-        </v-col>
-        <v-col cols="12" sm="8" md="8" lg="9" xl="10">
+        </v-col>-->
+        <v-col cols="12">
+          <div>
+            <v-btn
+              text
+              class="text-none"
+              color="accent"
+              @click="openThumbnailDialog"
+            >Change thumbnail</v-btn>
+          </div>
           <div class="d-flex" v-if="currentScene.studio">
             <v-spacer></v-spacer>
             <router-link :to="`/studio/${currentScene.studio._id}`">
@@ -52,10 +60,9 @@
               <v-subheader>Description</v-subheader>
             </div>
             <div
-                    class="pa-2 med--text"
-                    v-if="currentScene.description"
-            >{{ currentScene.description }}
-            </div>
+              class="pa-2 med--text"
+              v-if="currentScene.description"
+            >{{ currentScene.description }}</div>
           </div>
 
           <div class="d-flex align-center">
@@ -63,44 +70,41 @@
             <v-subheader>Rating</v-subheader>
           </div>
           <v-rating
-                  half-increments
-                  @input="rate"
-                  class="px-2"
-                  :value="currentScene.rating / 2"
-                  background-color="grey"
-                  color="amber"
-                  dense
-                  hide-details
+            half-increments
+            @input="rate"
+            class="px-2"
+            :value="currentScene.rating / 2"
+            background-color="grey"
+            color="amber"
+            dense
+            hide-details
           ></v-rating>
           <div
-                  @click="rate(0)"
-                  class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating
-          </div>
+            @click="rate(0)"
+            class="d-inline-block pl-3 mt-1 med--text caption hover"
+          >Reset rating</div>
           <div class="d-flex align-center">
             <v-icon>mdi-label</v-icon>
             <v-subheader>Labels</v-subheader>
           </div>
           <div class="pa-2">
             <v-chip
-                    label
-                    class="mr-1 mb-1"
-                    small
-                    outlined
-                    v-for="label in labelNames"
-                    :key="label"
-            >{{ label }}
-            </v-chip>
+              label
+              class="mr-1 mb-1"
+              small
+              outlined
+              v-for="label in labelNames"
+              :key="label"
+            >{{ label }}</v-chip>
 
             <v-chip
-                    label
-                    color="accent"
-                    v-ripple
-                    @click="openLabelSelector"
-                    small
-                    :class="`mr-1 mb-1 hover ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
-            >+ Add
-            </v-chip>
+              label
+              color="accent"
+              v-ripple
+              @click="openLabelSelector"
+              small
+              :class="`mr-1 mb-1 hover ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
+            >+ Add</v-chip>
           </div>
           <div class="d-flex align-center">
             <v-icon>mdi-information-outline</v-icon>
@@ -138,15 +142,15 @@
 
           <v-row>
             <v-col
-                    class="pa-1"
-                    v-for="(actor, i) in actors"
-                    :key="actor._id"
-                    cols="12"
-                    sm="6"
-                    md="4"
-                    lg="3"
+              class="pa-1"
+              v-for="(actor, i) in actors"
+              :key="actor._id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
             >
-              <actor-card style="height: 100%" v-model="actors[i]"/>
+              <actor-card style="height: 100%" v-model="actors[i]" />
             </v-col>
           </v-row>
         </v-col>
@@ -164,26 +168,26 @@
         <v-container fluid>
           <v-row>
             <v-col
-                    class="pa-1"
-                    v-for="(image, index) in images"
-                    :key="image._id"
-                    cols="6"
-                    sm="4"
-                    md="3"
-                    lg="3"
-                    xl="2"
+              class="pa-1"
+              v-for="(image, index) in images"
+              :key="image._id"
+              cols="6"
+              sm="4"
+              md="3"
+              lg="3"
+              xl="2"
             >
               <ImageCard @open="lightboxIndex = index" width="100%" height="100%" :image="image">
                 <template v-slot:action>
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
                       <v-btn
-                              v-on="on"
-                              @click.native.stop="setAsThumbnail(image._id)"
-                              class="elevation-2 mb-2"
-                              icon
-                              style="background: #fafafa;"
-                              light
+                        v-on="on"
+                        @click.native.stop="setAsThumbnail(image._id)"
+                        class="elevation-2 mb-2"
+                        icon
+                        style="background: #fafafa;"
+                        light
                       >
                         <v-icon>mdi-image</v-icon>
                       </v-btn>
@@ -197,11 +201,11 @@
 
           <transition name="fade">
             <Lightbox
-                    @delete="removeImage"
-                    @update="updateImage"
-                    :items="images"
-                    :index="lightboxIndex"
-                    @index="lightboxIndex = $event"
+              @delete="removeImage"
+              @update="updateImage"
+              :items="images"
+              :index="lightboxIndex"
+              @index="lightboxIndex = $event"
             />
           </transition>
         </v-container>
@@ -217,7 +221,7 @@
         <v-card-title>Select labels for '{{ currentScene.name }}'</v-card-title>
 
         <v-card-text style="max-height: 400px">
-          <LabelSelector :items="allLabels" v-model="selectedLabels"/>
+          <LabelSelector :items="allLabels" v-model="selectedLabels" />
         </v-card-text>
         <v-divider></v-divider>
 
@@ -246,19 +250,19 @@
     </infinite-loading>
 
     <v-dialog
-            v-if="currentScene"
-            :persistent="isUploading"
-            scrollable
-            v-model="uploadDialog"
-            max-width="400px"
+      v-if="currentScene"
+      :persistent="isUploading"
+      scrollable
+      v-model="uploadDialog"
+      max-width="400px"
     >
       <ImageUploader
-              :labels="currentScene.labels.map(l => l._id)"
-              :name="currentScene.name"
-              :actors="currentScene.actors.map(a => a._id)"
-              :scene="currentScene._id"
-              @update-state="isUploading = $event"
-              @uploaded="images.unshift($event)"
+        :labels="currentScene.labels.map(l => l._id)"
+        :name="currentScene.name"
+        :actors="currentScene.actors.map(a => a._id)"
+        :scene="currentScene._id"
+        @update-state="isUploading = $event"
+        @uploaded="images.unshift($event)"
       />
     </v-dialog>
 
@@ -267,31 +271,30 @@
         <v-card-title>Set thumbnail for '{{ currentScene.name }}'</v-card-title>
         <v-card-text>
           <v-file-input
-                  color="accent"
-                  placeholder="Select image"
-                  @change="readThumbnail"
-                  v-model="selectedThumbnail"
+            color="accent"
+            placeholder="Select image"
+            @change="readThumbnail"
+            v-model="selectedThumbnail"
           ></v-file-input>
           <div v-if="thumbnailDisplay" class="text-center">
             <cropper
-                    style="height: 400px"
-                    class="cropper"
-                    :src="thumbnailDisplay"
-                    :stencilProps="{ aspectRatio: aspectRatio }"
-                    @change="changeCrop"
+              style="height: 400px"
+              class="cropper"
+              :src="thumbnailDisplay"
+              :stencilProps="{ aspectRatio: aspectRatio }"
+              @change="changeCrop"
             ></cropper>
           </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-                  :disabled="!thumbnailDisplay"
-                  class="text-none"
-                  color="accent"
-                  text
-                  @click="uploadThumbnail"
-          >Upload
-          </v-btn>
+            :disabled="!thumbnailDisplay"
+            class="text-none"
+            color="accent"
+            text
+            @click="uploadThumbnail"
+          >Upload</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -299,151 +302,160 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Watch} from 'vue-property-decorator';
-import ApolloClient, {serverBase} from '../apollo';
-import gql from 'graphql-tag';
-import sceneFragment from '../fragments/scene';
-import studioFragment from '../fragments/studio';
-import {sceneModule} from '../store/scene';
-import actorFragment from '../fragments/actor';
-import imageFragment from '../fragments/image';
-import ActorCard from '../components/ActorCard.vue';
-import moment from 'moment';
-import LabelSelector from '../components/LabelSelector.vue';
-import Lightbox from '../components/Lightbox.vue';
-import ImageCard from '../components/ImageCard.vue';
-import InfiniteLoading from 'vue-infinite-loading';
-import {Cropper} from 'vue-advanced-cropper';
-import ImageUploader from '../components/ImageUploader.vue';
-import {actorModule} from '../store/actor';
-import IActor from '../types/actor';
-import IImage from '../types/image';
-import ILabel from '../types/label';
-import {contextModule} from '../store/context';
+import { Component, Vue, Watch } from "vue-property-decorator";
+import ApolloClient, { serverBase } from "../apollo";
+import gql from "graphql-tag";
+import sceneFragment from "../fragments/scene";
+import studioFragment from "../fragments/studio";
+import { sceneModule } from "../store/scene";
+import actorFragment from "../fragments/actor";
+import imageFragment from "../fragments/image";
+import ActorCard from "../components/ActorCard.vue";
+import moment from "moment";
+import LabelSelector from "../components/LabelSelector.vue";
+import Lightbox from "../components/Lightbox.vue";
+import ImageCard from "../components/ImageCard.vue";
+import InfiniteLoading from "vue-infinite-loading";
+import { Cropper } from "vue-advanced-cropper";
+import ImageUploader from "../components/ImageUploader.vue";
+import { actorModule } from "../store/actor";
+import IActor from "../types/actor";
+import IImage from "../types/image";
+import ILabel from "../types/label";
+import { contextModule } from "../store/context";
 
-import 'dplayer/dist/DPlayer.min.css';
-import DPlayer from 'dplayer';
+import "dplayer/dist/DPlayer.min.css";
+import DPlayer from "dplayer";
 
 interface ICropCoordinates {
-    left: number;
-    top: number;
-    width: number;
-    height: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
 }
 
 interface ICropResult {
-    coordinates: ICropCoordinates;
+  coordinates: ICropCoordinates;
 }
 
 @Component({
-    components: {
-        ActorCard,
-        LabelSelector,
-        Lightbox,
-        ImageCard,
-        InfiniteLoading,
-        Cropper,
-        ImageUploader
-    },
-    beforeRouteLeave(_to, _from, next) {
-        sceneModule.setCurrent(null);
-        next();
-    }
+  components: {
+    ActorCard,
+    LabelSelector,
+    Lightbox,
+    ImageCard,
+    InfiniteLoading,
+    Cropper,
+    ImageUploader
+  },
+  beforeRouteLeave(_to, _from, next) {
+    sceneModule.setCurrent(null);
+    next();
+  }
 })
 export default class SceneDetails extends Vue {
-    actors = [] as IActor[];
-    images = [] as IImage[];
-    lightboxIndex = null as number | null;
+  actors = [] as IActor[];
+  images = [] as IImage[];
+  lightboxIndex = null as number | null;
 
-    labelSelectorDialog = false;
-    allLabels = [] as ILabel[];
-    selectedLabels = [] as number[];
-    labelEditLoader = false;
+  labelSelectorDialog = false;
+  allLabels = [] as ILabel[];
+  selectedLabels = [] as number[];
+  labelEditLoader = false;
 
-    infiniteId = 0;
-    page = 0;
+  infiniteId = 0;
+  page = 0;
 
-    thumbnailDialog = false;
-    thumbnailLoader = false;
-    thumbnailDisplay = null as string | null;
-    selectedThumbnail = null as File | null;
-    crop: ICropCoordinates = {left: 0, top: 0, width: 0, height: 0};
+  thumbnailDialog = false;
+  thumbnailLoader = false;
+  thumbnailDisplay = null as string | null;
+  selectedThumbnail = null as File | null;
+  crop: ICropCoordinates = { left: 0, top: 0, width: 0, height: 0 };
 
-    uploadDialog = false;
-    isUploading = false;
+  uploadDialog = false;
+  isUploading = false;
 
-    get aspectRatio() {
-        return contextModule.sceneAspectRatio;
+  get aspectRatio() {
+    return contextModule.sceneAspectRatio;
+  }
+
+  get videoPath() {
+    if (this.currentScene)
+      return `${serverBase}/scene/${
+        this.currentScene._id
+      }?password=${localStorage.getItem("password")}`;
+  }
+
+  get dplayerOptions() {
+    if (this.currentScene) {
+      return {
+        container: this.$refs.dplayer,
+        autoplay: false,
+        preload: true,
+        video: {
+          url: this.videoPath,
+          poster: this.thumbnail,
+          pic: this.thumbnail,
+          type: "normal",
+          thumbnails: this.currentScene.preview
+            ? this.imageLink(this.currentScene.preview)
+            : null
+        },
+        highlight: [
+          /*  {
+            text: "marker for 20s",
+            time: 20
+          },
+          {
+            text: "marker for 2mins",
+            time: 120
+          } */
+        ]
+      };
     }
+  }
 
-    get dplayerOptions() {
-        if(this.currentScene) {
-            return {
-                container: this.$refs.dplayer,
-                autoplay: false,
-                preload: true,
-                video: {
-                    url: 'http://localhost:3000/scene/' + this.currentScene._id,
-                    poster: this.thumbnail,
-                    pic: this.thumbnail,
-                    type: 'normal',
-                    thumbnails: (this.currentScene.preview) ? this.imageLink(this.currentScene.preview) : null
-                },
-                highlight: [
-                    {
-                        text: 'marker for 20s',
-                        time: 20
-                    },
-                    {
-                        text: 'marker for 2mins',
-                        time: 120
-                    }
-                ]
-            };
-        }
-    }
+  @Watch("currentScene.actors", { deep: true })
+  onActorChange(newVal: any[]) {
+    this.actors = newVal;
+  }
 
-    @Watch('currentScene.actors', {deep: true})
-    onActorChange(newVal: any[]) {
-        this.actors = newVal;
-    }
+  openUploadDialog() {
+    this.uploadDialog = true;
+  }
 
-    openUploadDialog() {
-        this.uploadDialog = true;
-    }
+  changeCrop(crop: ICropResult) {
+    this.crop = {
+      left: Math.round(crop.coordinates.left),
+      top: Math.round(crop.coordinates.top),
+      width: Math.round(crop.coordinates.width),
+      height: Math.round(crop.coordinates.height)
+    };
+  }
 
-    changeCrop(crop: ICropResult) {
-        this.crop = {
-            left: Math.round(crop.coordinates.left),
-            top: Math.round(crop.coordinates.top),
-            width: Math.round(crop.coordinates.width),
-            height: Math.round(crop.coordinates.height)
-        };
-    }
+  readImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) resolve(reader.result.toString());
+        else reject("File error");
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
-    readImage(file: File): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (reader.result) resolve(reader.result.toString());
-                else reject('File error');
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
+  async readThumbnail(file: File) {
+    if (file) this.thumbnailDisplay = await this.readImage(file);
+  }
 
-    async readThumbnail(file: File) {
-        if (file) this.thumbnailDisplay = await this.readImage(file);
-    }
+  uploadThumbnail() {
+    if (!this.currentScene) return;
 
-    uploadThumbnail() {
-        if (!this.currentScene) return;
+    this.thumbnailLoader = true;
 
-        this.thumbnailLoader = true;
-
-        ApolloClient.mutate({
-            mutation: gql`
+    ApolloClient.mutate({
+      mutation: gql`
         mutation(
           $file: Upload!
           $name: String
@@ -465,85 +477,84 @@ export default class SceneDetails extends Vue {
         }
         ${imageFragment}
       `,
-            variables: {
-                file: this.selectedThumbnail,
-                name: this.currentScene.name + ' (thumbnail)',
-                scene: this.currentScene._id,
-                crop: {
-                    left: this.crop.left,
-                    top: this.crop.top,
-                    width: this.crop.width,
-                    height: this.crop.height
-                },
-                actors: this.currentScene.actors.map(a => a._id),
-                labels: this.currentScene.labels.map(a => a._id)
-            }
-        })
-            .then(res => {
-                const image = res.data.uploadImage;
-                this.images.unshift(image);
-                this.setAsThumbnail(image._id);
-                this.thumbnailDialog = false;
-                this.thumbnailDisplay = null;
-                this.selectedThumbnail = null;
-            })
-            .finally(() => {
-                this.thumbnailLoader = false;
-            });
-    }
+      variables: {
+        file: this.selectedThumbnail,
+        name: this.currentScene.name + " (thumbnail)",
+        scene: this.currentScene._id,
+        crop: {
+          left: this.crop.left,
+          top: this.crop.top,
+          width: this.crop.width,
+          height: this.crop.height
+        },
+        actors: this.currentScene.actors.map(a => a._id),
+        labels: this.currentScene.labels.map(a => a._id)
+      }
+    })
+      .then(res => {
+        const image = res.data.uploadImage;
+        this.images.unshift(image);
+        this.setAsThumbnail(image._id);
+        this.thumbnailDialog = false;
+        this.thumbnailDisplay = null;
+        this.selectedThumbnail = null;
+      })
+      .finally(() => {
+        this.thumbnailLoader = false;
+      });
+  }
 
-    openThumbnailDialog() {
-        this.thumbnailDialog = true;
-    }
+  openThumbnailDialog() {
+    this.thumbnailDialog = true;
+  }
 
-    removeImage(index: number) {
-        ApolloClient.mutate({
-            mutation: gql`
+  removeImage(index: number) {
+    ApolloClient.mutate({
+      mutation: gql`
         mutation($ids: [String!]!) {
           removeImages(ids: $ids)
         }
       `,
-            variables: {
-                ids: [this.images[index]._id]
-            }
-        })
-            .then(res => {
-                this.images.splice(index, 1);
-                this.lightboxIndex = null;
-            })
-            .catch(err => {
-                console.error(err);
-            })
-            .finally(() => {
-            });
-    }
+      variables: {
+        ids: [this.images[index]._id]
+      }
+    })
+      .then(res => {
+        this.images.splice(index, 1);
+        this.lightboxIndex = null;
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => {});
+  }
 
-    updateImage({
-                    index,
-                    key,
-                    value
-                }: {
-        index: number;
-        key: string;
-        value: any;
-    }) {
-        const images = this.images[index];
-        images[key] = value;
-        Vue.set(this.images, index, images);
-    }
+  updateImage({
+    index,
+    key,
+    value
+  }: {
+    index: number;
+    key: string;
+    value: any;
+  }) {
+    const images = this.images[index];
+    images[key] = value;
+    Vue.set(this.images, index, images);
+  }
 
-    get currentScene() {
-        return sceneModule.current;
-    }
+  get currentScene() {
+    return sceneModule.current;
+  }
 
-    async fetchPage() {
-        if (!this.currentScene) return;
+  async fetchPage() {
+    if (!this.currentScene) return;
 
-        try {
-            const query = `page:${this.page} sortDir:asc sortBy:addedOn scenes:${this.currentScene._id}`;
+    try {
+      const query = `page:${this.page} sortDir:asc sortBy:addedOn scenes:${this.currentScene._id}`;
 
-            const result = await ApolloClient.query({
-                query: gql`
+      const result = await ApolloClient.query({
+        query: gql`
           query($query: String) {
             getImages(query: $query) {
               ...ImageFragment
@@ -559,34 +570,34 @@ export default class SceneDetails extends Vue {
           ${imageFragment}
           ${actorFragment}
         `,
-                variables: {
-                    query
-                }
-            });
-
-            return result.data.getImages;
-        } catch (err) {
-            throw err;
+        variables: {
+          query
         }
+      });
+
+      return result.data.getImages;
+    } catch (err) {
+      throw err;
     }
+  }
 
-    infiniteHandler($state) {
-        this.fetchPage().then(items => {
-            if (items.length) {
-                this.page++;
-                this.images.push(...items);
-                $state.loaded();
-            } else {
-                $state.complete();
-            }
-        });
-    }
+  infiniteHandler($state) {
+    this.fetchPage().then(items => {
+      if (items.length) {
+        this.page++;
+        this.images.push(...items);
+        $state.loaded();
+      } else {
+        $state.complete();
+      }
+    });
+  }
 
-    setAsThumbnail(id: string) {
-        if (!this.currentScene) return;
+  setAsThumbnail(id: string) {
+    if (!this.currentScene) return;
 
-        ApolloClient.mutate({
-            mutation: gql`
+    ApolloClient.mutate({
+      mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
           updateScenes(ids: $ids, opts: $opts) {
             thumbnail {
@@ -595,27 +606,27 @@ export default class SceneDetails extends Vue {
           }
         }
       `,
-            variables: {
-                ids: [this.currentScene._id],
-                opts: {
-                    thumbnail: id
-                }
-            }
-        })
-            .then(res => {
-                sceneModule.setThumbnail(id);
-            })
-            .catch(err => {
-                console.error(err);
-            });
-    }
+      variables: {
+        ids: [this.currentScene._id],
+        opts: {
+          thumbnail: id
+        }
+      }
+    })
+      .then(res => {
+        sceneModule.setThumbnail(id);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
 
-    editLabels() {
-        if (!this.currentScene) return;
+  editLabels() {
+    if (!this.currentScene) return;
 
-        this.labelEditLoader = true;
-        ApolloClient.mutate({
-            mutation: gql`
+    this.labelEditLoader = true;
+    ApolloClient.mutate({
+      mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
           updateScenes(ids: $ids, opts: $opts) {
             labels {
@@ -626,33 +637,33 @@ export default class SceneDetails extends Vue {
           }
         }
       `,
-            variables: {
-                ids: [this.currentScene._id],
-                opts: {
-                    labels: this.selectedLabels
-                        .map(i => this.allLabels[i])
-                        .map(l => l._id)
-                }
-            }
-        })
-            .then(res => {
-                sceneModule.setLabels(res.data.updateScenes[0].labels);
-                this.labelSelectorDialog = false;
-            })
-            .catch(err => {
-                console.error(err);
-            })
-            .finally(() => {
-                this.labelEditLoader = false;
-            });
-    }
+      variables: {
+        ids: [this.currentScene._id],
+        opts: {
+          labels: this.selectedLabels
+            .map(i => this.allLabels[i])
+            .map(l => l._id)
+        }
+      }
+    })
+      .then(res => {
+        sceneModule.setLabels(res.data.updateScenes[0].labels);
+        this.labelSelectorDialog = false;
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => {
+        this.labelEditLoader = false;
+      });
+  }
 
-    openLabelSelector() {
-        if (!this.currentScene) return;
+  openLabelSelector() {
+    if (!this.currentScene) return;
 
-        if (!this.allLabels.length) {
-            ApolloClient.query({
-                query: gql`
+    if (!this.allLabels.length) {
+      ApolloClient.query({
+        query: gql`
           {
             getLabels {
               _id
@@ -661,91 +672,91 @@ export default class SceneDetails extends Vue {
             }
           }
         `
-            })
-                .then(res => {
-                    if (!this.currentScene) return;
+      })
+        .then(res => {
+          if (!this.currentScene) return;
 
-                    this.allLabels = res.data.getLabels;
-                    this.selectedLabels = this.currentScene.labels.map(l =>
-                        this.allLabels.findIndex(k => k._id == l._id)
-                    );
-                    this.labelSelectorDialog = true;
-                })
-                .catch(err => {
-                    console.error(err);
-                });
-        } else {
-            this.labelSelectorDialog = true;
-        }
+          this.allLabels = res.data.getLabels;
+          this.selectedLabels = this.currentScene.labels.map(l =>
+            this.allLabels.findIndex(k => k._id == l._id)
+          );
+          this.labelSelectorDialog = true;
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    } else {
+      this.labelSelectorDialog = true;
     }
+  }
 
-    get videoDuration() {
-        if (this.currentScene)
-            return moment()
-                .startOf('day')
-                .seconds(this.currentScene.meta.duration)
-                .format('H:mm:ss');
-        return '';
-    }
+  get videoDuration() {
+    if (this.currentScene)
+      return moment()
+        .startOf("day")
+        .seconds(this.currentScene.meta.duration)
+        .format("H:mm:ss");
+    return "";
+  }
 
-    imageLink(image: any) {
-        return `${serverBase}/image/${image._id}?password=${localStorage.getItem(
-            'password'
-        )}`;
-    }
+  imageLink(image: any) {
+    return `${serverBase}/image/${image._id}?password=${localStorage.getItem(
+      "password"
+    )}`;
+  }
 
-    rate($event) {
-        if (!this.currentScene) return;
+  rate($event) {
+    if (!this.currentScene) return;
 
-        const rating = $event * 2;
+    const rating = $event * 2;
 
-        ApolloClient.mutate({
-            mutation: gql`
+    ApolloClient.mutate({
+      mutation: gql`
         mutation($ids: [String!]!, $opts: SceneUpdateOpts!) {
           updateScenes(ids: $ids, opts: $opts) {
             rating
           }
         }
       `,
-            variables: {
-                ids: [this.currentScene._id],
-                opts: {
-                    rating
-                }
-            }
-        }).then(res => {
-            sceneModule.setRating(rating);
-        });
-    }
+      variables: {
+        ids: [this.currentScene._id],
+        opts: {
+          rating
+        }
+      }
+    }).then(res => {
+      sceneModule.setRating(rating);
+    });
+  }
 
-    get labelNames() {
-        if (!this.currentScene) return [];
-        return this.currentScene.labels.map(l => l.name).sort();
-    }
+  get labelNames() {
+    if (!this.currentScene) return [];
+    return this.currentScene.labels.map(l => l.name).sort();
+  }
 
-    get thumbnail() {
-        if (this.currentScene && this.currentScene.thumbnail)
-            return `${serverBase}/image/${
-                this.currentScene.thumbnail._id
-            }?password=${localStorage.getItem('password')}`;
-        return '';
-    }
+  get thumbnail() {
+    if (this.currentScene && this.currentScene.thumbnail)
+      return `${serverBase}/image/${
+        this.currentScene.thumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    return "";
+  }
 
-    get studioLogo() {
-        if (
-            this.currentScene &&
-            this.currentScene.studio &&
-            this.currentScene.studio.thumbnail
-        )
-            return `${serverBase}/image/${
-                this.currentScene.studio.thumbnail._id
-            }?password=${localStorage.getItem('password')}`;
-        return '';
-    }
+  get studioLogo() {
+    if (
+      this.currentScene &&
+      this.currentScene.studio &&
+      this.currentScene.studio.thumbnail
+    )
+      return `${serverBase}/image/${
+        this.currentScene.studio.thumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    return "";
+  }
 
-    onLoad() {
-        ApolloClient.query({
-            query: gql`
+  onLoad() {
+    ApolloClient.query({
+      query: gql`
         query($id: String!) {
           getSceneById(id: $id) {
             ...SceneFragment
@@ -761,24 +772,26 @@ export default class SceneDetails extends Vue {
         ${actorFragment}
         ${studioFragment}
       `,
-            variables: {
-                id: (<any>this).$route.params.id
-            }
-        }).then(res => {
-            sceneModule.setCurrent(res.data.getSceneById);
-            this.actors = res.data.getSceneById.actors;
-            document.title = res.data.getSceneById.name;
+      variables: {
+        id: (<any>this).$route.params.id
+      }
+    }).then(res => {
+      sceneModule.setCurrent(res.data.getSceneById);
+      this.actors = res.data.getSceneById.actors;
+      document.title = res.data.getSceneById.name;
 
-            const dp = new DPlayer(this.dplayerOptions);
-        });
-    }
+      setTimeout(() => {
+        const dp = new DPlayer(this.dplayerOptions);
+      }, 100);
+    });
+  }
 
-    beforeMount() {
-        this.onLoad();
-    }
+  beforeMount() {
+    this.onLoad();
+  }
 
-    mounted() {
-        /* window.addEventListener("keydown", ev => {
+  mounted() {
+    /* window.addEventListener("keydown", ev => {
           if (ev.keyCode >= 48 && ev.keyCode <= 53) {
             const rating = ev.keyCode - 48;
             this.rate(rating);
@@ -787,15 +800,14 @@ export default class SceneDetails extends Vue {
             this.rate(rating);
           }
         }); */
-
-    }
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-  .corner-actions {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-  }
+.corner-actions {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
 </style>
