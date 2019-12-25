@@ -65,9 +65,23 @@
         class="mr-1 mb-1"
         small
         outlined
-        v-for="label in labelNames"
+        v-for="label in labelNames.slice(0, 5)"
         :key="label"
       >{{ label }}</v-chip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-chip
+            v-on="on"
+            label
+            class="mr-1 mb-1"
+            small
+            outlined
+            v-if="labelNames.length > 5"
+          >...and more</v-chip>
+        </template>
+        {{ labelNames.slice(5, 999).join(', ') }}
+      </v-tooltip>
     </div>
   </v-card>
 </template>

@@ -1,5 +1,5 @@
 import { getConfig } from "../config";
-import { walk } from "../fs/async";
+import { walk, statAsync } from "../fs/async";
 import { filterAsync } from "../types/utility";
 import Scene from "../types/scene";
 import Image from "../types/image";
@@ -9,6 +9,7 @@ import * as logger from "../logger/index";
 import * as database from "../database";
 import { extractLabels, extractActors } from "../extractor";
 import Jimp from "jimp";
+import ora = require("ora");
 
 async function getAll() {
   return (await database.find(database.store.queue, {})) as IQueueItem[];
@@ -112,4 +113,60 @@ export async function checkImageFolders() {
   }
 
   logger.warn(`Added ${numAddedImages} new images`);
+}
+
+export async function checkPreviews() {
+  const config = await getConfig();
+
+  if (!config.GENERATE_PREVIEWS) {
+    logger.warn(
+      "Not generating previews because GENERATE_PREVIEWS is disabled."
+    );
+    return;
+  }
+
+  const scenes = (await database.find(database.store.scenes, {
+    preview: null
+  })) as Scene[];
+
+  logger.log(`Generating previews for ${scenes.length} scenes...`);
+
+  for (const scene of scenes) {
+    if (scene.path) {
+      const loader = ora("Generating previews...").start();
+
+      try {
+        let preview = await Scene.generatePreview(scene);
+
+        if (preview) {
+          let image = new Image(scene.name + " (preview)");
+          const stats = await statAsync(preview);
+          image.path = preview;
+          image.scene = scene._id;
+          image.meta.size = stats.size;
+
+          await database.insert(database.store.images, image);
+
+          await database.update(
+            database.store.scenes,
+            {
+              _id: scene._id
+            },
+            {
+              $set: {
+                preview: image._id
+              }
+            }
+          );
+
+          loader.succeed("Generated preview for " + scene._id);
+        } else {
+          loader.fail(`Error generating preview.`);
+        }
+      } catch (error) {
+        logger.error(error);
+        loader.fail(`Error generating preview.`);
+      }
+    }
+  }
 }

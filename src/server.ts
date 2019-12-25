@@ -11,7 +11,11 @@ import { checkPassword, passwordHandler } from "./password";
 import cors from "cors";
 import { getConfig } from "./config/index";
 import ProcessingQueue from "./queue/index";
-import { checkVideoFolders, checkImageFolders } from "./queue/check";
+import {
+  checkVideoFolders,
+  checkImageFolders,
+  checkPreviews
+} from "./queue/check";
 import * as database from "./database/index";
 import { checkSceneSources, checkImageSources } from "./integrity";
 import { loadStores } from "./database/index";
@@ -48,6 +52,7 @@ export default async () => {
   app.use("/js", express.static("./app/dist/js"));
   app.use("/css", express.static("./app/dist/css"));
   app.use("/fonts", express.static("./app/dist/fonts"));
+  app.use("/previews", express.static("./library/previews"));
 
   app.get("/password", checkPassword);
 
@@ -117,6 +122,7 @@ export default async () => {
     ProcessingQueue.setStore(database.store.queue);
     checkSceneSources();
     checkImageSources();
+    checkPreviews();
 
     if (config.SCAN_ON_STARTUP) {
       scanFolders();

@@ -2,7 +2,14 @@
   <div>
     <div v-if="currentScene">
       <v-row>
-        <v-col cols="12" sm="4" md="4" lg="3" xl="2">
+        <v-col cols="12">
+          <v-container fluid>
+            <div id="dplayer" ref="dplayer"></div>
+          </v-container>
+        </v-col>
+      </v-row>
+      <v-row>
+        <!-- <v-col cols="12" sm="4" md="4" lg="3" xl="2">
           <v-container>
             <v-hover>
               <template v-slot:default="{ hover }">
@@ -23,8 +30,16 @@
               </template>
             </v-hover>
           </v-container>
-        </v-col>
-        <v-col cols="12" sm="8" md="8" lg="9" xl="10">
+        </v-col>-->
+        <v-col cols="12">
+          <div>
+            <v-btn
+              text
+              class="text-none"
+              color="accent"
+              @click="openThumbnailDialog"
+            >Change thumbnail</v-btn>
+          </div>
           <div class="d-flex" v-if="currentScene.studio">
             <v-spacer></v-spacer>
             <router-link :to="`/studio/${currentScene.studio._id}`">
@@ -98,6 +113,10 @@
           <div v-if="currentScene.meta.duration" class="px-2 pt-2 d-flex align-center">
             <v-subheader>Video duration</v-subheader>
             {{ videoDuration }}
+          </div>
+          <div v-if="currentScene.path" class="px-2 pt-2 d-flex align-center">
+            <v-subheader>Filesystem path</v-subheader>
+            {{ currentScene.path}}
           </div>
           <div v-if="currentScene.meta.dimensions.width" class="px-2 d-flex align-center">
             <v-subheader>Video dimensions</v-subheader>
@@ -309,6 +328,9 @@ import IImage from "../types/image";
 import ILabel from "../types/label";
 import { contextModule } from "../store/context";
 
+import "dplayer/dist/DPlayer.min.css";
+import DPlayer from "dplayer";
+
 interface ICropCoordinates {
   left: number;
   top: number;
@@ -359,6 +381,42 @@ export default class SceneDetails extends Vue {
 
   get aspectRatio() {
     return contextModule.sceneAspectRatio;
+  }
+
+  get videoPath() {
+    if (this.currentScene)
+      return `${serverBase}/scene/${
+        this.currentScene._id
+      }?password=${localStorage.getItem("password")}`;
+  }
+
+  get dplayerOptions() {
+    if (this.currentScene) {
+      return {
+        container: this.$refs.dplayer,
+        autoplay: false,
+        preload: true,
+        video: {
+          url: this.videoPath,
+          poster: this.thumbnail,
+          pic: this.thumbnail,
+          type: "normal",
+          thumbnails: this.currentScene.preview
+            ? this.imageLink(this.currentScene.preview)
+            : null
+        },
+        highlight: [
+          /*  {
+            text: "marker for 20s",
+            time: 20
+          },
+          {
+            text: "marker for 2mins",
+            time: 120
+          } */
+        ]
+      };
+    }
   }
 
   @Watch("currentScene.actors", { deep: true })
@@ -733,6 +791,10 @@ export default class SceneDetails extends Vue {
       sceneModule.setCurrent(res.data.getSceneById);
       this.actors = res.data.getSceneById.actors;
       document.title = res.data.getSceneById.name;
+
+      setTimeout(() => {
+        const dp = new DPlayer(this.dplayerOptions);
+      }, 100);
     });
   }
 
@@ -742,14 +804,14 @@ export default class SceneDetails extends Vue {
 
   mounted() {
     /* window.addEventListener("keydown", ev => {
-      if (ev.keyCode >= 48 && ev.keyCode <= 53) {
-        const rating = ev.keyCode - 48;
-        this.rate(rating);
-      } else if (ev.keyCode >= 96 && ev.keyCode <= 101) {
-        const rating = ev.keyCode - 96;
-        this.rate(rating);
-      }
-    }); */
+          if (ev.keyCode >= 48 && ev.keyCode <= 53) {
+            const rating = ev.keyCode - 48;
+            this.rate(rating);
+          } else if (ev.keyCode >= 96 && ev.keyCode <= 101) {
+            const rating = ev.keyCode - 96;
+            this.rate(rating);
+          }
+        }); */
   }
 }
 </script>

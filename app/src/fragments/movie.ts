@@ -22,5 +22,6 @@ export default gql`
     }
     duration
     size
+    path
   }
 `;

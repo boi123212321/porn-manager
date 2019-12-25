@@ -2,6 +2,8 @@
 
 Manage your ever-growing porn collection
 
+There's a Discord channel now! Join in to the discussion. https://discord.gg/t499hxK
+
 Note: this is by no means finished, but useable.
 
 ## Features
@@ -39,6 +41,7 @@ Note: this is by no means finished, but useable.
 - FFMPEG_PATH: Where the ffmpeg binary is located; will be placed in working directory when downloading using the setup
 - FFPROBE_PATH: Where the ffprobe binary is located; will be placed in working directory when downloading using the setup
 - GENERATE_THUMBNAILS: Whether thumbnails should be extracted from imported videos
+- GENERATE_PREVIEWS: Whether video preview should be generated from imported videos (used in video player)
 - THUMBNAIL_INTERVAL: Seconds between thumbnail snapshots in seconds
 - PORT: Port server is running on
 - APPLY_ACTOR_LABELS: Whether actor labels should be applied to scenes and images the actor is starring in

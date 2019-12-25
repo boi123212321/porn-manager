@@ -1,3 +1,4 @@
+import mkdirp from "mkdirp";
 import * as database from "../database";
 import { generateHash } from "../hash";
 import ffmpeg from "fluent-ffmpeg";
@@ -7,8 +8,12 @@ import * as logger from "../logger";
 import { libraryPath, mapAsync } from "./utility";
 import Label from "./label";
 import Actor from "./actor";
-import { statAsync, readdirAsync, unlinkAsync } from "../fs/async";
+import { statAsync, readdirAsync, unlinkAsync, rimrafAsync } from "../fs/async";
 import CrossReference from "./cross_references";
+import path from "path";
+import { existsSync } from "fs";
+import Jimp from "jimp";
+import mergeImg from "merge-img";
 
 export type ThumbnailFile = {
   name: string;
@@ -44,6 +49,7 @@ export default class Scene {
   addedOn = +new Date();
   releaseDate: number | null = null;
   thumbnail: string | null = null;
+  preview: string | null = null;
   favorite: boolean = false;
   bookmark: boolean = false;
   rating: number = 0;
@@ -63,6 +69,15 @@ export default class Scene {
       const sceneId = scene._id.startsWith("sc_")
         ? scene._id
         : `sc_${scene._id}`;
+
+      if (scene.preview === undefined) {
+        logger.log(`Undefined scene preview, setting to null...`);
+        await database.update(
+          database.store.scenes,
+          { _id: sceneId },
+          { $set: { preview: null } }
+        );
+      }
 
       if (scene.actors && scene.actors.length) {
         for (const actor of scene.actors) {
@@ -172,11 +187,16 @@ export default class Scene {
     );
   }
 
-  static async filterImage(thumbnail: string) {
+  static async filterImage(imageId: string) {
     await database.update(
       database.store.scenes,
-      { thumbnail },
+      { thumbnail: imageId },
       { $set: { thumbnail: null } }
+    );
+    await database.update(
+      database.store.scenes,
+      { preview: imageId },
+      { $set: { preview: null } }
     );
   }
 
@@ -279,6 +299,105 @@ export default class Scene {
     this.name = name.trim();
   }
 
+  static async generatePreview(scene: Scene): Promise<string | null> {
+    return new Promise(async (resolve, reject) => {
+      if (!scene.path) {
+        logger.warn("No scene path, aborting preview generation.");
+        return resolve();
+      }
+
+      const tmpFolder = `tmp/${scene._id}`;
+      if (!existsSync(tmpFolder)) mkdirp.sync(tmpFolder);
+
+      const options = {
+        file: scene.path,
+        pattern: `${scene._id}-{{index}}.jpg`,
+        count: 100 + 1, // Don't ask why +1, just accept it
+        thumbnailPath: tmpFolder,
+        quality: "60"
+      };
+
+      const timestamps = [] as string[];
+      const startPositionPercent = 2;
+      const endPositionPercent = 100;
+      const addPercent =
+        (endPositionPercent - startPositionPercent) / (options.count - 1);
+
+      let i = 0;
+      while (i < options.count) {
+        timestamps.push(`${startPositionPercent + addPercent * i}%`);
+        i++;
+      }
+
+      logger.log("Timestamps: ", timestamps);
+      logger.log("Creating thumbnails with options: ", options);
+
+      await asyncPool(4, timestamps, timestamp => {
+        const index = timestamps.findIndex(s => s == timestamp);
+        return new Promise((resolve, reject) => {
+          logger.log(`Creating thumbnail ${index}...`);
+          ffmpeg(options.file)
+            .on("end", async () => {
+              logger.success("Created thumbnail " + index);
+              resolve();
+            })
+            .on("error", (err: Error) => {
+              logger.error(
+                "Thumbnail generation failed for thumbnail " + index
+              );
+              logger.error({
+                options,
+                duration: scene.meta.duration,
+                timestamps
+              });
+              reject(err);
+            })
+            .screenshots({
+              count: 1,
+              timemarks: [timestamp],
+              // Note: we can't use the FFMPEG index syntax
+              // because we're generating 1 screenshot at a time instead of N
+              filename: options.pattern.replace(
+                "{{index}}",
+                index.toString().padStart(3, "0")
+              ),
+              folder: options.thumbnailPath,
+              size: "160x?"
+            });
+        });
+      });
+
+      const tmp = path.join("tmp", scene._id);
+
+      if (!existsSync(tmp)) mkdirp.sync(tmp);
+
+      logger.log(`Created 100 small thumbnails for ${scene._id}.`);
+
+      const files = (await readdirAsync(tmp, "utf-8")).map(fileName =>
+        path.join(tmp, fileName)
+      );
+      logger.log(files);
+
+      logger.log(`Creating preview strip for ${scene._id}...`);
+
+      const img = (await mergeImg(files)) as Jimp;
+
+      const file = path.join(
+        await libraryPath("previews/"),
+        `${scene._id}.jpg`
+      );
+
+      logger.log(`Writing to file ${file}...`);
+
+      img.write(file, async () => {
+        logger.log("Finished generating preview.");
+
+        await rimrafAsync(tmp);
+        resolve(file);
+      });
+    });
+  }
+
   static async generateThumbnails(scene: Scene): Promise<ThumbnailFile[]> {
     return new Promise(async (resolve, reject) => {
       if (!scene.path) {
@@ -304,7 +423,7 @@ export default class Scene {
 
       const options = {
         file: scene.path,
-        pattern: `${scene._id}-%s.jpg`,
+        pattern: `${scene._id}-{{index}}.jpg`,
         count: amount,
         thumbnailPath: await libraryPath("thumbnails/")
       };
@@ -348,7 +467,12 @@ export default class Scene {
               .screenshots({
                 count: 1,
                 timemarks: [timestamp],
-                filename: options.pattern,
+                // Note: we can't use the FFMPEG index syntax
+                // because we're generating 1 screenshot at a time instead of N
+                filename: options.pattern.replace(
+                  "{{index}}",
+                  index.toString().padStart(3, "0")
+                ),
                 folder: options.thumbnailPath
               });
           });

@@ -16,6 +16,10 @@ export default {
     if (scene.thumbnail) return await Image.getById(scene.thumbnail);
     return null;
   },
+  async preview(scene: Scene) {
+    if (scene.preview) return await Image.getById(scene.preview);
+    return null;
+  },
   async studio(scene: Scene) {
     if (scene.studio) return Studio.getById(scene.studio);
     return null;

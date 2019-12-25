@@ -201,6 +201,32 @@ class Queue {
       }
     }
 
+    if (config.GENERATE_PREVIEWS && !scene.preview) {
+      const loader = ora("Generating previews...").start();
+
+      try {
+        let preview = await Scene.generatePreview(scene);
+
+        if (preview) {
+          let image = new Image(sceneName + " (preview)");
+          const stats = await statAsync(preview);
+          image.path = preview;
+          image.scene = scene._id;
+          image.meta.size = stats.size;
+
+          await database.insert(database.store.images, image);
+          scene.preview = image._id;
+
+          loader.succeed("Generated preview for " + scene._id);
+        } else {
+          loader.fail(`Error generating preview.`);
+        }
+      } catch (error) {
+        logger.error(error);
+        loader.fail(`Error generating preview.`);
+      }
+    }
+
     logger.log(`Creating scene with id ${scene._id}...`);
     await database.insert(database.store.scenes, scene);
     logger.success(`Scene '${scene.name}' created.`);
