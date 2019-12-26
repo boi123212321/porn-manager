@@ -35,6 +35,7 @@
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
 import ApolloClient, { serverBase } from "../apollo";
+import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
 import gql from "graphql-tag";
 
@@ -115,6 +116,7 @@ export default class ImageUploader extends Vue {
             }
           }
         }
+        ${actorFragment}
         ${imageFragment}
       `,
       variables: {
