@@ -128,11 +128,31 @@
           </div>
           <div v-if="currentScene.meta.size" class="px-2 d-flex align-center">
             <v-subheader>Video size</v-subheader>
-            {{ (currentScene.meta.size /1000/ 1000).toFixed(0) }} MB
+            {{ (currentScene.meta.size / 1000 / 1000).toFixed(0) }} MB
           </div>
           <div class="px-2 d-flex align-center">
             <v-subheader>View counter</v-subheader>
             {{ currentScene.watches.length }}
+            <v-btn
+              :class="`${$vuetify.theme.dark ? '' : 'black--text'}`"
+              fab
+              color="primary"
+              class="mx-3"
+              x-small
+              @click="watchScene"
+            >
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+            <v-btn
+              :disabled="!currentScene || !currentScene.watches.length"
+              :class="`${$vuetify.theme.dark ? '' : 'black--text'}`"
+              fab
+              color="primary"
+              x-small
+              @click="unwatchScene"
+            >
+              <v-icon>mdi-minus</v-icon>
+            </v-btn>
           </div>
           <div v-if="currentScene.watches.length" class="px-2 d-flex align-center">
             <v-subheader>Last time watched</v-subheader>
@@ -327,6 +347,7 @@ import IActor from "../types/actor";
 import IImage from "../types/image";
 import ILabel from "../types/label";
 import { contextModule } from "../store/context";
+import { watch, unwatch } from "../util/scene";
 
 import "dplayer/dist/DPlayer.min.css";
 import DPlayer from "dplayer";
@@ -378,6 +399,14 @@ export default class SceneDetails extends Vue {
 
   uploadDialog = false;
   isUploading = false;
+
+  async unwatchScene() {
+    if (this.currentScene) await unwatch(this.currentScene);
+  }
+
+  async watchScene() {
+    if (this.currentScene) await watch(this.currentScene);
+  }
 
   get aspectRatio() {
     return contextModule.sceneAspectRatio;

@@ -7,6 +7,11 @@ class SceneModule extends VuexModule {
   current = null as IScene | null;
 
   @Mutation
+  popWatch() {
+    if (this.current) this.current.watches.pop();
+  }
+
+  @Mutation
   pushWatch(stamp: number) {
     if (this.current) this.current.watches.push(stamp);
   }

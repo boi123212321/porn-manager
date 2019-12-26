@@ -29,6 +29,16 @@ type ISceneUpdateOpts = Partial<{
 }>;
 
 export default {
+  async unwatchScene(_, { id }: { id: string }) {
+    const scene = await Scene.getById(id);
+
+    if (scene) {
+      await Scene.unwatch(scene);
+      return scene;
+    }
+    return null;
+  },
+
   async watchScene(_, { id }: { id: string }) {
     const scene = await Scene.getById(id);
 

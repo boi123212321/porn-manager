@@ -151,25 +151,6 @@ export default class SceneToolbar extends Vue {
 
     var win = window.open(url, "_blank");
     if (win) win.focus();
-
-    ApolloClient.mutate({
-      mutation: gql`
-        mutation($id: String!) {
-          watchScene(id: $id) {
-            watches
-          }
-        }
-      `,
-      variables: {
-        id: this.currentScene._id
-      }
-    })
-      .then(res => {
-        sceneModule.pushWatch(res.data.watchScene.watches.pop());
-      })
-      .catch(err => {
-        console.error(err);
-      });
   }
 
   getDomainName(url: string) {

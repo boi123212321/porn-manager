@@ -170,6 +170,16 @@ export default class Scene {
     );
   }
 
+  static async unwatch(scene: Scene) {
+    scene.watches.pop();
+
+    await database.update(
+      database.store.scenes,
+      { _id: scene._id },
+      { $set: { watches: scene.watches } }
+    );
+  }
+
   static async remove(scene: Scene) {
     await database.remove(database.store.scenes, { _id: scene._id });
     try {
