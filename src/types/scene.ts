@@ -394,6 +394,11 @@ export default class Scene {
 
       if (hadError) {
         logger.error("Failed preview generation");
+        try {
+          await rimrafAsync(tmpFolder);
+        } catch (error) {
+          logger.error("Failed deleting tmp folder");
+        }
         return resolve();
       }
 
