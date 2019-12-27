@@ -327,7 +327,7 @@ export default class Scene {
         return resolve();
       }
 
-      const tmpFolder = `tmp/${scene._id}`;
+      const tmpFolder = path.join("tmp", scene._id);
       if (!existsSync(tmpFolder)) mkdirp.sync(tmpFolder);
 
       const options = {
@@ -353,6 +353,8 @@ export default class Scene {
       logger.log("Timestamps: ", timestamps);
       logger.log("Creating thumbnails with options: ", options);
 
+      let hadError = false;
+
       await asyncPool(4, timestamps, timestamp => {
         const index = timestamps.findIndex(s => s == timestamp);
         return new Promise((resolve, reject) => {
@@ -363,15 +365,17 @@ export default class Scene {
               resolve();
             })
             .on("error", (err: Error) => {
-              logger.error(
-                "Thumbnail generation failed for thumbnail " + index
-              );
               logger.error({
                 options,
                 duration: scene.meta.duration,
                 timestamps
               });
-              reject(err);
+              logger.error(err);
+              logger.error(
+                "Thumbnail generation failed for thumbnail " + index
+              );
+              hadError = true;
+              resolve();
             })
             .screenshots({
               count: 1,
@@ -388,14 +392,15 @@ export default class Scene {
         });
       });
 
-      const tmp = path.join("tmp", scene._id);
-
-      if (!existsSync(tmp)) mkdirp.sync(tmp);
+      if (hadError) {
+        logger.error("Failed preview generation");
+        return resolve();
+      }
 
       logger.log(`Created 100 small thumbnails for ${scene._id}.`);
 
-      const files = (await readdirAsync(tmp, "utf-8")).map(fileName =>
-        path.join(tmp, fileName)
+      const files = (await readdirAsync(tmpFolder, "utf-8")).map(fileName =>
+        path.join(tmpFolder, fileName)
       );
       logger.log(files);
 
@@ -413,7 +418,7 @@ export default class Scene {
       img.write(file, async () => {
         logger.log("Finished generating preview.");
 
-        await rimrafAsync(tmp);
+        await rimrafAsync(tmpFolder);
         resolve(file);
       });
     });
