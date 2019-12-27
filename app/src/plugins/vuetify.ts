@@ -17,7 +17,7 @@ export default new Vuetify({
         error: colors.red.accent3,
         info: colors.blue.darken2,
         success: colors.green.base,
-        warning: colors.amber.accent3
+        warning: colors.orange.darken2
       },
       dark: {
         primary: "#221015",
@@ -26,7 +26,7 @@ export default new Vuetify({
         error: colors.red.lighten3,
         info: colors.blue.darken2,
         success: colors.green.base,
-        warning: colors.amber.accent3
+        warning: colors.orange.darken2
       }
     }
   }

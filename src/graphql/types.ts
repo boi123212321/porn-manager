@@ -52,6 +52,11 @@ type Query {
   getStudioById(id: String!): Studio
 
   getQueueInfo: QueueInfo!
+
+  getActorsWithoutScenes(num: Int): [Actor!]!
+  getActorsWithoutLabels(num: Int): [Actor!]!
+  getScenesWithoutActors(num: Int): [Scene!]!
+  getScenesWithoutLabels(num: Int): [Scene!]!
 }
 
 type Actor {

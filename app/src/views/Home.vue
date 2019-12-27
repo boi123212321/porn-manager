@@ -1,59 +1,178 @@
 <template>
   <div>
-    <v-row>
-      <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-title>Scenes</v-card-title>
-          <v-card-text>
-            <span class="display-2">{{ numScenes }}</span>
-          </v-card-text>
-        </v-card>
-      </v-col>
+    <div class="mx-auto" style="max-width: 800px">
+      <v-row>
+        <v-col cols="12" sm="6">
+          <v-card dark class="mb-3" style="border-radius: 10px" color="grey darken-4">
+            <v-card-title>
+              <v-icon medium class="mr-2">mdi-counter</v-icon>Stats
+            </v-card-title>
+            <v-card-text>
+              <div class="my-4">
+                <span class="mr-2 d-inline-block white--text display-1">{{ numScenes }}</span>
+                <span class="subtitle-1">scenes</span>
+              </div>
+              <v-divider></v-divider>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-title>Actors</v-card-title>
-          <v-card-text>
-            <span class="display-2">{{ numActors }}</span>
-          </v-card-text>
-        </v-card>
-      </v-col>
+              <div class="my-4">
+                <span class="mr-2 d-inline-block white--text display-1">{{ numActors }}</span>
+                <span class="subtitle-1">actors</span>
+              </div>
+              <v-divider></v-divider>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-title>Movies</v-card-title>
-          <v-card-text>
-            <span class="display-2">{{ numMovies }}</span>
-          </v-card-text>
-        </v-card>
-      </v-col>
+              <div class="my-4">
+                <span class="mr-2 d-inline-block white--text display-1">{{ numMovies }}</span>
+                <span class="subtitle-1">movies</span>
+              </div>
+              <v-divider></v-divider>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-title>Images</v-card-title>
-          <v-card-text>
-            <span class="display-2">{{ numImages }}</span>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <div class="my-5 display-1 text-center">Your favorites</div>
+              <div class="my-4">
+                <span class="mr-2 d-inline-block white--text display-1">{{ numImages }}</span>
+                <span class="subtitle-1">images</span>
+              </div>
+            </v-card-text>
+          </v-card>
 
-    <v-row>
-      <v-col class="pa-1" v-for="(actor, i) in topActors" :key="actor._id" cols="6" sm="6" md="4">
-        <actor-card style="height: 100%" max-width="200px" v-model="topActors[i]" />
-      </v-col>
-    </v-row>
+          <v-card
+            v-if="scenesWithoutLabels.length"
+            dark
+            class="mb-3"
+            style="border-radius: 10px"
+            color="grey darken-4"
+          >
+            <v-card-title>
+              <v-icon medium class="mr-2">mdi-account-alert</v-icon>Scenes without labels
+            </v-card-title>
+            <v-card-text>
+              <div
+                class="mb-2 d-flex align-center"
+                v-for="scene in scenesWithoutLabels"
+                :key="scene._id"
+              >
+                <router-link :to="`/scene/${scene._id}`">
+                  <v-avatar color="grey" class="hover mr-2" size="80">
+                    <v-img v-ripple :src="thumbnail(scene)"></v-img>
+                  </v-avatar>
+                </router-link>
+
+                <div class="subtitle-1 white--text">{{ scene.name }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <v-card
+            v-if="scenesWithoutActors.length"
+            dark
+            class="mb-3"
+            style="border-radius: 10px"
+            color="grey darken-4"
+          >
+            <v-card-title>
+              <v-icon medium class="mr-2">mdi-account-alert</v-icon>Scenes without actors
+            </v-card-title>
+            <v-card-text>
+              <div
+                class="mb-2 d-flex align-center"
+                v-for="scene in scenesWithoutActors"
+                :key="scene._id"
+              >
+                <router-link :to="`/scene/${scene._id}`">
+                  <v-avatar color="grey" class="hover mr-2" size="80">
+                    <v-img v-ripple :src="thumbnail(scene)"></v-img>
+                  </v-avatar>
+                </router-link>
+
+                <div class="subtitle-1 white--text">{{ scene.name }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <v-card dark class="mb-3" style="border-radius: 10px" color="grey darken-4">
+            <v-card-title>
+              <v-icon medium class="mr-2">mdi-heart</v-icon>Your favorites
+            </v-card-title>
+            <v-card-text>
+              <div class="mb-2 d-flex align-center" v-for="actor in topActors" :key="actor._id">
+                <router-link :to="`/actor/${actor._id}`">
+                  <v-avatar color="grey" class="hover mr-2" size="80">
+                    <v-img v-ripple :src="thumbnail(actor)"></v-img>
+                  </v-avatar>
+                </router-link>
+
+                <div class="subtitle-1 white--text">{{ actor.name }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <v-card
+            v-if="actorsWithoutLabels.length"
+            dark
+            class="mb-3"
+            style="border-radius: 10px"
+            color="grey darken-4"
+          >
+            <v-card-title>
+              <v-icon medium class="mr-2">mdi-account-alert</v-icon>Actors without labels
+            </v-card-title>
+            <v-card-text>
+              <div
+                class="mb-2 d-flex align-center"
+                v-for="actor in actorsWithoutLabels"
+                :key="actor._id"
+              >
+                <router-link :to="`/actor/${actor._id}`">
+                  <v-avatar color="grey" class="hover mr-2" size="80">
+                    <v-img v-ripple :src="thumbnail(actor)"></v-img>
+                  </v-avatar>
+                </router-link>
+
+                <div class="subtitle-1 white--text">{{ actor.name }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <v-card
+            v-if="actorsWithoutScenes.length"
+            dark
+            class="mb-3"
+            style="border-radius: 10px"
+            color="grey darken-4"
+          >
+            <v-card-title>
+              <v-icon medium class="mr-2">mdi-account-alert</v-icon>Actors without scenes
+            </v-card-title>
+            <v-card-text>
+              <div
+                class="mb-2 d-flex align-center"
+                v-for="actor in actorsWithoutScenes"
+                :key="actor._id"
+              >
+                <router-link :to="`/actor/${actor._id}`">
+                  <v-avatar color="grey" class="hover mr-2" size="80">
+                    <v-img v-ripple :src="thumbnail(actor)"></v-img>
+                  </v-avatar>
+                </router-link>
+
+                <div class="subtitle-1 white--text">{{ actor.name }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient from "../apollo";
+import ApolloClient, { serverBase } from "../apollo";
 import gql from "graphql-tag";
 import actorFragment from "../fragments/actor";
+import sceneFragment from "../fragments/scene";
 import ActorCard from "../components/ActorCard.vue";
 import IActor from "../types/actor";
+import IScene from "../types/scene";
 
 @Component({
   components: {
@@ -67,6 +186,19 @@ export default class Home extends Vue {
   numImages = 0;
 
   topActors = [] as IActor[];
+  actorsWithoutScenes = [] as IActor[];
+  scenesWithoutActors = [] as IScene[];
+
+  actorsWithoutLabels = [] as IActor[];
+  scenesWithoutLabels = [] as IScene[];
+
+  thumbnail(actor: IActor | IScene) {
+    if (actor.thumbnail)
+      return `${serverBase}/image/${
+        actor.thumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    return ``;
+  }
 
   beforeMount() {
     ApolloClient.query({
@@ -92,15 +224,34 @@ export default class Home extends Vue {
     ApolloClient.query({
       query: gql`
         {
-          topActors(num: 3) {
+          topActors(num: 5) {
             ...ActorFragment
           }
+          getActorsWithoutScenes(num: 5) {
+            ...ActorFragment
+          }
+          getScenesWithoutActors(num: 5) {
+            ...SceneFragment
+          }
+          getActorsWithoutLabels(num: 5) {
+            ...ActorFragment
+          }
+          getScenesWithoutLabels(num: 5) {
+            ...SceneFragment
+          }
         }
+        ${sceneFragment}
         ${actorFragment}
       `
     })
       .then(res => {
         this.topActors = res.data.topActors;
+
+        this.actorsWithoutScenes = res.data.getActorsWithoutScenes;
+        this.scenesWithoutActors = res.data.getScenesWithoutActors;
+
+        this.actorsWithoutLabels = res.data.getActorsWithoutLabels;
+        this.scenesWithoutLabels = res.data.getScenesWithoutLabels;
       })
       .catch(err => {
         console.error(err);

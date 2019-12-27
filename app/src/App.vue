@@ -223,8 +223,10 @@ export default class App extends Vue {
 }
 
 .hover {
+  transition: filter 0.1s ease-in-out;
   &:hover {
     cursor: pointer;
+    filter: brightness(0.75);
   }
 }
 

@@ -6,7 +6,7 @@ import Movie from "../../types/movie";
 import extractQueryOptions, { SortTarget } from "../../query_extractor";
 import Fuse from "fuse.js";
 import * as logger from "../../logger/index";
-import { Dictionary, filterAsync } from "../../types/utility";
+import { Dictionary, filterAsync, mapAsync } from "../../types/utility";
 import ProcessingQueue from "../../queue/index";
 import Studio from "../../types/studio";
 import { getConfig } from "../../config";
@@ -16,6 +16,54 @@ const PAGE_SIZE = 24;
 const FALLBACK_FUZZINESS = 0.25;
 
 export default {
+  async getScenesWithoutLabels(_, { num }: { num: number }) {
+    return (
+      await mapAsync(await Scene.getAll(), async scene => ({
+        scene,
+        numLabels: (await Scene.getLabels(scene)).length
+      }))
+    )
+      .filter(i => i.numLabels == 0)
+      .map(i => i.scene)
+      .slice(0, num || 12);
+  },
+
+  async getActorsWithoutLabels(_, { num }: { num: number }) {
+    return (
+      await mapAsync(await Actor.getAll(), async actor => ({
+        actor,
+        numLabels: (await Actor.getLabels(actor)).length
+      }))
+    )
+      .filter(i => i.numLabels == 0)
+      .map(i => i.actor)
+      .slice(0, num || 12);
+  },
+  
+  async getScenesWithoutActors(_, { num }: { num: number }) {
+    return (
+      await mapAsync(await Scene.getAll(), async scene => ({
+        scene,
+        numActors: (await Scene.getActors(scene)).length
+      }))
+    )
+      .filter(i => i.numActors == 0)
+      .map(i => i.scene)
+      .slice(0, num || 12);
+  },
+
+  async getActorsWithoutScenes(_, { num }: { num: number }) {
+    return (
+      await mapAsync(await Actor.getAll(), async actor => ({
+        actor,
+        numScenes: (await Scene.getByActor(actor._id)).length
+      }))
+    )
+      .filter(i => i.numScenes == 0)
+      .map(i => i.actor)
+      .slice(0, num || 12);
+  },
+
   async topActors(_, { num }: { num: number }) {
     return (await Actor.getTopActors()).slice(0, num || 12);
   },
