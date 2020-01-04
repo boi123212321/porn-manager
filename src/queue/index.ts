@@ -244,14 +244,17 @@ class Queue {
       let head = await this.getFirst();
 
       while (!!head) {
-        await this.process(head);
-        await database.remove(this.store, { _id: head._id });
+        try {
+          await this.process(head);
+        } catch (error) {
+          logger.error("Error processing scene", error);
+          await database.remove(this.store, { _id: head._id });
+        }
         head = await this.getFirst();
       }
       logger.success("Processing done");
     } catch (error) {
-      logger.error(error);
-      logger.error("Error processing scene");
+      logger.error("Error in processing loop", error);
     }
     this.isProcessing = false;
   }
