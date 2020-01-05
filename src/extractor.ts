@@ -7,7 +7,7 @@ export function stripStr(str: string) {
 }
 
 // Returns IDs of extracted labels
-export async function extractLabels(str: string) {
+export async function extractLabels(str: string): Promise<string[]> {
   const foundLabels = [] as string[];
   const allLabels = await Label.getAll();
 
@@ -23,7 +23,7 @@ export async function extractLabels(str: string) {
 }
 
 // Returns IDs of extracted actors
-export async function extractActors(str: string) {
+export async function extractActors(str: string): Promise<string[]> {
   const foundActors = [] as string[];
   const allActors = await Actor.getAll();
 
@@ -39,14 +39,10 @@ export async function extractActors(str: string) {
 }
 
 // Returns IDs of extracted studios
-export async function extractStudios(str: string) {
-  const foundStudios = [] as string[];
+export async function extractStudios(str: string): Promise<string[]> {
   const allStudios = await Studio.getAll();
-
-  allStudios.forEach(studio => {
-    if (stripStr(str).includes(stripStr(studio.name))) {
-      foundStudios.push(studio._id);
-    }
-  });
-  return foundStudios;
+  return allStudios
+    .filter(studio => stripStr(str).includes(stripStr(studio.name)))
+    .sort((a, b) => b.name.length - a.name.length)
+    .map(s => s._id);
 }
