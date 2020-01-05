@@ -368,7 +368,8 @@ export default {
         rating: actor.rating,
         labels: await Actor.getLabels(actor),
         addedOn: actor.addedOn,
-        watches: await Actor.getWatches(actor)
+        watches: await Actor.getWatches(actor),
+        aliases: actor.aliases
       }))
     );
 
@@ -406,7 +407,7 @@ export default {
           distance: 100,
           maxPatternLength: 32,
           minMatchCharLength: 1,
-          keys: ["name", "labels.name", "labels.aliases"]
+          keys: ["name", "aliases", "labels.name", "labels.aliases"]
         });
 
         searchDocs = searcher.search(options.query);
@@ -418,6 +419,10 @@ export default {
             let score = 0;
             for (const token of tokens) {
               if (doc.name.toLowerCase().includes(token)) score++;
+              for (const alias of doc.aliases) {
+                if (alias.toLowerCase().includes(token)) score++;
+              }
+
               for (const label of doc.labels) {
                 if (label.name.toLowerCase().includes(token)) score++;
                 for (const alias of label.aliases) {
