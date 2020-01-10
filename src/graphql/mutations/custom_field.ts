@@ -26,9 +26,11 @@ export default {
     if (field) {
       if (name) field.name = name;
 
-      if (values) field.values = values;
+      if (values && field.type.includes("SELECT")) {
+        field.values = values;
+      }
 
-      if (unit) field.unit = unit;
+      if (unit) field.unit = unit || null;
 
       await database.update(
         database.store.customFields,

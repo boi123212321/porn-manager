@@ -7,6 +7,7 @@
         </v-list-item-content>
       </v-list-item>
       <CreatedCustomField
+        @update="updateField(i, $event)"
         @delete="fields.splice(i, 1)"
         v-model="fields[i]"
         v-for="(field, i) in fields"
@@ -22,8 +23,8 @@
             clearable
             v-model="createFieldName"
             color="accent"
-            placeholder="Field name (e.g. Hair color)"
-          ></v-text-field>
+            placeholder="Field name (e.g. 'Hair color')"
+          />
           <v-select
             color="accent"
             placeholder="Field type"
@@ -31,13 +32,14 @@
             v-model="createFieldType"
             persistent-hint
             :hint="typeHint"
-          ></v-select>
+          />
           <v-text-field
             color="accent"
-            placeholder="Unit (optional)"
+            placeholder="Unit (e.g. 'inches', optional)"
             v-model="createFieldUnit"
             hide-details
-          ></v-text-field>
+            v-if="createFieldType != 'BOOLEAN'"
+          />
           <v-combobox
             chips
             v-if="createFieldType == 'SINGLE_SELECT' || createFieldType == 'MULTI_SELECT'"
@@ -46,7 +48,8 @@
             clearable
             multiple
             v-model="createFieldValues"
-          ></v-combobox>
+            hide-details
+          />
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
@@ -85,6 +88,10 @@ export default class CustomFieldCreator extends Vue {
   ];
   createFieldValues = [] as string[];
   createFieldUnit = null as string | null;
+
+  updateField(index: number, field: any) {
+    Vue.set(this.fields, index, field);
+  }
 
   createField() {
     if (this.isCreating) return;
@@ -169,6 +176,7 @@ export default class CustomFieldCreator extends Vue {
             name
             type
             values
+            unit
           }
         }
       `
