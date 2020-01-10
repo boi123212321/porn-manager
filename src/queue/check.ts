@@ -31,7 +31,8 @@ export async function checkVideoFolders() {
 
   for (const folder of config.VIDEO_PATHS) {
     await walk(folder, [".mp4"], async file => {
-      if (fileIsExcluded(config.EXCLUDE_FILES, file)) return;
+      if (file.startsWith(".") || fileIsExcluded(config.EXCLUDE_FILES, file))
+        return;
       allFiles.push(file);
     });
   }
@@ -110,7 +111,8 @@ export async function checkImageFolders() {
 
   for (const folder of config.IMAGE_PATHS) {
     await walk(folder, [".jpg", ".jpeg", ".png"], async path => {
-      if (fileIsExcluded(config.EXCLUDE_FILES, path)) return;
+      if (path.startsWith(".") || fileIsExcluded(config.EXCLUDE_FILES, path))
+        return;
 
       if (!(await imageWithPathExists(path))) {
         await processImage(path, config.READ_IMAGES_ON_IMPORT);
