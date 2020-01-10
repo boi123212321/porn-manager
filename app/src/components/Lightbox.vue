@@ -8,8 +8,8 @@
     <div style="position: relative; width: 100%; height: 100%;">
       <v-img
         v-touch="{
-          left: decrementIndex,
-          right: incrementIndex,
+          left: incrementIndex,
+          right: decrementIndex,
         }"
         contain
         class="image"
