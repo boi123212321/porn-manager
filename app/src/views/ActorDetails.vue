@@ -6,20 +6,22 @@
           <v-col cols="12" sm="4" md="3" lg="2" xl="2">
             <v-hover>
               <template v-slot:default="{ hover }">
-                <v-img
+                <div
                   v-ripple
+                  style="position: relative;"
+                  class="hover text-center"
                   @click="openThumbnailDialog"
-                  class="elevation-4 hover"
-                  :aspect-ratio="aspectRatio"
-                  cover
-                  :src="thumbnail"
                 >
-                  <v-fade-transition>
-                    <v-overlay v-if="hover" absolute color="accent">
-                      <v-icon x-large>mdi-upload</v-icon>
-                    </v-overlay>
-                  </v-fade-transition>
-                </v-img>
+                  <img class="avatar" :src="thumbnail" />
+
+                  <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
+                    <v-fade-transition>
+                      <v-overlay v-if="hover" absolute color="accent">
+                        <v-icon x-large>mdi-upload</v-icon>
+                      </v-overlay>
+                    </v-fade-transition>
+                  </div>
+                </div>
               </template>
             </v-hover>
             <v-rating
@@ -401,7 +403,7 @@ export default class ActorDetails extends Vue {
         console.error(err);
       });
   }
-  
+
   labelSearchQuery = "";
 
   get aspectRatio() {
@@ -789,4 +791,7 @@ export default class ActorDetails extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.avatar {
+  max-width: 100%;
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container fluid>
     <div class="text-center">
       <div class="pa-3 d-inline-block" style="border: 1px solid #ddd">
         <div class="title">porn-manager (name TBD)</div>
