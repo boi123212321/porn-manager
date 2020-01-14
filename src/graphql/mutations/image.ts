@@ -13,7 +13,8 @@ import Jimp from "jimp";
 import { statAsync, unlinkAsync } from "../../fs/async";
 import { getConfig } from "../../config";
 import Studio from "../../types/studio";
-import { indices, createImageSearchDoc } from "../../search";
+import { indices } from "../../search/index";
+import { createImageSearchDoc } from "../../search/image";
 
 type IImageUpdateOpts = Partial<{
   name: string;

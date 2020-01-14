@@ -1,6 +1,4 @@
-import Image from "./types/image";
-
-interface ISearchOptions<T> {
+export interface ISearchOptions<T> {
   query: string;
   skip?: number;
   take?: number;
@@ -8,7 +6,7 @@ interface ISearchOptions<T> {
   sort?: (a: T, b: T) => number;
 }
 
-class Index<T> {
+export class SearchIndex<T> {
   items: { [key: string]: T } = {};
   tokens: { [key: string]: string[] } = {};
 
@@ -128,38 +126,7 @@ class Index<T> {
   }
 }
 
-export interface IImageSearchDoc {
-  _id: string;
-  addedOn: number;
-  name: string;
-  labels: { _id: string; name: string; aliases: string[] }[];
-  rating: number;
-  bookmark: boolean;
-  favorite: boolean;
-  scene: string | null;
-}
-
-export async function createImageSearchDoc(
-  image: Image
-): Promise<IImageSearchDoc> {
-  const labels = await Image.getLabels(image);
-  return {
-    _id: image._id,
-    addedOn: image.addedOn,
-    name: image.name,
-    labels: labels.map(l => ({
-      _id: l._id,
-      name: l.name,
-      aliases: l.aliases
-    })),
-    rating: image.rating,
-    bookmark: image.bookmark,
-    favorite: image.favorite,
-    scene: image.scene
-  };
-}
-
-const tokenize = (str: string) =>
+export const tokenize = (str: string) =>
   str
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, " ")
@@ -168,23 +135,16 @@ const tokenize = (str: string) =>
     .filter(s => /[a-z]/i.test(s))
     .filter(s => s.length > 1);
 
-export const indices = {
-  images: new Index(
-    (doc: IImageSearchDoc) => {
-      return [
-        ...tokenize(doc.name),
-        ...doc.labels.map(l => tokenize(l.name)).flat()
-      ];
-    },
-    (image: IImageSearchDoc) => image._id
-  )
-};
+import { imageIndex } from "./image";
+import { sceneIndex } from "./scene";
+import { actorIndex } from "./actor";
+import { studioIndex } from "./studio";
+import { movieIndex } from "./movie";
 
-export async function buildImageIndex() {
-  const timeNow = +new Date();
-  console.log("Building image index...");
-  for (const image of await Image.getAll()) {
-    indices.images.add(await createImageSearchDoc(image));
-  }
-  console.log(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
-}
+export const indices = {
+  images: imageIndex,
+  scenes: sceneIndex,
+  actors: actorIndex,
+  studios: studioIndex,
+  movies: movieIndex
+};
