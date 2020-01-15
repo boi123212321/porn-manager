@@ -222,13 +222,17 @@ export default class StudioList extends Vue {
       value: "alpha"
     },
     {
-      text: "Added to collection",
-      value: "addedOn"
+      text: "# scenes",
+      value: "scenes"
     },
     {
+      text: "Added to collection",
+      value: "addedOn"
+    }
+    /* {
       text: "Rating",
       value: "rating"
-    }
+    } */
   ];
 
   favoritesOnly = localStorage.getItem("pm_studioFavorite") == "true";

@@ -6,9 +6,10 @@ export interface IStudioSearchDoc {
   addedOn: number;
   name: string;
   labels: { _id: string; name: string; aliases: string[] }[];
-  // rating: number;
   bookmark: boolean;
   favorite: boolean;
+  // rating: number;
+  numScenes: number;
 }
 
 export async function createStudioSearchDoc(
@@ -28,7 +29,8 @@ export async function createStudioSearchDoc(
     })),
     // rating: studio.rating,
     bookmark: studio.bookmark,
-    favorite: studio.favorite
+    favorite: studio.favorite,
+    numScenes: (await Studio.getScenes(studio)).length
   };
 }
 

@@ -5,7 +5,8 @@ export enum SortTarget {
   ADDED_ON = "addedOn",
   VIEWS = "views",
   DURATION = "duration",
-  ALPHABETIC = "alpha"
+  ALPHABETIC = "alpha",
+  NUM_SCENES = "scenes"
 }
 
 interface IQueryOptions {

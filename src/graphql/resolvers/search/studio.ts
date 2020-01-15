@@ -38,6 +38,9 @@ export async function getStudios(_, { query }: { query: string | undefined }) {
         case SortTarget.ALPHABETIC:
           if (sortDir == "asc") return (a, b) => a.name.localeCompare(b.name);
           return (a, b) => b.name.localeCompare(a.name);
+        case SortTarget.NUM_SCENES:
+          if (sortDir == "asc") return (a, b) => a.numScenes - b.numScenes;
+          return (a, b) => b.numScenes - a.numScenes;
         default:
           return undefined;
       }
