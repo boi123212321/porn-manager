@@ -1,9 +1,6 @@
 import express from "express";
 import * as logger from "./logger";
-import { ApolloServer, gql } from "apollo-server-express";
 import Image from "./types/image";
-import types from "./graphql/types";
-import resolvers from "./graphql/resolvers";
 import Scene from "./types/scene";
 import * as path from "path";
 import { checkPassword, passwordHandler } from "./password";
@@ -20,13 +17,10 @@ import { checkSceneSources, checkImageSources } from "./integrity";
 import { loadStores } from "./database/index";
 import { existsAsync } from "./fs/async";
 import { createBackup } from "./backup";
-import { buildImageIndex } from "./search/image";
-import { buildSceneIndex } from "./search/scene";
-import { buildActorIndex } from "./search/actor";
-import { buildStudioIndex } from "./search/studio";
-import { buildMovieIndex } from "./search/movie";
 import BROKEN_IMAGE from "./broken_image";
 import pug from "pug";
+import { mountApolloServer } from "./apollo";
+import { buildIndices } from "./search";
 
 function isRegExp(regStr: string) {
   try {
@@ -132,8 +126,7 @@ export default async () => {
     else res.redirect("/broken");
   });
 
-  const server = new ApolloServer({ typeDefs: gql(types), resolvers });
-  server.applyMiddleware({ app, path: "/ql" });
+  mountApolloServer(app);
 
   app.use(
     (
@@ -173,16 +166,10 @@ export default async () => {
   }
 
   setupMessage = "Loading database...";
-
   await loadStores();
 
   setupMessage = "Creating search indices...";
-
-  await buildImageIndex();
-  await buildActorIndex();
-  await buildSceneIndex();
-  await buildStudioIndex();
-  await buildMovieIndex();
+  await buildIndices();
 
   ProcessingQueue.setStore(database.store.queue);
   checkSceneSources();

@@ -1,4 +1,4 @@
-import { SearchIndex } from "./index";
+import { SearchIndex } from "./engine";
 import Actor from "../types/actor";
 import { tokenizeNames, tokenize } from "./tokenize";
 
