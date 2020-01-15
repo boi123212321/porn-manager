@@ -1,5 +1,6 @@
-import { SearchIndex, tokenize } from "./index";
+import { SearchIndex } from "./index";
 import Movie from "../types/movie";
+import { tokenizeNames, tokenize } from "./tokenize";
 
 export interface IMovieSearchDoc {
   _id: string;
@@ -46,8 +47,9 @@ export const movieIndex = new SearchIndex(
   (doc: IMovieSearchDoc) => {
     return [
       ...tokenize(doc.name),
-      ...doc.labels.map(l => tokenize(l.name)).flat()
-      // TODO: actors & label aliases
+      ...tokenizeNames(doc.actors.map(l => l.name)),
+      ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
+      ...tokenizeNames(doc.labels.map(l => l.name))
     ];
   },
   (movie: IMovieSearchDoc) => movie._id

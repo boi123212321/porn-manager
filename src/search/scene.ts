@@ -1,5 +1,6 @@
-import { SearchIndex, tokenize } from "./index";
+import { SearchIndex } from "./index";
 import Scene from "../types/scene";
+import { tokenizeNames, tokenize } from "./tokenize";
 
 export interface ISceneSearchDoc {
   _id: string;
@@ -51,8 +52,9 @@ export const sceneIndex = new SearchIndex(
   (doc: ISceneSearchDoc) => {
     return [
       ...tokenize(doc.name),
-      ...doc.labels.map(l => tokenize(l.name)).flat()
-      // TODO: actors & label aliases
+      ...tokenizeNames(doc.actors.map(l => l.name)),
+      ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
+      ...tokenizeNames(doc.labels.map(l => l.name))
     ];
   },
   (scene: ISceneSearchDoc) => scene._id

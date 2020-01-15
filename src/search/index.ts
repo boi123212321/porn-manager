@@ -126,20 +126,12 @@ export class SearchIndex<T> {
   }
 }
 
-export const tokenize = (str: string) =>
-  str
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .filter(s => /[a-z]/i.test(s))
-    .filter(s => s.length > 1);
-
 import { imageIndex } from "./image";
 import { sceneIndex } from "./scene";
 import { actorIndex } from "./actor";
 import { studioIndex } from "./studio";
 import { movieIndex } from "./movie";
+import { tokenize } from "./tokenize";
 
 export const indices = {
   images: imageIndex,

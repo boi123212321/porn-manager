@@ -8,7 +8,6 @@ const PAGE_SIZE = 24;
 
 export async function getImages(
   _,
-  // TODO: auto filter thumbnails etc
   { query, auto }: { query: string | undefined; auto?: boolean | null }
 ) {
   try {
@@ -35,6 +34,18 @@ export async function getImages(
           doc.labels.map(l => l._id).includes(id)
         );
       });
+
+    // Filter thumbnails, screenshots, previews
+    if (!auto)
+      filters.push(doc =>
+        [
+          "(thumbnail)",
+          "(preview)",
+          "(screenshot)",
+          "(front cover)",
+          "(back cover)"
+        ].every(ending => !doc.name.endsWith(ending))
+      );
 
     function sortMode(sortBy: SortTarget, sortDir: "asc" | "desc") {
       switch (sortBy) {

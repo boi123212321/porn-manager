@@ -1,5 +1,6 @@
-import { SearchIndex, tokenize } from "./index";
+import { SearchIndex } from "./index";
 import Actor from "../types/actor";
+import { tokenizeNames, tokenize } from "./tokenize";
 
 export interface IActorSearchDoc {
   _id: string;
@@ -41,8 +42,8 @@ export const actorIndex = new SearchIndex(
   (doc: IActorSearchDoc) => {
     return [
       ...tokenize(doc.name),
-      ...doc.aliases.map(tokenize).flat(),
-      ...doc.labels.map(l => tokenize(l.name)).flat()
+      ...tokenizeNames(doc.aliases),
+      ...tokenizeNames(doc.labels.map(l => l.name))
     ];
   },
   (actor: IActorSearchDoc) => actor._id

@@ -1,5 +1,6 @@
-import { SearchIndex, tokenize } from "./index";
+import { SearchIndex } from "./index";
 import Image from "../types/image";
+import { tokenizeNames, tokenize } from "./tokenize";
 
 export interface IImageSearchDoc {
   _id: string;
@@ -44,8 +45,9 @@ export const imageIndex = new SearchIndex(
   (doc: IImageSearchDoc) => {
     return [
       ...tokenize(doc.name),
-      ...doc.labels.map(l => tokenize(l.name)).flat()
-      // TODO: actors & label aliases
+      ...tokenizeNames(doc.actors.map(l => l.name)),
+      ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
+      ...tokenizeNames(doc.labels.map(l => l.name))
     ];
   },
   (image: IImageSearchDoc) => image._id

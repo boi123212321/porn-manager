@@ -1,5 +1,6 @@
-import { SearchIndex, tokenize } from "./index";
+import { SearchIndex } from "./index";
 import Studio from "../types/studio";
+import { tokenizeNames, tokenize } from "./tokenize";
 
 export interface IStudioSearchDoc {
   _id: string;
@@ -38,8 +39,7 @@ export const studioIndex = new SearchIndex(
   (doc: IStudioSearchDoc) => {
     return [
       ...tokenize(doc.name),
-      ...doc.labels.map(l => tokenize(l.name)).flat()
-      // TODO: label aliases
+      ...tokenizeNames(doc.labels.map(l => l.name))
     ];
   },
   (studio: IStudioSearchDoc) => studio._id
