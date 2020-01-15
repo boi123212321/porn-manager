@@ -46,6 +46,7 @@
             <DateInput v-if="editDialog" v-model="editBirthDate" />
 
             <v-combobox
+              clearable
               color="accent"
               multiple
               chips
@@ -89,10 +90,12 @@ import gql from "graphql-tag";
 import DateInput from "../DateInput.vue";
 import IActor from "../../types/actor";
 import moment from "moment";
+import CustomFieldSelector from "../CustomFieldSelector.vue";
 
 @Component({
   components: {
-    DateInput
+    DateInput,
+    CustomFieldSelector
   }
 })
 export default class ActorToolbar extends Vue {
@@ -144,8 +147,14 @@ export default class ActorToolbar extends Vue {
     this.removeDialog = true;
   }
 
-  editActor() {
+  async sleep(ms: number) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  async editActor() {
     if (!this.currentActor) return;
+
+    await this.sleep(50);
 
     ApolloClient.mutate({
       mutation: gql`

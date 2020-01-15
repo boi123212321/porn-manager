@@ -80,9 +80,10 @@ class Queue {
     scene._id = item._id;
     scene.path = sourcePath;
 
-    logger.log("Generating file checksum...");
-
-    scene.hash = await fileHash(sourcePath);
+    if (config.CALCULATE_FILE_CHECKSUM) {
+      logger.log("Generating file checksum...");
+      scene.hash = await fileHash(sourcePath);
+    }
 
     try {
       await new Promise(async (resolve, reject) => {
@@ -259,8 +260,8 @@ class Queue {
           await this.process(head);
         } catch (error) {
           logger.warn("Error processing scene:", error.message);
-          await database.remove(this.store, { _id: head._id });
         }
+        await database.remove(this.store, { _id: head._id });
         head = await this.getFirst();
       }
       logger.success("Processing done");

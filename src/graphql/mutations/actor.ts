@@ -2,7 +2,7 @@ import * as database from "../../database";
 import Actor from "../../types/actor";
 import Scene from "../../types/scene";
 import { Dictionary } from "../../types/utility";
-import { tokenPerms } from "../../extractor";
+import { stripStr } from "../../extractor";
 import * as logger from "../../logger/index";
 import { getConfig } from "../../config/index";
 
@@ -15,6 +15,7 @@ type IActorUpdateOpts = Partial<{
   favorite: boolean;
   bookmark: boolean;
   bornOn: number;
+  customFields: Dictionary<string[] | boolean | string | null>;
 }>;
 
 export default {
@@ -29,11 +30,11 @@ export default {
     }
 
     for (const scene of await Scene.getAll()) {
-      const perms = tokenPerms(scene.path || scene.name);
+      const perms = stripStr(scene.path || scene.name);
 
       if (
-        perms.includes(actor.name.toLowerCase()) ||
-        actor.aliases.some(alias => perms.includes(alias.toLowerCase()))
+        perms.includes(stripStr(actor.name)) ||
+        actor.aliases.some(alias => perms.includes(stripStr(alias)))
       ) {
         if (config.APPLY_ACTOR_LABELS === true) {
           const sceneLabels = (await Scene.getLabels(scene)).map(l => l._id);
@@ -82,6 +83,18 @@ export default {
 
         if (opts.bornOn !== undefined) actor.bornOn = opts.bornOn;
 
+        if (opts.customFields) {
+          for (const key in opts.customFields) {
+            const value =
+              opts.customFields[key] !== undefined
+                ? opts.customFields[key]
+                : null;
+            logger.log(`Set actor custom.${key} to ${value}`);
+            opts.customFields[key] = value;
+          }
+          actor.customFields = opts.customFields;
+        }
+
         await database.update(database.store.actors, { _id: actor._id }, actor);
 
         updatedActors.push(actor);
@@ -99,10 +112,10 @@ export default {
 
       if (actor) {
         await Actor.remove(actor);
-        await database.remove(database.store.cross_references, {
+        await database.remove(database.store.crossReferences, {
           from: actor._id
         });
-        await database.remove(database.store.cross_references, {
+        await database.remove(database.store.crossReferences, {
           to: actor._id
         });
       }

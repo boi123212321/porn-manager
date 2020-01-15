@@ -26,6 +26,8 @@ Note: this is by no means finished, but useable.
   - Automatic label extraction from scene titles & file names
   - Search, filter and sort your collection
   - Rate items, mark as your favorites & bookmark items
+- Custom data fields
+  - Extend actor info with any kind of data (hair color, retired, etc.)
 - Automatic thumbnail generation on scene import
 - Optional password protection in LAN
 
@@ -59,10 +61,11 @@ Note: this is by no means finished, but useable.
 - REMOVE_DANGLING_FILE_REFERENCES: Remove scenes/images from the database that can not be found on disk
 - BACKUP_ON_STARTUP: Whether to create a backup when starting the server
 - MAX_BACKUP_AMOUNT: Max amount of backups in backups/ folder. Oldest one will be deleted, if max amount has been reached.
+- EXCLUDE_FILES: Array of regular expressions that, if any of them match a file name, will cause the file to be ignored
+- CALCULATE_FILE_CHECKSUM: Generate file checksum (hash) on import (decreases import speed)
 
 ## Roadmap
 
-- Custom data fields
 - Image albums
 - More useful front page
 - Recommend similar scenes/actors/images

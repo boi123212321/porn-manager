@@ -11,6 +11,7 @@ import ProcessingQueue from "../../queue/index";
 import Studio from "../../types/studio";
 import { getConfig } from "../../config";
 import * as database from "../../database/index";
+import CustomField from "../../types/custom_field";
 
 const PAGE_SIZE = 24;
 const FALLBACK_FUZZINESS = 0.25;
@@ -368,7 +369,8 @@ export default {
         rating: actor.rating,
         labels: await Actor.getLabels(actor),
         addedOn: actor.addedOn,
-        watches: await Actor.getWatches(actor)
+        watches: await Actor.getWatches(actor),
+        aliases: actor.aliases
       }))
     );
 
@@ -406,7 +408,7 @@ export default {
           distance: 100,
           maxPatternLength: 32,
           minMatchCharLength: 1,
-          keys: ["name", "labels.name", "labels.aliases"]
+          keys: ["name", "aliases", "labels.name", "labels.aliases"]
         });
 
         searchDocs = searcher.search(options.query);
@@ -418,6 +420,10 @@ export default {
             let score = 0;
             for (const token of tokens) {
               if (doc.name.toLowerCase().includes(token)) score++;
+              for (const alias of doc.aliases) {
+                if (alias.toLowerCase().includes(token)) score++;
+              }
+
               for (const label of doc.labels) {
                 if (label.name.toLowerCase().includes(token)) score++;
                 for (const alias of label.aliases) {
@@ -481,7 +487,23 @@ export default {
 
     const options = extractQueryOptions(query);
 
-    const allScenes = await Scene.getAll();
+    let allScenes = [] as Scene[];
+
+    if (options.studios.length) {
+      for (const studioId of options.studios) {
+        allScenes.push(...(await Scene.getByStudio(studioId)));
+      }
+    } else if (options.actors.length) {
+      if (options.actors.length) {
+        for (const actorId of options.actors) {
+          allScenes.push(...(await Scene.getByActor(actorId)));
+        }
+      } else {
+        allScenes = await Scene.getAll();
+      }
+    } else {
+      allScenes = await Scene.getAll();
+    }
 
     let searchDocs = await Promise.all(
       allScenes.map(async scene => ({
@@ -497,7 +519,8 @@ export default {
         watches: scene.watches,
         duration: scene.meta.duration || 0,
         studio: scene.studio,
-        movies: await Movie.getByScene(scene._id)
+        movies: await Movie.getByScene(scene._id),
+        studioObj: scene.studio ? await Studio.getById(scene.studio) : null
       }))
     );
 
@@ -566,7 +589,9 @@ export default {
             "labels.aliases",
             "actors.name",
             "actors.aliases",
-            "movies.name"
+            "movies.name",
+            "studioObj.name"
+            // "studioObj.aliases"
           ]
         });
 
@@ -834,9 +859,6 @@ export default {
   async getActorById(_, args: Dictionary<any>) {
     return await Actor.getById(args.id);
   },
-  async findActors(_, args: Dictionary<any>) {
-    return await Actor.find(args.name);
-  },
 
   async getMovieById(_, args: Dictionary<any>) {
     return await Movie.getById(args.id);
@@ -849,12 +871,13 @@ export default {
   async getLabelById(_, args: Dictionary<any>) {
     return await Label.getById(args.id);
   },
+  async getCustomFields() {
+    const fields = await CustomField.getAll();
+    return fields.sort((a, b) => a.name.localeCompare(b.name));
+  },
   async getLabels() {
     const labels = await Label.getAll();
     return labels.sort((a, b) => a.name.localeCompare(b.name));
-  },
-  async findLabel(_, args: Dictionary<any>) {
-    return await Label.find(args.name);
   },
   async numScenes() {
     return await database.count(database.store.scenes, {});

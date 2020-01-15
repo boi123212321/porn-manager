@@ -1,16 +1,32 @@
 <template>
-  <div>
+  <v-container fluid>
     <div v-if="!fetchLoader">
       <h1 class="font-weight-light">Labels</h1>
+
+      <div style="max-width: 350px">
+        <v-text-field
+          clearable
+          color="accent"
+          hide-details
+          class="px-5 mb-3"
+          label="Find labels..."
+          v-model="labelSearchQuery"
+        />
+      </div>
 
       <v-list-item v-if="selectedLabels.length">
         <v-list-item-content>
           <v-list-item-title>{{ selectedLabels.length }} labels selected</v-list-item-title>
         </v-list-item-content>
         <v-list-item-action>
-          <v-btn @click="deleteLabels" icon>
-            <v-icon>mdi-delete-forever</v-icon>
-          </v-btn>
+          <div class="d-flex">
+            <v-btn class="mr-2" @click="selectedLabels = []" icon>
+              <v-icon>mdi-select-off</v-icon>
+            </v-btn>
+            <v-btn @click="deleteLabels" icon>
+              <v-icon>mdi-delete-forever</v-icon>
+            </v-btn>
+          </div>
         </v-list-item-action>
       </v-list-item>
 
@@ -23,7 +39,7 @@
         </v-list-item-content>
       </v-list-item>
 
-      <LabelSelector :items="labels" v-model="selectedLabels">
+      <LabelSelector :searchQuery="labelSearchQuery" :items="labels" v-model="selectedLabels">
         <template v-slot:action="{ label }">
           <v-list-item-action>
             <v-btn icon @click.stop.native="openEditDialog(label)">
@@ -45,7 +61,7 @@
                 v-model="editLabelName"
                 placeholder="Label name"
                 :rules="labelNameRules"
-                 @keydown.enter="editLabel"
+                @keydown.enter="editLabel"
               ></v-text-field>
 
               <v-combobox
@@ -117,7 +133,7 @@
       <p>Loading...</p>
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -153,6 +169,8 @@ export default class Home extends Vue {
 
   labelNameRules = [v => (!!v && !!v.length) || "Invalid label name"];
 
+  labelSearchQuery = "" as string | null;
+
   openEditDialog(label: any) {
     this.editLabelDialog = true;
     this.editingLabel = label;
@@ -166,7 +184,7 @@ export default class Home extends Vue {
 
   editLabel() {
     if (!this.editingLabel) return;
-    if (!this.validEditing) return
+    if (!this.validEditing) return;
 
     this.editLabelLoader = true;
     ApolloClient.mutate({
