@@ -11,13 +11,20 @@ export interface ISearchOptions<T> {
 export class SearchIndex<T> {
   items: { [key: string]: T } = {};
   tokens: { [key: string]: string[] } = {};
+  idMap: { [key: string]: string } = {};
 
   tokenizer: (t: T) => string[];
   identifier: (t: T) => string;
 
+  idCounter = 0;
+
   constructor(tokenizer: (t: T) => string[], identifier: (t: T) => string) {
     this.tokenizer = tokenizer;
     this.identifier = identifier;
+  }
+
+  size() {
+    return Object.keys(this.items).length;
   }
 
   remove(id: string) {
@@ -48,13 +55,16 @@ export class SearchIndex<T> {
   add(t: T) {
     const tokens = this.tokenizer(t);
 
+    const id = (this.idCounter++).toString();
+    const realId = this.identifier(t);
+    this.idMap[id] = realId;
+
     for (const token of tokens) {
-      if (this.tokens[token] !== undefined)
-        this.tokens[token].push(this.identifier(t));
-      else this.tokens[token] = [this.identifier(t)];
+      if (this.tokens[token] !== undefined) this.tokens[token].push(id);
+      else this.tokens[token] = [id];
     }
 
-    this.items[this.identifier(t)] = t;
+    this.items[realId] = t;
   }
 
   async search(search: ISearchOptions<T>) {
@@ -79,7 +89,7 @@ export class SearchIndex<T> {
       for (const id in scores) {
         if (scores[id] > 0)
           foundDocs.push({
-            id,
+            id: this.idMap[id],
             score: scores[id]
           });
       }
