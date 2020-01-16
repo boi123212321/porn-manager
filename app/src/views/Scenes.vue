@@ -267,7 +267,12 @@ export default class SceneList extends Vue {
 
   durationMax =
     parseInt(localStorage.getItem("pm_durationFilterMax") || "180") || 180;
-  durationRange = [0, this.durationMax];
+  durationRange = [
+    parseInt(localStorage.getItem("pm_durationMin") || "0") || 0,
+    parseInt(
+      localStorage.getItem("pm_durationMax") || this.durationMax.toString()
+    ) || this.durationMax
+  ];
 
   sortDir = localStorage.getItem("pm_sceneSortDir") || "desc";
   sortDirItems = [
@@ -503,10 +508,19 @@ export default class SceneList extends Vue {
   }
 
   @Watch("durationRange")
-  onDurationRangeChange() {
+  onDurationRangeChange(newVal: number) {
     if (this.resetTimeout) {
       clearTimeout(this.resetTimeout);
     }
+
+    localStorage.setItem(
+      "pm_durationMin",
+      (this.durationRange[0] || "").toString()
+    );
+    localStorage.setItem(
+      "pm_durationMax",
+      (this.durationRange[1] || "").toString()
+    );
 
     this.waiting = true;
     this.page = 0;
