@@ -13,7 +13,13 @@
       </template>
     </v-banner>
 
-    <v-navigation-drawer style="z-index: 14" v-model="drawer" :permanent="$vuetify.breakpoint.mdAndUp" clipped app>
+    <v-navigation-drawer
+      style="z-index: 14"
+      v-model="drawer"
+      :permanent="$vuetify.breakpoint.mdAndUp"
+      clipped
+      app
+    >
       <v-container>
         <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
 
@@ -25,10 +31,30 @@
           v-model="selectedLabels"
           multiple
         >
-          <div style="max-height:40vh; overflow-y:scroll">
+          <div style="max-height:30vh; overflow-y:scroll">
             <v-chip label small v-for="label in allLabels" :key="label._id">{{ label.name }}</v-chip>
           </div>
         </v-chip-group>
+
+        <v-subheader>Filter by duration</v-subheader>
+        <v-range-slider hide-details :max="durationMax" v-model="durationRange" color="accent"></v-range-slider>
+        <div class="med--text text-center">{{ durationRange[0] }} min - {{ durationRange[1] }} min</div>
+
+        <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
+        <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
+
+        <v-rating
+          half-increments
+          @input="ratingFilter = $event * 2"
+          :value="ratingFilter / 2"
+          class="pb-0 pa-2"
+          background-color="grey"
+          color="amber"
+          dense
+          hide-details
+        ></v-rating>
+        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
+
         <v-select
           hide-details
           color="accent"
@@ -48,20 +74,6 @@
           placeholder="Sort direction"
           :items="sortDirItems"
         ></v-select>
-        <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
-        <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
-
-        <v-rating
-          half-increments
-          @input="ratingFilter = $event * 2"
-          :value="ratingFilter / 2"
-          class="pb-0 pa-2"
-          background-color="grey"
-          color="amber"
-          dense
-          hide-details
-        ></v-rating>
-        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
       </v-container>
     </v-navigation-drawer>
 
@@ -221,6 +233,7 @@ import SceneUploader from "../components/SceneUploader.vue";
 import IScene from "../types/scene";
 import IActor from "../types/actor";
 import ILabel from "../types/label";
+import moment from "moment";
 
 @Component({
   components: {
@@ -251,6 +264,10 @@ export default class SceneList extends Vue {
 
   query = localStorage.getItem("pm_sceneQuery") || "";
   page = 0;
+
+  durationMax =
+    parseInt(localStorage.getItem("pm_durationFilterMax") || "180") || 180;
+  durationRange = [0, this.durationMax];
 
   sortDir = localStorage.getItem("pm_sceneSortDir") || "desc";
   sortDirItems = [
@@ -485,6 +502,22 @@ export default class SceneList extends Vue {
     this.infiniteId++;
   }
 
+  @Watch("durationRange")
+  onDurationRangeChange() {
+    if (this.resetTimeout) {
+      clearTimeout(this.resetTimeout);
+    }
+
+    this.waiting = true;
+    this.page = 0;
+    this.scenes = [];
+
+    this.resetTimeout = setTimeout(() => {
+      this.waiting = false;
+      this.infiniteId++;
+    }, 500);
+  }
+
   @Watch("query")
   onQueryChange(newVal: string | null) {
     if (this.resetTimeout) {
@@ -530,7 +563,8 @@ export default class SceneList extends Vue {
         this.favoritesOnly ? "true" : "false"
       } bookmark:${this.bookmarksOnly ? "true" : "false"} rating:${
         this.ratingFilter
-      }`;
+      } duration.min:${this.durationRange[0] * 60} duration.max:${this
+        .durationRange[1] * 60}`;
 
       const result = await ApolloClient.query({
         query: gql`

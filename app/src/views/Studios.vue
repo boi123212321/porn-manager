@@ -18,7 +18,7 @@
           v-model="selectedLabels"
           multiple
         >
-          <div style="max-height:40vh; overflow-y:scroll">
+          <div style="max-height:30vh; overflow-y:scroll">
             <v-chip label small v-for="label in allLabels" :key="label._id">{{ label.name }}</v-chip>
           </div>
         </v-chip-group>
@@ -222,13 +222,17 @@ export default class StudioList extends Vue {
       value: "alpha"
     },
     {
-      text: "Added to collection",
-      value: "addedOn"
+      text: "# scenes",
+      value: "scenes"
     },
     {
+      text: "Added to collection",
+      value: "addedOn"
+    }
+    /* {
       text: "Rating",
       value: "rating"
-    }
+    } */
   ];
 
   favoritesOnly = localStorage.getItem("pm_studioFavorite") == "true";

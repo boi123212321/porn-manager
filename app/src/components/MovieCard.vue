@@ -53,7 +53,7 @@
       >{{ value.name }}</span>
     </v-card-title>
     <v-card-subtitle v-if="value.actors.length" class="pt-0 pb-0">
-      Featuring
+      With
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
     <v-card-subtitle class="pt-0 pb-0">{{ value.scenes.length }} scenes</v-card-subtitle>

@@ -4,7 +4,7 @@
       <v-container fluid>
         <v-row>
           <v-col cols="12" sm="4" md="3" lg="2" xl="2">
-            <v-hover>
+            <v-hover v-if="thumbnail">
               <template v-slot:default="{ hover }">
                 <div
                   v-ripple
@@ -24,6 +24,14 @@
                 </div>
               </template>
             </v-hover>
+            <div v-else class="text-center">
+              <v-btn
+                class="text-none"
+                @click="openThumbnailDialog"
+                text
+                color="accent"
+              >Set thumbnail</v-btn>
+            </div>
             <v-rating
               half-increments
               @input="rate"

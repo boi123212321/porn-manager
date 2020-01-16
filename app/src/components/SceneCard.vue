@@ -72,7 +72,7 @@
       >{{ value.name }}</span>
     </v-card-title>
     <v-card-subtitle v-if="value.actors.length" class="pb-1">
-      Featuring
+      With
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
     <v-rating
