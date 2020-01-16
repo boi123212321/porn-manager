@@ -322,6 +322,10 @@ export default class SceneList extends Vue {
     {
       text: "Size",
       value: "size"
+    },
+    {
+      text: "Release date",
+      value: "date"
     }
   ];
 

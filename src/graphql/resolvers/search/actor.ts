@@ -46,8 +46,8 @@ export async function getActors(_, { query }: { query: string | undefined }) {
           return (a, b) => b.views - a.views;
         case SortTarget.DATE:
           if (sortDir == "asc")
-            return (a, b) => (a.bornOn || 0) - (b.bornOn || 0);
-          return (a, b) => (b.bornOn || 0) - (a.bornOn || 0);
+            return (a, b) => (b.bornOn || 0) - (a.bornOn || 0);
+          return (a, b) => (a.bornOn || 0) - (b.bornOn || 0);
         default:
           return undefined;
       }

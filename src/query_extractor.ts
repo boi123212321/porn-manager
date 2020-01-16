@@ -8,7 +8,8 @@ export enum SortTarget {
   ALPHABETIC = "alpha",
   NUM_SCENES = "scenes",
   SIZE = "size",
-  RESOLUTION = "resolution"
+  RESOLUTION = "resolution",
+  AGE = "age"
 }
 
 interface IQueryOptions {

@@ -235,7 +235,7 @@ export default class SceneList extends Vue {
   bulkImportDialog = false;
   bulkLoader = false;
 
-   get showCardLabels( ){
+  get showCardLabels() {
     return contextModule.showCardLabels;
   }
 
@@ -311,6 +311,10 @@ export default class SceneList extends Vue {
     {
       text: "Views",
       value: "views"
+    },
+    {
+      text: "Age",
+      value: "date"
     }
   ];
 
