@@ -178,6 +178,7 @@ export default class MovieToolbar extends Vue {
     this.editScenes = JSON.parse(JSON.stringify(this.currentMovie.scenes));
     this.editDialog = true;
     this.editStudio = this.currentMovie.studio;
+    this.editReleaseDate = this.currentMovie.releaseDate;
   }
 
   remove() {
