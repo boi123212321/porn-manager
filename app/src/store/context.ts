@@ -7,6 +7,12 @@ class ContextModule extends VuexModule {
   sceneAspectRatio = 1;
   actorAspectRatio = 1;
   scenePauseOnUnfocus = false;
+  showCardLabels = true;
+
+  @Mutation
+  toggleCardLabels(bool: boolean) {
+    this.showCardLabels = bool;
+  }
 
   @Mutation
   toggleFilters(bool: boolean) {

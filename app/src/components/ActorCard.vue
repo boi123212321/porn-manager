@@ -48,7 +48,7 @@
       color="amber"
       dense
     ></v-rating>
-    <div class="pa-2">
+    <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         class="mr-1 mb-1"
         label
@@ -74,6 +74,7 @@ import { ensureDarkColor } from "../util/color";
 @Component
 export default class ActorCard extends Vue {
   @Prop(Object) value!: IActor;
+  @Prop({ default: true }) showLabels!: boolean;
 
   get cardColor() {
     if (this.value.thumbnail && this.value.thumbnail.color)

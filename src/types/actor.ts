@@ -130,16 +130,6 @@ export default class Actor {
     ).filter(Boolean) as Label[];
   }
 
-  static async find(name: string) {
-    name = name.toLowerCase().trim();
-    const allActors = await Actor.getAll();
-    return allActors.filter(
-      actor =>
-        actor.name === name ||
-        actor.aliases.map(alias => alias.toLowerCase()).includes(name)
-    );
-  }
-
   static async getById(_id: string) {
     return (await database.findOne(database.store.actors, {
       _id

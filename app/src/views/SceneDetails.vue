@@ -448,6 +448,7 @@ export default class SceneDetails extends Vue {
   markers = [] as { _id: string; name: string; time: number }[];
   markerName = "" as string | null;
   markerDialog = false;
+  autoPaused = false;
 
   labelSearchQuery = "";
 
@@ -984,19 +985,43 @@ export default class SceneDetails extends Vue {
       if (
         !document.hasFocus() &&
         this.dp &&
+        !this.dp.video.paused &&
         contextModule.scenePauseOnUnfocus
       ) {
         this.dp.pause();
+        this.autoPaused = true;
         this.dp.notice("Auto pause", 4000, 0.8);
+      }
+    };
+
+    window.onfocus = () => {
+      if (
+        document.hasFocus() &&
+        this.dp &&
+        contextModule.scenePauseOnUnfocus &&
+        this.autoPaused
+      ) {
+        this.dp.play();
+        this.dp.notice("", 0, 0);
+        this.autoPaused = false;
       }
     };
 
     document.addEventListener(
       "visibilitychange",
       () => {
-        if (document.hidden && this.dp && contextModule.scenePauseOnUnfocus) {
-          this.dp.pause();
-          this.dp.notice("Auto pause", 4000, 0.8);
+        if (this.dp && contextModule.scenePauseOnUnfocus) {
+          if (document.hidden) {
+            if (!this.dp.video.paused) {
+              this.dp.pause();
+              this.autoPaused = true;
+              this.dp.notice("Auto pause", 4000, 0.8);
+            }
+          } else if (this.autoPaused) {
+            this.dp.play();
+            this.autoPaused = false;
+            this.dp.notice("", 0, 0);
+          }
         }
       },
       false

@@ -235,12 +235,6 @@ export default class Scene {
     })) as Scene[];
   }
 
-  static async find(name: string) {
-    name = name.toLowerCase().trim();
-    const allScenes = await Scene.getAll();
-    return allScenes.filter(scene => scene.name.toLowerCase() == name);
-  }
-
   static async getMarkers(scene: Scene) {
     const references = await CrossReference.getBySource(scene._id);
     return (

@@ -32,7 +32,12 @@
           >{{ this.$vuetify.theme.dark ? "Light mode" : "Dark mode" }}</v-btn>
         </div>
         <div>
-          <v-checkbox v-model="scenePauseOnUnfocus" label="Pause video on window unfocus"></v-checkbox>
+          <v-checkbox
+            hide-details
+            v-model="scenePauseOnUnfocus"
+            label="Pause video on window unfocus"
+          ></v-checkbox>
+          <v-checkbox hide-details v-model="showCardLabels" label="Show card labels on overview"></v-checkbox>
         </div>
       </v-col>
     </v-row>
@@ -75,6 +80,15 @@ import { contextModule } from "../store/context";
 export default class About extends Vue {
   beforeMount() {
     document.title = "About";
+  }
+
+  set showCardLabels(val: boolean) {
+    localStorage.setItem("pm_showCardLabels", val.toString());
+    contextModule.toggleCardLabels(val);
+  }
+
+  get showCardLabels() {
+    return contextModule.showCardLabels;
   }
 
   set actorRatio(val: number) {

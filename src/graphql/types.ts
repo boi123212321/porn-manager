@@ -31,7 +31,7 @@ type Query {
   numStudios: Int!
   numImages: Int!
 
-  getScenes(query: String): [Scene!]!
+  getScenes(query: String, random: Boolean): [Scene!]!
   getActors(query: String): [Actor!]!
   getMovies(query: String): [Movie!]!
   # auto = true will prevent thumbnails, previews and screenshots from being filtered out
@@ -160,6 +160,7 @@ type Studio {
   favorite: Boolean!
   bookmark: Boolean!
   customFields: Object!
+  aliases: [String!]
   
   # Resolvers
   parent: Studio
@@ -272,6 +273,7 @@ input StudioUpdateOpts {
   bookmark: Boolean
   parent: String
   labels: [String!]
+  aliases: [String!]
 }
 
 input Crop {

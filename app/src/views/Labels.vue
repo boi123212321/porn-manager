@@ -182,11 +182,17 @@ export default class Home extends Vue {
     return this.selectedLabels.map(i => this.labels[i]._id);
   }
 
-  editLabel() {
+  async sleep(ms: number) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  async editLabel() {
     if (!this.editingLabel) return;
     if (!this.validEditing) return;
 
+    await this.sleep(50);
     this.editLabelLoader = true;
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: LabelUpdateOpts!) {

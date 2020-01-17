@@ -15,7 +15,7 @@
       class="py-0"
     >{{ studio.numScenes }} {{ studio.numScenes == 1 ? 'scene' : 'scenes' }}</v-card-subtitle>
     <v-card-subtitle class="py-0" v-if="studio.parent">Part of {{ studio.parent.name }}</v-card-subtitle>
-    <v-card-text class="pt-3">
+    <v-card-text class="pt-3" v-if="this.studio.labels.length && showLabels">
       <v-chip
         class="mr-1 mb-1"
         label
@@ -36,6 +36,7 @@ import gql from "graphql-tag";
 @Component
 export default class ActorCard extends Vue {
   @Prop(Object) studio!: any;
+  @Prop({ default: true }) showLabels!: boolean;
 
   get labelNames() {
     return this.studio.labels.map(l => l.name).sort();

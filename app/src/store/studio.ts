@@ -10,6 +10,11 @@ class StudioModule extends VuexModule {
   }
 
   @Mutation
+  setAliases(aliases: string[]) {
+    if (this.current) this.current.aliases = aliases;
+  }
+
+  @Mutation
   setDescription(description: string) {
     if (this.current) this.current.description = description;
   }

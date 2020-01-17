@@ -12,8 +12,12 @@ export async function checkPassword(
 
   const config = await getConfig();
 
-  if (!config.PASSWORD || sha(req.query.password) == config.PASSWORD) {
-    return res.json("");
+  if (
+    !config.PASSWORD ||
+    sha(req.query.password) == config.PASSWORD ||
+    req.query.password == config.PASSWORD
+  ) {
+    return res.json(config.PASSWORD);
   }
 
   res.sendStatus(401);
@@ -27,12 +31,20 @@ export async function passwordHandler(
   const config = await getConfig();
   if (!config.PASSWORD) return next();
 
-  if (req.headers["x-pass"] && sha(req.headers["x-pass"]) == config.PASSWORD) {
+  if (
+    req.headers["x-pass"] &&
+    (req.headers["x-pass"] == config.PASSWORD ||
+      sha(req.headers["x-pass"]) == config.PASSWORD)
+  ) {
     logger.log("Auth OK");
     return next();
   }
 
-  if (req.query.password && sha(req.query.password) == config.PASSWORD) {
+  if (
+    req.query.password &&
+    (req.query.password == config.PASSWORD ||
+      sha(req.query.password) == config.PASSWORD)
+  ) {
     logger.log("Auth OK");
     return next();
   }

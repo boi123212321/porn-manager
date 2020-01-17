@@ -53,7 +53,7 @@
       >{{ value.name }}</span>
     </v-card-title>
     <v-card-subtitle v-if="value.actors.length" class="pt-0 pb-0">
-      Featuring
+      With
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
     <v-card-subtitle class="pt-0 pb-0">{{ value.scenes.length }} scenes</v-card-subtitle>
@@ -66,7 +66,7 @@
       dense
       readonly
     ></v-rating>
-    <div class="pa-2">
+    <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         label
         class="mr-1 mb-1"
@@ -107,6 +107,7 @@ import Color from "color";
 export default class MovieCard extends Vue {
   @Prop(Object) value!: IMovie;
   @Prop({ default: 0.71 }) ratio!: number;
+  @Prop({ default: true }) showLabels!: boolean;
 
   get complementary() {
     if (this.cardColor)

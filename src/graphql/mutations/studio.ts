@@ -5,7 +5,8 @@ import Movie from "../../types/movie";
 import Image from "../../types/image";
 import { stripStr } from "../../extractor";
 import * as logger from "../../logger/index";
-import { getConfig } from "../../config/index";
+import { indices } from "../../search/index";
+import { createStudioSearchDoc } from "../../search/studio";
 
 type IStudioUpdateOpts = Partial<{
   name: string;
@@ -15,6 +16,7 @@ type IStudioUpdateOpts = Partial<{
   bookmark: boolean;
   parent: string | null;
   labels: string[];
+  aliases: string[];
 }>;
 
 export default {
@@ -53,6 +55,9 @@ export default {
       const studio = await Studio.getById(id);
 
       if (studio) {
+        if (Array.isArray(opts.aliases))
+          studio.aliases = [...new Set(opts.aliases)];
+
         if (typeof opts.name == "string") studio.name = opts.name.trim();
 
         if (typeof opts.description == "string")
@@ -76,6 +81,7 @@ export default {
           studio
         );
         updatedStudios.push(studio);
+        indices.studios.update(studio._id, await createStudioSearchDoc(studio));
       }
     }
 
@@ -88,6 +94,7 @@ export default {
 
       if (studio) {
         await Studio.remove(studio);
+        indices.studios.remove(studio._id);
         await Studio.filterStudio(studio._id);
         await Scene.filterStudio(studio._id);
         await Movie.filterStudio(studio._id);

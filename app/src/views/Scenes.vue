@@ -13,7 +13,13 @@
       </template>
     </v-banner>
 
-    <v-navigation-drawer style="z-index: 14" v-model="drawer" :permanent="$vuetify.breakpoint.mdAndUp" clipped app>
+    <v-navigation-drawer
+      style="z-index: 14"
+      v-model="drawer"
+      :permanent="$vuetify.breakpoint.mdAndUp"
+      clipped
+      app
+    >
       <v-container>
         <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
 
@@ -25,10 +31,30 @@
           v-model="selectedLabels"
           multiple
         >
-          <div style="max-height:40vh; overflow-y:scroll">
+          <div style="max-height:30vh; overflow-y:scroll">
             <v-chip label small v-for="label in allLabels" :key="label._id">{{ label.name }}</v-chip>
           </div>
         </v-chip-group>
+
+        <v-subheader>Filter by duration</v-subheader>
+        <v-range-slider hide-details :max="durationMax" v-model="durationRange" color="accent"></v-range-slider>
+        <div class="med--text text-center">{{ durationRange[0] }} min - {{ durationRange[1] }} min</div>
+
+        <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
+        <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
+
+        <v-rating
+          half-increments
+          @input="ratingFilter = $event * 2"
+          :value="ratingFilter / 2"
+          class="pb-0 pa-2"
+          background-color="grey"
+          color="amber"
+          dense
+          hide-details
+        ></v-rating>
+        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
+
         <v-select
           hide-details
           color="accent"
@@ -48,20 +74,6 @@
           placeholder="Sort direction"
           :items="sortDirItems"
         ></v-select>
-        <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
-        <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
-
-        <v-rating
-          half-increments
-          @input="ratingFilter = $event * 2"
-          :value="ratingFilter / 2"
-          class="pb-0 pa-2"
-          background-color="grey"
-          color="amber"
-          dense
-          hide-details
-        ></v-rating>
-        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
       </v-container>
     </v-navigation-drawer>
 
@@ -71,8 +83,11 @@
         <!--  <v-btn class="mr-3" @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>-->
-        <v-btn @click="openUploadDialog" icon>
+        <v-btn class="mr-3" @click="openUploadDialog" icon>
           <v-icon>mdi-upload</v-icon>
+        </v-btn>
+        <v-btn @click="getRandom" icon>
+          <v-icon>mdi-shuffle-variant</v-icon>
         </v-btn>
       </div>
       <v-row>
@@ -86,7 +101,7 @@
           lg="3"
           xl="2"
         >
-          <scene-card v-model="scenes[i]" style="height: 100%">
+          <scene-card :showLabels="showCardLabels" v-model="scenes[i]" style="height: 100%">
             <template v-slot:action>
               <v-checkbox
                 color="accent"
@@ -221,6 +236,7 @@ import SceneUploader from "../components/SceneUploader.vue";
 import IScene from "../types/scene";
 import IActor from "../types/actor";
 import ILabel from "../types/label";
+import moment from "moment";
 
 @Component({
   components: {
@@ -251,6 +267,15 @@ export default class SceneList extends Vue {
 
   query = localStorage.getItem("pm_sceneQuery") || "";
   page = 0;
+
+  durationMax =
+    parseInt(localStorage.getItem("pm_durationFilterMax") || "180") || 180;
+  durationRange = [
+    parseInt(localStorage.getItem("pm_durationMin") || "0") || 0,
+    parseInt(
+      localStorage.getItem("pm_durationMax") || this.durationMax.toString()
+    ) || this.durationMax
+  ];
 
   sortDir = localStorage.getItem("pm_sceneSortDir") || "desc";
   sortDirItems = [
@@ -289,6 +314,18 @@ export default class SceneList extends Vue {
     {
       text: "Duration",
       value: "duration"
+    },
+    {
+      text: "Resolution",
+      value: "resolution"
+    },
+    {
+      text: "Size",
+      value: "size"
+    },
+    {
+      text: "Release date",
+      value: "date"
     }
   ];
 
@@ -304,6 +341,10 @@ export default class SceneList extends Vue {
 
   selectedScenes = [] as string[];
   deleteSelectedScenesDialog = false;
+
+  get showCardLabels() {
+    return contextModule.showCardLabels;
+  }
 
   selectScene(id: string) {
     if (this.selectedScenes.includes(id))
@@ -485,6 +526,31 @@ export default class SceneList extends Vue {
     this.infiniteId++;
   }
 
+  @Watch("durationRange")
+  onDurationRangeChange(newVal: number) {
+    if (this.resetTimeout) {
+      clearTimeout(this.resetTimeout);
+    }
+
+    localStorage.setItem(
+      "pm_durationMin",
+      (this.durationRange[0] || "").toString()
+    );
+    localStorage.setItem(
+      "pm_durationMax",
+      (this.durationRange[1] || "").toString()
+    );
+
+    this.waiting = true;
+    this.page = 0;
+    this.scenes = [];
+
+    this.resetTimeout = setTimeout(() => {
+      this.waiting = false;
+      this.infiniteId++;
+    }, 500);
+  }
+
   @Watch("query")
   onQueryChange(newVal: string | null) {
     if (this.resetTimeout) {
@@ -515,7 +581,14 @@ export default class SceneList extends Vue {
     });
   }
 
-  async fetchPage() {
+  getRandom() {
+    this.fetchPage(true).then(scenes => {
+      // @ts-ignore
+      this.$router.push(`/scene/${scenes[0]._id}`);
+    });
+  }
+
+  async fetchPage(random = false) {
     try {
       let include = "";
 
@@ -530,12 +603,13 @@ export default class SceneList extends Vue {
         this.favoritesOnly ? "true" : "false"
       } bookmark:${this.bookmarksOnly ? "true" : "false"} rating:${
         this.ratingFilter
-      }`;
+      } duration.min:${this.durationRange[0] * 60} duration.max:${this
+        .durationRange[1] * 60}`;
 
       const result = await ApolloClient.query({
         query: gql`
-          query($query: String) {
-            getScenes(query: $query) {
+          query($query: String, $random: Boolean) {
+            getScenes(query: $query, random: $random) {
               ...SceneFragment
               actors {
                 ...ActorFragment
@@ -550,7 +624,8 @@ export default class SceneList extends Vue {
           ${studioFragment}
         `,
         variables: {
-          query
+          query,
+          random
         }
       });
 

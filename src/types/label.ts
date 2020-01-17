@@ -52,8 +52,6 @@ export default class Label {
 
   static async find(name: string) {
     name = name.toLowerCase().trim();
-
-    name = name.toLowerCase().trim();
     const allLabels = await Label.getAll();
     return allLabels.find(
       label =>
