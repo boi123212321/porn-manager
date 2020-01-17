@@ -42,6 +42,8 @@ export default {
     }
 
     await database.insert(database.store.studios, studio);
+    indices.studios.add(await createStudioSearchDoc(studio));
+
     return studio;
   },
 
