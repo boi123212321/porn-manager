@@ -5,7 +5,11 @@ export enum SortTarget {
   ADDED_ON = "addedOn",
   VIEWS = "views",
   DURATION = "duration",
-  ALPHABETIC = "alpha"
+  ALPHABETIC = "alpha",
+  NUM_SCENES = "scenes",
+  SIZE = "size",
+  RESOLUTION = "resolution",
+  AGE = "age"
 }
 
 interface IQueryOptions {
@@ -21,7 +25,30 @@ interface IQueryOptions {
   page: number;
   scenes: string[];
   studios: string[];
+  durationMin: number | null;
+  durationMax: number | null;
 }
+
+const parseWords = (str = "") =>
+  //@ts-ignore
+  str
+    .match(/\\?.|^$/g)
+    .reduce(
+      (p, c) => {
+        if (c === "'") {
+          //@ts-ignore
+          p.quote ^= 1;
+          //@ts-ignore
+        } else if (!p.quote && c === " ") {
+          p.a.push("");
+        } else {
+          p.a[p.a.length - 1] += c.replace(/\\(.)/, "$1");
+        }
+        return p;
+      },
+      { a: [""] }
+    )
+    .a.filter(Boolean);
 
 export default (query?: string) => {
   const options: IQueryOptions = {
@@ -33,14 +60,16 @@ export default (query?: string) => {
     sortDir: "desc",
     page: 0,
     scenes: [],
-    studios: []
+    studios: [],
+    durationMin: null,
+    durationMax: null
   };
 
   if (!query) return options;
 
   options.sortBy = SortTarget.RELEVANCE;
 
-  for (const part of query.split(" ")) {
+  for (const part of parseWords(query)) {
     const [operation, value] = part.split(":");
 
     switch (operation) {
@@ -48,7 +77,7 @@ export default (query?: string) => {
         options[operation] = parseInt(value);
         break;
       case "query":
-        options[operation] = value.slice(1, -1);
+        options[operation] = value;
         break;
       case "include":
         options[operation] = value.split(",");
@@ -67,6 +96,12 @@ export default (query?: string) => {
         break;
       case "rating":
         options[operation] = parseInt(value);
+        break;
+      case "duration.min":
+        options.durationMin = parseInt(value) || null;
+        break;
+      case "duration.max":
+        options.durationMax = parseInt(value) || null;
         break;
       case "favorite":
         options[operation] = value == "true";

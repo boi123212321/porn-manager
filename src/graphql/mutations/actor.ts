@@ -1,10 +1,13 @@
 import * as database from "../../database";
 import Actor from "../../types/actor";
 import Scene from "../../types/scene";
-import { Dictionary } from "../../types/utility";
-import { stripStr } from "../../extractor";
+import { Dictionary, mapAsync } from "../../types/utility";
+import { stripStr, extractLabels } from "../../extractor";
 import * as logger from "../../logger/index";
 import { getConfig } from "../../config/index";
+import { indices } from "../../search/index";
+import { createActorSearchDoc } from "../../search/actor";
+import { runPluginsSerial } from "../../plugins";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -51,7 +54,36 @@ export default {
       }
     }
 
+    let pluginResult = {} as Dictionary<any>;
+
+    try {
+      pluginResult = await runPluginsSerial(config, "actorCreated", {
+        actorName: actor.name
+      });
+
+      if (pluginResult.bornOn)
+        actor.bornOn = new Date(pluginResult.bornOn).valueOf();
+
+      if (pluginResult.aliases && Array.isArray(pluginResult.aliases)) {
+        actor.aliases.push(...pluginResult.aliases);
+        actor.aliases = [...new Set(actor.aliases)];
+      }
+
+      if (pluginResult.custom && typeof pluginResult.custom === "object")
+        Object.assign(actor.customFields, pluginResult.custom);
+
+      if (pluginResult.labels && Array.isArray(pluginResult.labels)) {
+        const labelIds = (
+          await mapAsync(pluginResult.labels, extractLabels)
+        ).flat();
+        await Actor.setLabels(actor, labelIds.concat(actorLabels));
+      }
+    } catch (error) {
+      logger.error(error.message);
+    }
+
     await database.insert(database.store.actors, actor);
+    indices.actors.add(await createActorSearchDoc(actor));
     return actor;
   },
 
@@ -98,6 +130,7 @@ export default {
         await database.update(database.store.actors, { _id: actor._id }, actor);
 
         updatedActors.push(actor);
+        indices.actors.update(actor._id, await createActorSearchDoc(actor));
       } else {
         throw new Error(`Actor ${id} not found`);
       }
@@ -112,6 +145,7 @@ export default {
 
       if (actor) {
         await Actor.remove(actor);
+        indices.actors.remove(actor._id);
         await database.remove(database.store.crossReferences, {
           from: actor._id
         });

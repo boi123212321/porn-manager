@@ -236,9 +236,10 @@ export default class Image {
 
   static async getActors(image: Image) {
     const references = await CrossReference.getBySource(image._id);
+
     return (
       await mapAsync(
-        references.filter(r => r.to.startsWith("ac_")),
+        references.filter(r => r.to && r.to.startsWith("ac_")),
         r => Actor.getById(r.to)
       )
     ).filter(Boolean) as Actor[];
@@ -247,8 +248,11 @@ export default class Image {
   static async setActors(image: Image, actorIds: string[]) {
     const references = await CrossReference.getBySource(image._id);
 
+    console.log(actorIds);
+    console.log(references);
+
     const oldActorReferences = references
-      .filter(r => r.to.startsWith("ac_"))
+      .filter(r => r.to && r.to.startsWith("ac_"))
       .map(r => r._id);
 
     for (const id of oldActorReferences) {
@@ -266,7 +270,7 @@ export default class Image {
     const references = await CrossReference.getBySource(image._id);
 
     const oldLabelReferences = references
-      .filter(r => r.to.startsWith("la_"))
+      .filter(r => r.to && r.to.startsWith("la_"))
       .map(r => r._id);
 
     for (const id of oldLabelReferences) {
@@ -284,7 +288,7 @@ export default class Image {
     const references = await CrossReference.getBySource(image._id);
     return (
       await mapAsync(
-        references.filter(r => r.to.startsWith("la_")),
+        references.filter(r => r.to && r.to.startsWith("la_")),
         r => Label.getById(r.to)
       )
     ).filter(Boolean) as Label[];

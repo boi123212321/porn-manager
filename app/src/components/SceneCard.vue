@@ -72,7 +72,7 @@
       >{{ value.name }}</span>
     </v-card-title>
     <v-card-subtitle v-if="value.actors.length" class="pb-1">
-      Featuring
+      With
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
     <v-rating
@@ -84,7 +84,7 @@
       color="amber"
       dense
     ></v-rating>
-    <div class="pa-2">
+    <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         label
         class="mr-1 mb-1"
@@ -126,6 +126,7 @@ import SceneMixin from "../mixins/scene";
 @Component
 export default class SceneCard extends Mixins(SceneMixin) {
   @Prop(Object) value!: IScene;
+  @Prop({ default: true }) showLabels!: boolean;
 
   playIndex = 0;
   playInterval = null as NodeJS.Timeout | null;

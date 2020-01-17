@@ -33,6 +33,12 @@ export default class CustomField {
     this.target = target;
   }
 
+  static async find(name: string) {
+    name = name.toLowerCase().trim();
+    const allFields = await CustomField.getAll();
+    return allFields.find(field => field.name === name);
+  }
+
   static async remove(_id: string) {
     await database.remove(database.store.customFields, { _id });
   }

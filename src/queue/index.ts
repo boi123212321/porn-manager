@@ -12,6 +12,8 @@ import ora from "ora";
 import { existsAsync, statAsync } from "../fs/async";
 import { fileHash } from "../hash";
 import Studio from "../types/studio";
+import { createSceneSearchDoc } from "../search/scene";
+import { indices } from "../search/index";
 
 function removeExtension(file: string) {
   return file.replace(/\.[^/.]+$/, "");
@@ -244,6 +246,7 @@ class Queue {
 
     logger.log(`Creating scene with id ${scene._id}...`);
     await database.insert(database.store.scenes, scene);
+    indices.scenes.add(await createSceneSearchDoc(scene));
     logger.success(`Scene '${scene.name}' created.`);
   }
 

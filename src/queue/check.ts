@@ -1,4 +1,4 @@
-import { getConfig } from "../config";
+import { getConfig, IConfig } from "../config";
 import { walk, statAsync } from "../fs/async";
 import { filterAsync } from "../types/utility";
 import Scene from "../types/scene";
@@ -7,9 +7,11 @@ import { basename } from "path";
 import ProcessingQueue, { IQueueItem } from "../queue/index";
 import * as logger from "../logger/index";
 import * as database from "../database";
-import { extractLabels, extractActors } from "../extractor";
+import { extractLabels, extractActors, extractScenes } from "../extractor";
 import Jimp from "jimp";
 import ora = require("ora");
+import { indices } from "../search/index";
+import { createImageSearchDoc } from "../search/image";
 
 async function getAll() {
   return (await database.find(database.store.queue, {})) as IQueueItem[];
@@ -69,7 +71,11 @@ async function imageWithPathExists(path: string) {
   return !!image;
 }
 
-async function processImage(imagePath: string, readImage = true) {
+async function processImage(
+  imagePath: string,
+  readImage = true,
+  config: IConfig
+) {
   try {
     const imageName = basename(imagePath);
     const image = new Image(imageName);
@@ -82,6 +88,11 @@ async function processImage(imagePath: string, readImage = true) {
       image.hash = jimpImage.hash();
     }
 
+    // Extract scene
+    const extractedScenes = await extractScenes(image.path);
+    logger.log(`Found ${extractedScenes.length} scenes in image path.`);
+    image.scene = extractedScenes[0] || null;
+
     // Extract actors
     const extractedActors = await extractActors(image.path);
     logger.log(`Found ${extractedActors.length} actors in image path.`);
@@ -93,6 +104,7 @@ async function processImage(imagePath: string, readImage = true) {
     await Image.setLabels(image, [...new Set(extractedLabels)]);
 
     await database.insert(database.store.images, image);
+    indices.images.add(await createImageSearchDoc(image));
     logger.success(`Image '${imageName}' done.`);
   } catch (error) {
     logger.error(error);
@@ -121,7 +133,7 @@ export async function checkImageFolders() {
         return;
 
       if (!(await imageWithPathExists(path))) {
-        await processImage(path, config.READ_IMAGES_ON_IMPORT);
+        await processImage(path, config.READ_IMAGES_ON_IMPORT, config);
         numAddedImages++;
         logger.message(`Added image '${path}'.`);
       } else {
@@ -164,6 +176,7 @@ export async function checkPreviews() {
           image.meta.size = stats.size;
 
           await database.insert(database.store.images, image);
+          indices.images.add(await createImageSearchDoc(image));
 
           await database.update(
             database.store.scenes,

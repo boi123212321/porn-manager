@@ -16,6 +16,10 @@ logger.message(
 (async () => {
   let config = await checkConfig();
 
+  // TODO: validate config
+
+  logger.message("Registered plugins", Object.keys(config.PLUGINS));
+
   if (config.PASSWORD && process.env.NODE_ENV != "development") {
     let password;
     do {

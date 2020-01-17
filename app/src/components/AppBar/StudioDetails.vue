@@ -45,6 +45,15 @@
               :rows="2"
             />
 
+            <v-combobox
+              clearable
+              color="accent"
+              multiple
+              chips
+              v-model="editAliases"
+              placeholder="Alias names"
+            />
+
             <v-subheader>Parent studio</v-subheader>
             <StudioSelector :ignore="currentStudio._id" v-model="editParent" />
           </v-form>
@@ -96,6 +105,7 @@ export default class StudioToolbar extends Vue {
   editName = "";
   editDescription = "";
   editParent = null as any | null;
+  editAliases = [] as string[];
 
   studioNameRules = [v => (!!v && !!v.length) || "Invalid studio name"];
 
@@ -139,8 +149,14 @@ export default class StudioToolbar extends Vue {
     this.removeDialog = true;
   }
 
-  editStudio() {
+  async sleep(ms: number) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  async editStudio() {
     if (!this.currentStudio) return;
+
+    await this.sleep(50);
 
     ApolloClient.mutate({
       mutation: gql`
@@ -163,7 +179,8 @@ export default class StudioToolbar extends Vue {
         opts: {
           name: this.editName,
           description: this.editDescription,
-          parent: this.editParent ? this.editParent._id : null
+          parent: this.editParent ? this.editParent._id : null,
+          aliases: this.editAliases
         }
       }
     })
@@ -171,6 +188,7 @@ export default class StudioToolbar extends Vue {
         studioModule.setName(this.editName.trim());
         studioModule.setDescription(this.editDescription.trim());
         studioModule.setParent(res.data.updateStudios[0].parent);
+        studioModule.setAliases(this.editAliases);
         this.editDialog = false;
       })
       .catch(err => {
@@ -185,6 +203,7 @@ export default class StudioToolbar extends Vue {
     this.editDescription = this.currentStudio.description || "";
     this.editDialog = true;
     this.editParent = this.currentStudio.parent;
+    this.editAliases = this.currentStudio.aliases || [];
   }
 
   favorite() {
