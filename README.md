@@ -101,31 +101,31 @@ cd app
 npm install
 ```
 
-- Run web app in dev mode
+- Run web app in dev mode (in app/ folder)
 
 ```
 npm run serve
 ```
 
-- Build web app
+- Build web app (in app/ folder)
 
 ```
 npm run build
 ```
 
-- Run server in dev mode
+- Run server in dev mode (in root folder)
 
 ```
 npm run mon
 ```
 
-- Run server in release mode
+- Run server in release mode (in root folder)
 
 ```
 npm run build
 ```
 
-And run the built exe in the release/ folder
+And run the built executable in the release/ folder
 
 ## Images
 
