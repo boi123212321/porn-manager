@@ -129,7 +129,7 @@
               cols="12"
               sm="6"
               md="4"
-              lg="3"
+              lg="2"
               xl="2"
             >
               <actor-card style="height: 100%" v-model="actors[i]" />
