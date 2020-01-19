@@ -15,6 +15,9 @@ import Studio from "../types/studio";
 import { createSceneSearchDoc } from "../search/scene";
 import { indices } from "../search/index";
 import { createImageSearchDoc } from "../search/image";
+import { runPluginsSerial } from "../plugins";
+import actor from "../graphql/resolvers/actor";
+import { mapAsync } from "../types/utility";
 
 function removeExtension(file: string) {
   return file.replace(/\.[^/.]+$/, "");
@@ -135,19 +138,19 @@ class Queue {
     await Scene.setActors(scene, actors);
     logger.log(`Found ${extractedActors.length} actors in scene path.`);
 
-    let labels = [] as string[];
+    let sceneLabels = [] as string[];
     if (item.labels) {
-      labels = item.labels;
+      sceneLabels = item.labels;
     }
 
     // Extract labels
     const extractedLabels = await extractLabels(sourcePath);
-    labels.push(...extractedLabels);
+    sceneLabels.push(...extractedLabels);
     logger.log(`Found ${extractedLabels.length} labels in scene path.`);
 
     if (config.APPLY_ACTOR_LABELS === true) {
       logger.log("Applying actor labels to scene");
-      labels.push(
+      sceneLabels.push(
         ...(
           await Promise.all(
             extractedActors.map(async id => {
@@ -173,12 +176,12 @@ class Queue {
 
         if (studio) {
           logger.log("Applying studio labels to scene");
-          labels.push(...(await Studio.getLabels(studio)).map(l => l._id));
+          sceneLabels.push(...(await Studio.getLabels(studio)).map(l => l._id));
         }
       }
     }
 
-    await Scene.setLabels(scene, labels);
+    await Scene.setLabels(scene, sceneLabels);
 
     // Thumbnails
     if (config.GENERATE_THUMBNAILS) {
@@ -206,7 +209,7 @@ class Queue {
         image.scene = scene._id;
         image.meta.size = file.size;
         image.labels = scene.labels;
-        await Image.setLabels(image, labels);
+        await Image.setLabels(image, sceneLabels);
         await Image.setActors(image, actors);
         logger.log(`Creating image with id ${image._id}...`);
         await database.insert(database.store.images, image);
@@ -244,6 +247,31 @@ class Queue {
         logger.error(error);
         loader.fail(`Error generating preview.`);
       }
+    }
+
+    try {
+      const pluginResult = await runPluginsSerial(config, "sceneCreated", {
+        sceneName: scene.name,
+        scenePath: scene.path
+      });
+
+      if (typeof pluginResult.description === "string")
+        scene.description = pluginResult.description;
+
+      if (typeof pluginResult.releaseDate === "number")
+        scene.releaseDate = new Date(pluginResult.releaseDate).valueOf();
+
+      if (pluginResult.custom && typeof pluginResult.custom === "object")
+        Object.assign(scene.customFields, pluginResult.custom);
+
+      if (pluginResult.labels && Array.isArray(pluginResult.labels)) {
+        const labelIds = (
+          await mapAsync(pluginResult.labels, extractLabels)
+        ).flat();
+        await Scene.setLabels(scene, labelIds.concat(sceneLabels));
+      }
+    } catch (error) {
+      logger.error(error.message);
     }
 
     logger.log(`Creating scene with id ${scene._id}...`);

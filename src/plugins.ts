@@ -45,14 +45,16 @@ export async function runPlugin(
         $cheerio: cheerio,
         $moment: moment,
         $log: debug("porn:plugin"),
-        $ora: ora,
+        $loader: ora,
         $throw: (str: string) => {
           logger.error(str);
           throw new Error(str);
         },
+        $async: {
+          map: mapAsync,
+          filter: filterAsync
+        },
         args: plugin.args,
-        mapAsync,
-        filterAsync,
         ...inject
       });
 

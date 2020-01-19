@@ -54,14 +54,12 @@ export default {
       }
     }
 
-    let pluginResult = {} as Dictionary<any>;
-
     try {
-      pluginResult = await runPluginsSerial(config, "actorCreated", {
+      const pluginResult = await runPluginsSerial(config, "actorCreated", {
         actorName: actor.name
       });
 
-      if (pluginResult.bornOn)
+      if (typeof pluginResult.releaseDate === "number")
         actor.bornOn = new Date(pluginResult.bornOn).valueOf();
 
       if (pluginResult.aliases && Array.isArray(pluginResult.aliases)) {

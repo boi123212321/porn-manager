@@ -58,12 +58,15 @@ export interface IConfig {
   CALCULATE_FILE_CHECKSUM: boolean;
 
   PLUGINS: Dictionary<IPlugin>;
-  PLUGIN_EVENTS: { [key: string]: string[] };
+  PLUGIN_EVENTS: Dictionary<string[]>;
 }
 
 export const defaultConfig: IConfig = {
   VIDEO_PATHS: [],
   IMAGE_PATHS: [],
+
+  BULK_IMPORT_PATHS: [],
+
   SCAN_ON_STARTUP: false,
   SCAN_INTERVAL: 10800000,
   LIBRARY_PATH: process.cwd(),
@@ -88,7 +91,8 @@ export const defaultConfig: IConfig = {
   CALCULATE_FILE_CHECKSUM: false,
   PLUGINS: {},
   PLUGIN_EVENTS: {
-    actorCreated: []
+    actorCreated: [],
+    sceneCreated: []
   }
 };
 
