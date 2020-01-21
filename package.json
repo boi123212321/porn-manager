@@ -45,7 +45,7 @@
     "graphql-tools": "^4.0.6",
     "graphql-type-json": "^0.3.1",
     "graphql-type-long": "^0.1.1",
-    "inquirer": "7.0.0",
+    "inquirer": "7.0.3",
     "jimp": "^0.8.5",
     "js-sha512": "^0.8.0",
     "merge-img": "^2.1.3",
