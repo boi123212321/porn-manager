@@ -1,57 +1,54 @@
 import { getConfig } from "../config";
-import { walk, existsAsync, readFileAsync, writeFileAsync } from "../fs/async";
+import { walk, existsAsync, readFileAsync } from "../fs/async";
 import { basename, extname } from "path";
 import * as logger from "../logger/index";
-import { libraryPath, Dictionary } from "../types/utility";
+import { libraryPath } from "../types/utility";
 import YAML from "yaml";
-import {
-  readScenes,
-  IImportedLabel,
-  IImportedScene,
-  IImportedActor,
-  IImportedMovie,
-  readActors,
-  readLabels,
-  readMovies
-} from "./read";
 import { verifyFileData } from "./verify";
 import { createFromFileData } from "./create";
+import { validateImportFile } from "./validate";
 
 // Previously imported files
 let imported: string[] = [];
 
 async function processFile(file: string) {
   let parsed = null as any;
-
   let fileContent = await readFileAsync(file, "utf-8");
 
-  if (extname(file) == ".json") parsed = JSON.parse(fileContent);
-  else if (extname(file) == ".yaml") parsed = YAML.parse(fileContent);
-  else throw new Error(`Unsupported file type '${extname(file)}'.`);
+  if (extname(file) == ".json") {
+    try {
+      parsed = JSON.parse(fileContent);
+    } catch (error) {
+      logger.error(`Broken import file: ${file}`);
+      process.exit(1);
+    }
+  } else if (extname(file) == ".yaml" || extname(file) == ".yml") {
+    try {
+      parsed = YAML.parse(fileContent);
+    } catch (error) {
+      logger.error(`Broken import file: ${file}`);
+      process.exit(1);
+    }
+  } else throw new Error(`Unsupported file type '${extname(file)}'.`);
 
   if (typeof parsed !== "object" || parsed === null)
-    throw new Error(`Invalid format.`);
+    throw new Error(`${file}: Invalid import format.`);
 
-  let scenes = {} as Dictionary<IImportedScene>;
-  let actors = {} as Dictionary<IImportedActor>;
-  let labels = {} as Dictionary<IImportedLabel>;
-  let movies = {} as Dictionary<IImportedMovie>;
+  const errors = validateImportFile(parsed);
+  if (errors.length) {
+    logger.error(`Invalid structure of file: ${file}`);
+    logger.error(errors);
+    process.exit(1);
+  }
 
-  if (parsed.scenes) scenes = readScenes(parsed.scenes);
-  if (parsed.actors) actors = readActors(parsed.actors);
-  if (parsed.labels) labels = readLabels(parsed.labels);
-  if (parsed.movies) movies = readMovies(parsed.movies);
-
-  const data = {
-    scenes,
-    actors,
-    labels,
-    movies
-  };
-
-  console.log(data);
-  await verifyFileData(data);
-  await createFromFileData(data);
+  console.log(parsed);
+  try {
+    await verifyFileData(parsed);
+  } catch (error) {
+    logger.error(error.message);
+    process.exit(1);
+  }
+  await createFromFileData(parsed);
 }
 
 export async function checkImportFolders() {
@@ -65,7 +62,7 @@ export async function checkImportFolders() {
       imported = (await readFileAsync(importedFile, "utf-8")).split("\n");
   } catch (error) {
     logger.error(error);
-    return;
+    process.exit(1);
   }
 
   // Files to process
@@ -85,15 +82,16 @@ export async function checkImportFolders() {
 
   // TODO: await writeFileAsync(importedFile, imported.join("\n"));
 
-  logger.message(`Importing ${newFiles.length} import files...`);
+  logger.message(`Importing ${newFiles.length} new import files...`);
 
   for (const file of newFiles) {
     logger.log(`Reading import file: ${file}...`);
     try {
       await processFile(file);
     } catch (err) {
-      console.error(`${file}: could not read file.`);
+      logger.error(`${file}: could not read file.`);
       logger.error(err.message);
+      process.exit(1);
     }
   }
 }

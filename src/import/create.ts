@@ -3,14 +3,18 @@ import {
   IImportedScene,
   IImportedActor,
   IImportedLabel,
-  IImportedMovie
-} from "./read";
+  IImportedMovie,
+  IImportedStudio,
+  IImportedCustomField
+} from "./types";
 
 export interface ICreateOptions {
-  scenes: Dictionary<IImportedScene>;
-  actors: Dictionary<IImportedActor>;
-  labels: Dictionary<IImportedLabel>;
-  movies: Dictionary<IImportedMovie>;
+  scenes?: Dictionary<IImportedScene>;
+  actors?: Dictionary<IImportedActor>;
+  labels?: Dictionary<IImportedLabel>;
+  movies?: Dictionary<IImportedMovie>;
+  studios?: Dictionary<IImportedStudio>;
+  customFields?: Dictionary<IImportedCustomField>;
 }
 
 export async function createFromFileData(opts: ICreateOptions) {}

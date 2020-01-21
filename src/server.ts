@@ -166,12 +166,12 @@ export default async () => {
     ProcessingQueue.processLoop();
   }
 
+  setupMessage = "Loading database...";
+  await loadStores();
+
   setupMessage = "Checking imports...";
   await checkImportFolders();
   process.exit(0); // TODO:
-
-  setupMessage = "Loading database...";
-  await loadStores();
 
   setupMessage = "Creating search indices...";
   await buildIndices();
