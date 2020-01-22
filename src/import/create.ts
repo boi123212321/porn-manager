@@ -21,10 +21,7 @@ import ProcessingQueue, { IQueueItem } from "../queue/index";
 import { basename } from "path";
 import Movie from "../types/movie";
 import Studio from "../types/studio";
-
 import args from "../args";
-
-// TODO: args["commit-import"]
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -83,22 +80,21 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       const label = new Label(labelToCreate.name, labelToCreate.aliases || []);
 
-      // TODO: commit
-      /* for (const scene of await Scene.getAll()) {
-        const perms = stripStr(scene.path || scene.name);
-  
-        if (
-          perms.includes(stripStr(label.name)) ||
-          label.aliases.some(alias => perms.includes(stripStr(alias)))
-        ) {
-          const labels = (await Scene.getLabels(scene)).map(l => l._id);
-          labels.push(label._id);
-          await Scene.setLabels(scene, labels);
-          logger.log(`Updated labels of ${scene._id}.`);
+      if (args["commit-import"]) {
+        for (const scene of await Scene.getAll()) {
+          const perms = stripStr(scene.path || scene.name);
+          if (
+            perms.includes(stripStr(label.name)) ||
+            label.aliases.some(alias => perms.includes(stripStr(alias)))
+          ) {
+            const labels = (await Scene.getLabels(scene)).map(l => l._id);
+            labels.push(label._id);
+            await Scene.setLabels(scene, labels);
+            logger.log(`Updated labels of ${scene._id}.`);
+          }
         }
+        await database.insert(database.store.labels, label);
       }
-      
-      await database.insert(database.store.labels, label); */
       createdLabels[labelId] = label;
     }
   }
@@ -115,15 +111,13 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       field.values = [...new Set(fieldToCreate.values || [])];
 
-      // TODO: commit
-      // await database.insert(database.store.customFields, label);
+      if (args["commit-import"])
+        await database.insert(database.store.customFields, field);
       createdFields[fieldId] = field;
     }
   }
 
   if (opts.studios) {
-    // TODO:
-
     for (const studioId in opts.studios) {
       const studioToCreate = opts.studios[studioId];
 
@@ -145,12 +139,12 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = studioToCreate.thumbnail;
         studio.thumbnail = image._id;
 
-        // TODO: commit
-        // await database.insert(database.store.images, image);
+        if (args["commit-import"])
+          await database.insert(database.store.images, image);
       }
 
-      // TODO: commit
-      // await database.insert(database.store.studios, studio);
+      if (args["commit-import"])
+        await database.insert(database.store.studios, studio);
       createdStudios[studioId] = studio;
     }
   }
@@ -180,9 +174,10 @@ export async function createFromFileData(opts: ICreateOptions) {
 
         const reference = new CrossReference(image._id, actor._id);
 
-        // TODO: commit
-        // await database.insert(database.store.crossReferences, reference);
-        // await database.insert(database.store.images, image);
+        if (args["commit-import"]) {
+          await database.insert(database.store.crossReferences, reference);
+          await database.insert(database.store.images, image);
+        }
       }
 
       if (actorToCreate.labels) {
@@ -190,8 +185,7 @@ export async function createFromFileData(opts: ICreateOptions) {
           actorToCreate.labels,
           createdLabels
         );
-        // TODO: commit
-        // await Actor.setLabels(actor, labelIds);
+        if (args["commit-import"]) await Actor.setLabels(actor, labelIds);
       }
 
       if (actorToCreate.customFields) {
@@ -201,9 +195,10 @@ export async function createFromFileData(opts: ICreateOptions) {
         );
       }
 
-      // TODO: commit
-      // await database.insert(database.store.actors, actor);
       // TODO: plugin event
+
+      if (args["commit-import"])
+        await database.insert(database.store.actors, actor);
       createdActors[actorId] = actor;
     }
   }
@@ -227,9 +222,10 @@ export async function createFromFileData(opts: ICreateOptions) {
 
         const reference = new CrossReference(_id, image._id);
 
-        // TODO: commit
-        // await database.insert(database.store.crossReferences, reference);
-        // await database.insert(database.store.images, image);
+        if (args["commit-import"]) {
+          await database.insert(database.store.crossReferences, reference);
+          await database.insert(database.store.images, image);
+        }
       }
 
       if (sceneToCreate.actors) {
@@ -277,8 +273,7 @@ export async function createFromFileData(opts: ICreateOptions) {
           : undefined
       };
 
-      // TODO: commit
-      // await ProcessingQueue.append(queueItem);
+      if (args["commit-import"]) await ProcessingQueue.append(queueItem);
       createdScenes[_id] = queueItem;
     }
   }
@@ -314,8 +309,8 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = movieToCreate.frontCover;
         movie.frontCover = image._id;
 
-        // TODO: commit
-        // await database.insert(database.store.images, image);
+        if (args["commit-import"])
+          await database.insert(database.store.images, image);
       }
 
       if (movieToCreate.backCover) {
@@ -323,31 +318,33 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = movieToCreate.backCover;
         movie.backCover = image._id;
 
-        // TODO: commit
-        // await database.insert(database.store.images, image);
+        if (args["commit-import"])
+          await database.insert(database.store.images, image);
       }
 
-      // TODO: commit
-      // await database.insert(database.store.movies, movie);
+      // TODO: movie plugin event
+
+      if (args["commit-import"])
+        await database.insert(database.store.movies, movie);
       createdMovies[movieId] = movie;
     }
   }
 
-  // TODO: scene plugin event
-  // TODO: movie plugin event
-
-  console.log(
-    inspect(
-      {
-        createdFields,
-        createdLabels,
-        createdScenes,
-        createdActors,
-        createdMovies,
-        createdStudios
-      },
-      true,
-      null
-    )
-  );
+  if (!args["commit-import"]) {
+    console.log(
+      inspect(
+        {
+          createdFields,
+          createdLabels,
+          createdScenes,
+          createdActors,
+          createdMovies,
+          createdStudios
+        },
+        true,
+        null
+      )
+    );
+    logger.message("Run with --commit-import to actually import stuff.");
+  }
 }

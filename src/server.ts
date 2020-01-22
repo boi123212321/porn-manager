@@ -168,15 +168,14 @@ export default async () => {
 
   setupMessage = "Loading database...";
   await loadStores();
+  ProcessingQueue.setStore(database.store.queue);
 
   setupMessage = "Checking imports...";
   await checkImportFolders();
-  process.exit(0); // TODO:
 
   setupMessage = "Creating search indices...";
   await buildIndices();
 
-  ProcessingQueue.setStore(database.store.queue);
   checkSceneSources();
   checkImageSources();
   checkPreviews();

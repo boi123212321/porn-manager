@@ -7,6 +7,8 @@ import YAML from "yaml";
 import { verifyFileData } from "./verify";
 import { createFromFileData } from "./create";
 import { validateImportFile } from "./validate";
+import { appendFileSync } from "fs";
+import args from "../args";
 
 // Previously imported files
 let imported: string[] = [];
@@ -79,14 +81,14 @@ export async function checkImportFolders() {
     });
   }
 
-  // TODO: await writeFileAsync(importedFile, imported.join("\n"));
-
   logger.message(`Importing ${newFiles.length} new import files...`);
 
   for (const file of newFiles) {
     logger.log(`Reading import file: ${file}...`);
     try {
       await processFile(file);
+      logger.message("Imported " + file);
+      if (args["commit-import"]) appendFileSync(importedFile, file + "\n");
     } catch (err) {
       logger.error(`${file}: could not read file.`);
       logger.error(err.message);

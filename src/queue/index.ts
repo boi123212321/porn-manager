@@ -101,6 +101,7 @@ class Queue {
     if (item.customFields) scene.customFields = item.customFields;
     if (item.description) scene.description = item.description;
     if (item.studio) scene.studio = item.studio;
+    if (item.thumbnail) scene.thumbnail = item.thumbnail;
 
     if (config.CALCULATE_FILE_CHECKSUM) {
       logger.log("Generating file checksum...");
