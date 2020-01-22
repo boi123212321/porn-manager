@@ -76,7 +76,7 @@
     "@types/yaml": "^1.2.0",
     "nodemon": "^2.0.2",
     "pkg": "^4.4.0",
-    "ts-node": "^8.6.1",
+    "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
   "nodemonConfig": {
