@@ -508,6 +508,7 @@ export default class Scene {
       const image = new Image(`${scene.name} (thumbnail)`);
       image.path =
         path.join(await libraryPath("thumbnails/"), image._id) + ".jpg";
+      image.scene = scene._id;
 
       logger.log("Generating screenshot for scene...");
 
@@ -524,6 +525,16 @@ export default class Scene {
 
           const labels = (await Scene.getLabels(scene)).map(l => l._id);
           await Image.setLabels(image, labels);
+
+          await database.update(
+            database.store.scenes,
+            { _id: scene._id },
+            {
+              $set: {
+                thumbnail: image._id
+              }
+            }
+          );
 
           resolve(image);
         })

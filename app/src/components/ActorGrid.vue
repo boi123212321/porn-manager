@@ -3,7 +3,7 @@
     <v-col cols="6" v-for="actor in value" :key="actor._id">
       <v-hover>
         <template v-slot:default="{ hover }">
-          <v-img :aspect-ratio="aspectRatio" :src="thumbnail(actor)">
+          <v-img :src="thumbnail(actor)">
             <v-fade-transition>
               <v-overlay v-if="hover" absolute color="primary">
                 <v-btn

@@ -116,6 +116,14 @@
             color="accent"
             @click="openThumbnailDialog"
           >Change thumbnail</v-btn>
+          <br />
+          <v-btn
+            text
+            class="mt-2 text-none"
+            color="accent"
+            @click="createScreenshot"
+            :loading="screenshotLoader"
+          >Use current frame as thumbnail</v-btn>
         </v-col>
 
         <v-col class="d-flex" cols="12" sm="6" md="8">
@@ -434,6 +442,8 @@ export default class SceneDetails extends Vue {
   selectedLabels = [] as number[];
   labelEditLoader = false;
 
+  screenshotLoader = false;
+
   infiniteId = 0;
   page = 0;
 
@@ -454,6 +464,29 @@ export default class SceneDetails extends Vue {
   autoPaused = false;
 
   labelSearchQuery = "";
+
+  createScreenshot() {
+    this.screenshotLoader = true;
+
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($id: String!, $sec: Int!) {
+          screenshotScene(id: $id, sec: $sec) {
+            _id
+          }
+        }
+      `,
+      variables: {
+        // @ts-ignore
+        id: this.currentScene._id,
+        sec: this.currentTime()
+      }
+    })
+      .then(res => {})
+      .finally(() => {
+        this.screenshotLoader = false;
+      });
+  }
 
   removeMarker(id: string) {
     ApolloClient.mutate({
