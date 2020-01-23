@@ -32,7 +32,7 @@ function buildIndex(store: DataStore, opts: EnsureIndexOptions) {
     store.ensureIndex(opts, err => {
       if (err) reject(err);
       else {
-        logger.log("Built index " + JSON.stringify(opts));
+        logger.log("Built DB index " + JSON.stringify(opts));
         resolve(store);
       }
     });

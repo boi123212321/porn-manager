@@ -2,6 +2,8 @@ import { SearchIndex } from "./engine";
 import Scene from "../types/scene";
 import { tokenizeNames, tokenize } from "./tokenize";
 import Studio from "../types/studio";
+import * as log from "../logger/index";
+import { memorySizeOf } from "../mem";
 
 export interface ISceneSearchDoc {
   _id: string;
@@ -68,9 +70,12 @@ export const sceneIndex = new SearchIndex(
 
 export async function buildSceneIndex() {
   const timeNow = +new Date();
-  console.log("Building scene index...");
+  log.log("Building scene index...");
   for (const scene of await Scene.getAll()) {
     sceneIndex.add(await createSceneSearchDoc(scene));
   }
-  console.log(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
+  log.message(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
+  log.log(
+    `Index size: ${sceneIndex.size()} items, ${memorySizeOf(sceneIndex)}`
+  );
 }
