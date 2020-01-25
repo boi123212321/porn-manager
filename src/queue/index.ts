@@ -142,16 +142,16 @@ class Queue {
       throw new Error("Error when running FFPROBE");
     }
 
-    let actors = [] as string[];
+    let sceneActors = [] as string[];
     if (item.actors) {
-      actors = item.actors;
+      sceneActors = item.actors;
     }
 
     // Extract actors
     let extractedActors = [] as string[];
     extractedActors = await extractActors(sourcePath);
-    actors.push(...extractedActors);
-    await Scene.setActors(scene, actors);
+    sceneActors.push(...extractedActors);
+
     logger.log(`Found ${extractedActors.length} actors in scene path.`);
 
     let sceneLabels = [] as string[];
@@ -197,7 +197,11 @@ class Queue {
       }
     }
 
-    await Scene.setLabels(scene, sceneLabels);
+    try {
+      scene = await onSceneCreate(scene, sceneLabels, sceneActors);
+    } catch (error) {
+      logger.error(error.message);
+    }
 
     // Thumbnails
     if (config.GENERATE_THUMBNAILS) {
@@ -226,7 +230,7 @@ class Queue {
         image.meta.size = file.size;
         image.labels = scene.labels;
         await Image.setLabels(image, sceneLabels);
-        await Image.setActors(image, actors);
+        await Image.setActors(image, sceneActors);
         logger.log(`Creating image with id ${image._id}...`);
         await database.insert(database.store.images, image);
         indices.images.add(await createImageSearchDoc(image));
@@ -266,11 +270,8 @@ class Queue {
       }
     }
 
-    try {
-      scene = await onSceneCreate(scene, sceneLabels);
-    } catch (error) {
-      logger.error(error.message);
-    }
+    await Scene.setActors(scene, sceneActors);
+    await Scene.setLabels(scene, sceneLabels);
 
     logger.log(`Creating scene with id ${scene._id}...`);
     await database.insert(database.store.scenes, scene);

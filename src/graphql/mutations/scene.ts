@@ -127,7 +127,7 @@ export default {
     logger.log(`Receiving ${filename}...`);
     const ext = extname(filename);
     const ID = new Scene("")._id;
-    const path = await libraryPath(`scenes/${ID}${ext}`);
+    const path = libraryPath(`scenes/${ID}${ext}`);
 
     /* if (!mimetype.includes("video/")) {
       logger.error(`File has invalid format (${mimetype})`);

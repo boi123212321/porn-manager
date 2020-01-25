@@ -86,7 +86,7 @@ export default {
       processedExt = ".png";
     }
 
-    const sourcePath = await libraryPath(`images/${image._id}${processedExt}`);
+    const sourcePath = libraryPath(`images/${image._id}${processedExt}`);
     image.path = sourcePath;
 
     if (args.crop) {

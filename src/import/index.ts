@@ -56,7 +56,7 @@ export async function checkImportFolders() {
   logger.log("Checking imports...");
 
   const config = getConfig();
-  const importedFile = await libraryPath("imported.txt");
+  const importedFile = libraryPath("imported.txt");
 
   try {
     if (await existsAsync(importedFile))

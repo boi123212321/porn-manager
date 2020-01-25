@@ -61,6 +61,10 @@ export interface IConfig {
 
   PLUGINS: Dictionary<IPlugin>;
   PLUGIN_EVENTS: Dictionary<string[]>;
+
+  CREATE_MISSING_ACTORS: boolean;
+  CREATE_MISSING_STUDIOS: boolean;
+  CREATE_MISSING_LABELS: boolean;
 }
 
 export const defaultConfig: IConfig = {
@@ -96,7 +100,10 @@ export const defaultConfig: IConfig = {
     actorCreated: [],
     sceneCreated: []
     // TODO: movieCreated: []
-  }
+  },
+  CREATE_MISSING_ACTORS: false,
+  CREATE_MISSING_STUDIOS: false,
+  CREATE_MISSING_LABELS: false
 };
 
 let loadedConfig;

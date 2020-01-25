@@ -19,7 +19,10 @@ export async function runPluginsSerial(
   if (!config.PLUGIN_EVENTS[event]) return result;
 
   for (const pluginName of config.PLUGIN_EVENTS[event]) {
-    const pluginResult = await runPlugin(config, pluginName, inject);
+    const pluginResult = await runPlugin(config, pluginName, {
+      event,
+      ...inject
+    });
     Object.assign(result, pluginResult);
   }
   return result;

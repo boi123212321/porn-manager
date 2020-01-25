@@ -60,6 +60,9 @@ Note: this is by no means finished, but useable.
 - MAX_BACKUP_AMOUNT: Max amount of backups in backups/ folder. Oldest one will be deleted, if max amount has been reached.
 - EXCLUDE_FILES: Array of regular expressions that, if any of them match a file name, will cause the file to be ignored
 - CALCULATE_FILE_CHECKSUM: Generate file checksum (hash) on import (decreases import speed)
+- CREATE_MISSING_ACTORS: Create actors returned from plugins when not found in library
+- CREATE_MISSING_STUDIOS: Create studio returned from plugins when not found in library
+- CREATE_MISSING_LABELS: Create labels returned from plugins when not found in library
 
 ## Roadmap
 
