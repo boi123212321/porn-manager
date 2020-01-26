@@ -28,7 +28,7 @@ export async function onActorCreate(actor: Actor, actorLabels: string[]) {
       await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
       return img._id;
     }
   });
