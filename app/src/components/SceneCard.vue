@@ -3,7 +3,7 @@
     <a :href="`#/scene/${value._id}`">
       <v-hover>
         <template v-slot:default="{ hover }">
-          <v-img :aspect-ratio="aspectRatio" v-ripple eager :src="thumbnail">
+          <v-img cover :aspect-ratio="aspectRatio" v-ripple eager :src="thumbnail">
             <v-fade-transition>
               <div
                 @mouseenter="mouseenter"
@@ -11,13 +11,9 @@
                 v-if="hover"
                 style="position: absolute: top: 0; left: 0; width: 100%; height: 100%"
               >
-                <video
-                  ref="video"
-                  style="object-fit: cover;width: 100%; height: 100%"
-                  autoplay
-                  muted
-                  :src="videoPath"
-                ></video>
+                <div style="width: 100%; height: 100%; position: relative">
+                  <video class="video-insert" ref="video" autoplay muted :src="videoPath" />
+                </div>
               </div>
             </v-fade-transition>
 
@@ -201,5 +197,13 @@ export default class SceneCard extends Mixins(SceneMixin) {
   position: absolute;
   bottom: 5px;
   left: 5px;
+}
+
+.video-insert {
+  position: absolute;
+  background-size: cover;
+  height: 100%;
+  overflow: hidden;
+  object-fit: cover;
 }
 </style>

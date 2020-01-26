@@ -2,6 +2,8 @@ import { SearchIndex } from "./engine";
 import Movie from "../types/movie";
 import { tokenizeNames, tokenize } from "./tokenize";
 import Studio from "../types/studio";
+import * as log from "../logger/index";
+import { memorySizeOf } from "../mem";
 
 export interface IMovieSearchDoc {
   _id: string;
@@ -38,7 +40,7 @@ export async function createMovieSearchDoc(
       aliases: a.aliases
     })),
     studio: movie.studio ? await Studio.getById(movie.studio) : null,
-    rating: movie.rating,
+    rating: await Movie.getRating(movie),
     bookmark: movie.bookmark,
     favorite: movie.favorite,
     duration: await Movie.calculateDuration(movie),
@@ -61,9 +63,12 @@ export const movieIndex = new SearchIndex(
 
 export async function buildMovieIndex() {
   const timeNow = +new Date();
-  console.log("Building movie index...");
+  log.log("Building movie index...");
   for (const movie of await Movie.getAll()) {
     movieIndex.add(await createMovieSearchDoc(movie));
   }
-  console.log(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
+  log.message(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
+  log.log(
+    `Index size: ${movieIndex.size()} items, ${memorySizeOf(movieIndex)}`
+  );
 }

@@ -15,9 +15,8 @@ import Studio from "../types/studio";
 import { createSceneSearchDoc } from "../search/scene";
 import { indices } from "../search/index";
 import { createImageSearchDoc } from "../search/image";
-import { runPluginsSerial } from "../plugins";
-import actor from "../graphql/resolvers/actor";
-import { mapAsync } from "../types/utility";
+import { Dictionary } from "../types/utility";
+import { onSceneCreate } from "../plugin_events/scene";
 
 function removeExtension(file: string) {
   return file.replace(/\.[^/.]+$/, "");
@@ -30,6 +29,15 @@ export interface IQueueItem {
   path: string;
   actors: string[];
   labels: string[];
+  customFields?: Dictionary<string>;
+
+  description?: string | null;
+  thumbnail?: string | null;
+  favorite?: boolean;
+  bookmark?: boolean;
+  rating?: number;
+  releaseDate?: number;
+  studio?: string | null;
 }
 
 class Queue {
@@ -65,7 +73,7 @@ class Queue {
     let sceneName = removeExtension(item.filename);
     if (item.name) sceneName = item.name;
 
-    const config = await getConfig();
+    const config = getConfig();
 
     logger.log(`Checking binaries...`);
 
@@ -82,9 +90,17 @@ class Queue {
     ffmpeg.setFfmpegPath(config.FFMPEG_PATH);
     ffmpeg.setFfprobePath(config.FFPROBE_PATH);
 
-    const scene = new Scene(sceneName);
+    let scene = new Scene(sceneName);
     scene._id = item._id;
     scene.path = sourcePath;
+    if (item.rating) scene.rating = item.rating;
+    if (item.bookmark) scene.bookmark = item.bookmark;
+    if (item.favorite) scene.favorite = item.favorite;
+    if (item.releaseDate) scene.releaseDate = item.releaseDate;
+    if (item.customFields) scene.customFields = item.customFields;
+    if (item.description) scene.description = item.description;
+    if (item.studio) scene.studio = item.studio;
+    if (item.thumbnail) scene.thumbnail = item.thumbnail;
 
     if (config.CALCULATE_FILE_CHECKSUM) {
       logger.log("Generating file checksum...");
@@ -126,16 +142,16 @@ class Queue {
       throw new Error("Error when running FFPROBE");
     }
 
-    let actors = [] as string[];
+    let sceneActors = [] as string[];
     if (item.actors) {
-      actors = item.actors;
+      sceneActors = item.actors;
     }
 
     // Extract actors
     let extractedActors = [] as string[];
     extractedActors = await extractActors(sourcePath);
-    actors.push(...extractedActors);
-    await Scene.setActors(scene, actors);
+    sceneActors.push(...extractedActors);
+
     logger.log(`Found ${extractedActors.length} actors in scene path.`);
 
     let sceneLabels = [] as string[];
@@ -181,7 +197,11 @@ class Queue {
       }
     }
 
-    await Scene.setLabels(scene, sceneLabels);
+    try {
+      scene = await onSceneCreate(scene, sceneLabels, sceneActors);
+    } catch (error) {
+      logger.error(error.message);
+    }
 
     // Thumbnails
     if (config.GENERATE_THUMBNAILS) {
@@ -210,7 +230,7 @@ class Queue {
         image.meta.size = file.size;
         image.labels = scene.labels;
         await Image.setLabels(image, sceneLabels);
-        await Image.setActors(image, actors);
+        await Image.setActors(image, sceneActors);
         logger.log(`Creating image with id ${image._id}...`);
         await database.insert(database.store.images, image);
         indices.images.add(await createImageSearchDoc(image));
@@ -218,7 +238,8 @@ class Queue {
       }
 
       if (images.length > 0) {
-        scene.thumbnail = images[Math.floor(images.length / 2)]._id;
+        if (!item.thumbnail)
+          scene.thumbnail = images[Math.floor(images.length / 2)]._id;
         loader.succeed(`Created ${images.length} thumbnails.`);
       } else loader.warn(`Created 0 thumbnails.`);
     }
@@ -249,30 +270,8 @@ class Queue {
       }
     }
 
-    try {
-      const pluginResult = await runPluginsSerial(config, "sceneCreated", {
-        sceneName: scene.name,
-        scenePath: scene.path
-      });
-
-      if (typeof pluginResult.description === "string")
-        scene.description = pluginResult.description;
-
-      if (typeof pluginResult.releaseDate === "number")
-        scene.releaseDate = new Date(pluginResult.releaseDate).valueOf();
-
-      if (pluginResult.custom && typeof pluginResult.custom === "object")
-        Object.assign(scene.customFields, pluginResult.custom);
-
-      if (pluginResult.labels && Array.isArray(pluginResult.labels)) {
-        const labelIds = (
-          await mapAsync(pluginResult.labels, extractLabels)
-        ).flat();
-        await Scene.setLabels(scene, labelIds.concat(sceneLabels));
-      }
-    } catch (error) {
-      logger.error(error.message);
-    }
+    await Scene.setActors(scene, sceneActors);
+    await Scene.setLabels(scene, sceneLabels);
 
     logger.log(`Creating scene with id ${scene._id}...`);
     await database.insert(database.store.scenes, scene);

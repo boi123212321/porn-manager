@@ -45,6 +45,7 @@ type Query {
   getMovieById(id: String!): Movie
   getStudioById(id: String!): Studio
   getLabelById(id: String!): Label
+  getImageById(id: String!): Image
   
   getQueueInfo: QueueInfo!
   topActors(num: Int): [Actor!]!
@@ -297,6 +298,7 @@ type Mutation {
   removeLabels(ids: [String!]!): Boolean!
   
   addScene(name: String!, actors: [String!], labels: [String!]): Scene!
+  screenshotScene(id: String!, sec: Int!): Image
   watchScene(id: String!): Scene!
   unwatchScene(id: String!): Scene!
   uploadScene(file: Upload!, name: String, actors: [String!], labels: [String!]): Boolean!
