@@ -1,5 +1,6 @@
 import { getConfig } from "../config/index";
 import * as path from "path";
+import * as logger from "../logger/index";
 
 export interface Dictionary<T> {
   [key: string]: T;
@@ -9,7 +10,8 @@ export function isValidUrl(str: string) {
   try {
     new URL(str);
     return true;
-  } catch (_) {
+  } catch (err) {
+    logger.error(err);
     return false;
   }
 }
