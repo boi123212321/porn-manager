@@ -402,6 +402,7 @@ import ILabel from "../types/label";
 import { contextModule } from "../store/context";
 import { watch, unwatch } from "../util/scene";
 import MarkerItem from "../components/MarkerItem.vue";
+import hotkeys from "hotkeys-js";
 
 import "dplayer/dist/DPlayer.min.css";
 import DPlayer from "dplayer";
@@ -426,8 +427,7 @@ interface ICropResult {
     InfiniteLoading,
     Cropper,
     ImageUploader,
-    MarkerItem,
-    
+    MarkerItem
   },
   beforeRouteLeave(_to, _from, next) {
     sceneModule.setCurrent(null);
@@ -1015,14 +1015,20 @@ export default class SceneDetails extends Vue {
     if (nextMarker) this.moveToTime(nextMarker.time, nextMarker.name);
   }
 
+  destroyed() {
+    hotkeys.unbind("b");
+    hotkeys.unbind("n");
+  }
+
   mounted() {
-    window.addEventListener("keydown", ev => {
-      if (ev.keyCode == 66) {
-        this.goToPreviousMarker();
-      }
-      if (ev.keyCode == 78) {
-        this.goToNextMarker();
-      }
+    hotkeys("n", () => {
+      this.goToNextMarker();
+      return false;
+    });
+
+    hotkeys("b", () => {
+      this.goToPreviousMarker();
+      return false;
     });
 
     /* window.addEventListener("keydown", ev => {

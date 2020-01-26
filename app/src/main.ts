@@ -10,7 +10,6 @@ import BindTitle from "./components/BindTitle.vue";
 import DateInput from "./components/DateInput.vue";
 
 Vue.use(VueTheMask);
-Vue.use(require("vue-shortkey"));
 
 Vue.component("BindTitle", BindTitle);
 Vue.component("DateInput", DateInput);
