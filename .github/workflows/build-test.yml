@@ -23,7 +23,7 @@ jobs:
     - name: Test typescript & app build
       run: |
         npm install
-        tsc
+        npm run transpile
         npm run install:app
         npm run build:app
       env:

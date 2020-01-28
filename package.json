@@ -6,6 +6,7 @@
   "bin": "build/index.js",
   "scripts": {
     "install:app": "cd app && npm ci && cd ..",
+    "transpile": "tsc",
     "watch": "tsc -w",
     "start": "node build",
     "mon": "NODE_ENV=development nodemon build/",
