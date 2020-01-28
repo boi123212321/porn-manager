@@ -267,8 +267,12 @@ export default class SceneList extends Vue {
 
   waiting = false;
   allLabels = [] as ILabel[];
-  include = [] as string[];
-  exclude = [] as string[];
+  include = (localStorage.getItem("pm_sceneInclude") || "")
+    .split(",")
+    .filter(Boolean) as string[];
+  exclude = (localStorage.getItem("pm_sceneExclude") || "")
+    .split(",")
+    .filter(Boolean) as string[];
 
   validCreation = false;
   createSceneDialog = false;
@@ -364,6 +368,9 @@ export default class SceneList extends Vue {
     this.page = 0;
     this.scenes = [];
     this.infiniteId++;
+
+    localStorage.removeItem("pm_sceneInclude");
+    localStorage.removeItem("pm_sceneExclude");
   }
 
   onLabelClick(label: ILabel) {
@@ -375,6 +382,9 @@ export default class SceneList extends Vue {
     } else {
       this.include.push(label._id);
     }
+
+    localStorage.setItem("pm_sceneInclude", this.include.join(","));
+    localStorage.setItem("pm_sceneExclude", this.exclude.join(","));
 
     this.page = 0;
     this.scenes = [];
