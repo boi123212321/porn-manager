@@ -41,6 +41,7 @@ Note: this is by no means finished, but useable.
 
 - VIDEO_PATHS: Paths of video files that will be imported - subfolders will be searched recursively
 - IMAGE_PATHS: Paths of image files that will be imported - subfolders will be searched recursively
+- BULK_IMPORT_PATHS: Paths of .json or .yaml files to import content from
 - SCAN_ON_STARTUP: Whether video and image paths should be scanned
 - SCAN_INTERVAL: Rescan paths all X milliseconds - only works when SCAN_ON_STARTUP is enabled
 - LIBRARY_PATH: Path where the library (.db files & uploaded files & processed images) will be stored (default: working directory)
@@ -67,9 +68,6 @@ Note: this is by no means finished, but useable.
 ## Roadmap
 
 - Image albums
-- Scraping (plugins)
-- More useful front page
-- Recommend similar scenes/actors/images
 - visit [Issues](https://github.com/boi123212321/porn-manager/issues) to see what's up
 
 ## How to run
