@@ -144,7 +144,7 @@ export default class SceneCard extends Mixins(SceneMixin) {
   }
 
   mouseenter() {
-    console.log("playing video");
+    // console.log("playing video");
 
     if (this.playInterval) clearInterval(this.playInterval);
 
@@ -163,14 +163,14 @@ export default class SceneCard extends Mixins(SceneMixin) {
 
   mouseleave() {
     if (this.playInterval) {
-      console.log("stopping video");
+      // console.log("stopping video");
       clearInterval(this.playInterval);
     }
   }
 
   destroyed() {
     if (this.playInterval) {
-      console.log("stopping video");
+      // console.log("stopping video");
       clearInterval(this.playInterval);
     }
   }
