@@ -9,11 +9,11 @@
       app
     >
       <v-container>
-        <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
+        <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 
         <v-subheader>Labels</v-subheader>
         <v-chip-group
-          active-class="accent--text"
+          active-class="primary--text"
           :items="allLabels"
           column
           v-model="selectedLabels"
@@ -25,7 +25,7 @@
         </v-chip-group>
         <v-select
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortBy"
@@ -35,7 +35,7 @@
         <v-select
           :disabled="sortBy == 'relevance'"
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortDir"
@@ -97,13 +97,13 @@
           <v-form v-model="validCreation">
             <v-text-field
               :rules="actorNameRules"
-              color="accent"
+              color="primary"
               v-model="createActorName"
               placeholder="Name"
             />
 
             <v-combobox
-              color="accent"
+              color="primary"
               multiple
               chips
               v-model="createActorAliases"
@@ -124,7 +124,7 @@
               label
               :class="`mr-1 mb-1 ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
               @click="openLabelSelectorDialog"
-              color="accent"
+              color="primary"
               dark
               small
             >+ Select labels</v-chip>
@@ -137,7 +137,7 @@
             text
             class="text-none"
             :disabled="!validCreation"
-            color="accent"
+            color="primary"
             @click="addActor"
           >Add</v-btn>
         </v-card-actions>
@@ -155,7 +155,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="labelSelectorDialog = false" text color="accent" class="text-none">OK</v-btn>
+          <v-btn @click="labelSelectorDialog = false" text color="primary" class="text-none">OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -166,7 +166,7 @@
 
         <v-card-text style="max-height: 400px">
           <v-textarea
-            color="accent"
+            color="primary"
             v-model="actorsBulkText"
             auto-grow
             :rows="3"
@@ -182,7 +182,7 @@
           <v-btn
             @click="runBulkImport"
             text
-            color="accent"
+            color="primary"
             class="text-none"
             :disabled="!actorsBulkImport.length"
           >Add {{ actorsBulkImport.length }} actors</v-btn>

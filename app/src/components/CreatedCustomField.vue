@@ -22,7 +22,7 @@
           <v-form v-model="validEdit">
             <v-text-field
               :rules="fieldNameRules"
-              color="accent"
+              color="primary"
               v-model="editName"
               placeholder="Field name"
               hide-details
@@ -31,7 +31,7 @@
               chips
               v-if="value.type == 'SINGLE_SELECT' || value.type == 'MULTI_SELECT'"
               placeholder="Preset values"
-              color="accent"
+              color="primary"
               clearable
               multiple
               v-model="editValues"
@@ -39,7 +39,7 @@
             />
             <v-text-field
               v-if="value.type != 'BOOLEAN'"
-              color="accent"
+              color="primary"
               placeholder="Unit (optional)"
               v-model="editUnit"
               hide-details
@@ -49,7 +49,7 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="edit" :disabled="!validEdit" text color="accent" class="text-none">Edit</v-btn>
+          <v-btn @click="edit" :disabled="!validEdit" text color="primary" class="text-none">Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

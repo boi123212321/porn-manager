@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-autocomplete
-      color="accent"
+      color="primary"
       v-model="innerValue"
       :loading="loading"
       :items="scenes"

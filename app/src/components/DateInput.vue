@@ -1,7 +1,7 @@
 <template>
   <v-text-field
     :placeholder="placeholder"
-    color="accent"
+    color="primary"
     clearable
     v-model="innerValue"
     hint="YYYY-MM-DD"

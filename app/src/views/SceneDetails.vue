@@ -9,7 +9,7 @@
         <v-divider vertical v-if="$vuetify.breakpoint.mdAndUp" />
         <div class="py-2" v-if="$vuetify.breakpoint.mdAndUp" style="width: 400px; max-width: 400px">
           <div class="text-center">
-            <v-btn class="text-none" color="accent" text @click="openMarkerDialog">Create marker</v-btn>
+            <v-btn class="text-none" color="primary" text @click="openMarkerDialog">Create marker</v-btn>
           </div>
           <div class="mt-3">
             <MarkerItem
@@ -27,7 +27,7 @@
       <v-row v-if="!$vuetify.breakpoint.mdAndUp">
         <v-col cols="12" sm="12" md="4" lg="2" xl="1">
           <div class="text-center">
-            <v-btn class="text-none" color="accent" text @click="openMarkerDialog">Create marker</v-btn>
+            <v-btn class="text-none" color="primary" text @click="openMarkerDialog">Create marker</v-btn>
           </div>
           <div class="mt-3">
             <MarkerItem
@@ -103,7 +103,7 @@
 
             <v-chip
               label
-              color="accent"
+              color="primary"
               v-ripple
               @click="openLabelSelector"
               small
@@ -114,14 +114,14 @@
           <v-btn
             text
             class="mt-2 text-none"
-            color="accent"
+            color="primary"
             @click="openThumbnailDialog"
           >Change thumbnail</v-btn>
           <br />
           <v-btn
             text
             class="mt-2 text-none"
-            color="accent"
+            color="primary"
             @click="createScreenshot"
             :loading="screenshotLoader"
           >Use current frame as thumbnail</v-btn>
@@ -214,7 +214,7 @@
             <div class="text-center py-2">
               <v-btn
                 class="text-none"
-                color="accent"
+                color="primary"
                 text
                 @click="updateCustomFields"
                 :disabled="!hasUpdatedFields"
@@ -300,7 +300,7 @@
 
         <v-text-field
           clearable
-          color="accent"
+          color="primary"
           hide-details
           class="px-5 mb-2"
           label="Find labels..."
@@ -318,7 +318,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="editLabels" text color="accent" class="text-none">Edit</v-btn>
+          <v-btn @click="editLabels" text color="primary" class="text-none">Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -362,7 +362,7 @@
         <v-card-title>Set thumbnail for '{{ currentScene.name }}'</v-card-title>
         <v-card-text>
           <v-file-input
-            color="accent"
+            color="primary"
             placeholder="Select image"
             @change="readThumbnail"
             v-model="selectedThumbnail"
@@ -382,7 +382,7 @@
           <v-btn
             :disabled="!thumbnailDisplay"
             class="text-none"
-            color="accent"
+            color="primary"
             text
             @click="uploadThumbnail"
           >Upload</v-btn>
@@ -394,11 +394,11 @@
       <v-card v-if="currentScene">
         <v-card-title>Create marker at {{ currentTimeFormatted() }}</v-card-title>
         <v-card-text>
-          <v-text-field placeholder="Marker title" color="accent" v-model="markerName"></v-text-field>
+          <v-text-field placeholder="Marker title" color="primary" v-model="markerName"></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="accent" text @click="createMarker" class="text-none">Create</v-btn>
+          <v-btn color="primary" text @click="createMarker" class="text-none">Create</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

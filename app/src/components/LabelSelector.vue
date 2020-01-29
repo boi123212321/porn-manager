@@ -6,7 +6,7 @@
           <v-list-item :key="label._id" v-show="itemIsFound(label)">
             <template v-slot:default="{ active, toggle }">
               <v-list-item-action>
-                <v-checkbox color="accent" v-model="active" @click="toggle"></v-checkbox>
+                <v-checkbox color="primary" v-model="active" @click="toggle"></v-checkbox>
               </v-list-item-action>
 
               <v-list-item-content>

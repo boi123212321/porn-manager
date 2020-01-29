@@ -22,7 +22,7 @@
       app
     >
       <v-container>
-        <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
+        <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 
         <v-subheader>
           Labels
@@ -39,7 +39,7 @@
         </div>
 
         <!-- <v-chip-group
-          active-class="accent--text"
+          active-class="primary--text"
           :items="allLabels"
           column
           v-model="selectedLabels"
@@ -51,7 +51,7 @@
         </v-chip-group>-->
 
         <v-subheader>Filter by duration</v-subheader>
-        <v-range-slider hide-details :max="durationMax" v-model="durationRange" color="accent"></v-range-slider>
+        <v-range-slider hide-details :max="durationMax" v-model="durationRange" color="primary"></v-range-slider>
         <div class="med--text text-center">{{ durationRange[0] }} min - {{ durationRange[1] }} min</div>
 
         <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
@@ -71,7 +71,7 @@
 
         <v-select
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortBy"
@@ -81,7 +81,7 @@
         <v-select
           :disabled="sortBy == 'relevance'"
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortDir"
@@ -118,7 +118,7 @@
           <scene-card :showLabels="showCardLabels" v-model="scenes[i]" style="height: 100%">
             <template v-slot:action>
               <v-checkbox
-                color="accent"
+                color="primary"
                 :input-value="selectedScenes.includes(scene._id)"
                 @change="selectScene(scene._id)"
                 @click.native.stop.prevent
@@ -143,7 +143,7 @@
           <v-form v-model="validCreation">
             <v-text-field
               :rules="sceneNameRules"
-              color="accent"
+              color="primary"
               v-model="createSceneName"
               placeholder="Name"
             />
@@ -164,7 +164,7 @@
               label
               :class="`mr-1 mb-1 ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
               @click="openLabelSelectorDialog"
-              color="accent"
+              color="primary"
               dark
               small
             >+ Select labels</v-chip>
@@ -177,7 +177,7 @@
             text
             class="text-none"
             :disabled="!validCreation"
-            color="accent"
+            color="primary"
             @click="addScene"
           >Add</v-btn>
         </v-card-actions>
@@ -195,7 +195,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="labelSelectorDialog = false" text color="accent" class="text-none">OK</v-btn>
+          <v-btn @click="labelSelectorDialog = false" text color="primary" class="text-none">OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -393,7 +393,7 @@ export default class SceneList extends Vue {
 
   labelClasses(label: ILabel) {
     if (this.include.includes(label._id))
-      return "font-weight-bold accent--text";
+      return "font-weight-bold primary--text";
     else if (this.exclude.includes(label._id))
       return "font-weight-bold error--text";
     return "";

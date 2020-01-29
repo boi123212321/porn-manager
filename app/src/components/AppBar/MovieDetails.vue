@@ -31,7 +31,7 @@
           <v-card-title>Edit '{{ currentMovie.name }}'</v-card-title>
           <v-card-text style="max-width: 600px">
             <v-text-field
-              color="accent"
+              color="primary"
               :rules="movieNameRules"
               v-model="editName"
               placeholder="Movie name"
@@ -42,7 +42,7 @@
             <v-textarea
               auto-grow
               :rows="2"
-              color="accent"
+              color="primary"
               v-model="editDescription"
               placeholder="Movie description"
             />
@@ -54,7 +54,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn
-              color="accent"
+              color="primary"
               class="text-none"
               text
               :disabled="!validEdit"

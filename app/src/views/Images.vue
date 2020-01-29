@@ -22,12 +22,12 @@
       app
     >
       <v-container>
-        <v-checkbox hide-details v-model="largeThumbs" label="Large thumbnails"></v-checkbox>
-        <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
+        <v-checkbox color="primary" hide-details v-model="largeThumbs" label="Large thumbnails"></v-checkbox>
+        <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 
         <v-subheader>Labels</v-subheader>
         <v-chip-group
-          active-class="accent--text"
+          active-class="primary--text"
           :items="allLabels"
           column
           v-model="selectedLabels"
@@ -39,7 +39,7 @@
         </v-chip-group>
         <v-select
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortBy"
@@ -49,7 +49,7 @@
         <v-select
           :disabled="sortBy == 'relevance'"
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortDir"
@@ -95,7 +95,7 @@
           <ImageCard width="100%" height="100%" @open="lightboxIndex = index" :image="image">
             <template v-slot:action>
               <v-checkbox
-                color="accent"
+                color="primary"
                 :input-value="selectedImages.includes(image._id)"
                 @change="selectImage(image._id)"
                 @click.native.stop

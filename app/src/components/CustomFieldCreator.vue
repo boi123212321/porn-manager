@@ -23,12 +23,12 @@
             <v-text-field
               clearable
               v-model="createFieldName"
-              color="accent"
+              color="primary"
               placeholder="Field name (e.g. 'Hair color')"
               :rules="fieldNameRules"
             />
             <v-select
-              color="accent"
+              color="primary"
               placeholder="Field type"
               :items="createFieldTypes"
               v-model="createFieldType"
@@ -41,7 +41,7 @@
               item-value="id"
               item-text="text"
               multiple
-              color="accent"
+              color="primary"
               placeholder="Field target object"
               :items="createFieldTargets"
               v-model="createFieldTarget"
@@ -50,7 +50,7 @@
               :rules="v => !!v.length || 'Required'"
             />
             <v-text-field
-              color="accent"
+              color="primary"
               placeholder="Unit (e.g. 'inches', optional)"
               v-model="createFieldUnit"
               hide-details
@@ -60,7 +60,7 @@
               chips
               v-if="createFieldType.includes('SELECT')"
               placeholder="Preset values"
-              color="accent"
+              color="primary"
               clearable
               multiple
               v-model="createFieldValues"
@@ -75,7 +75,7 @@
             :disabled="!validated"
             class="text-none"
             text
-            color="accent"
+            color="primary"
             @click="createField"
           >Create</v-btn>
         </v-card-actions>

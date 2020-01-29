@@ -17,7 +17,7 @@
 
                   <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
                     <v-fade-transition>
-                      <v-overlay v-if="hover" absolute color="accent">
+                      <v-overlay v-if="hover" absolute color="primary">
                         <v-icon x-large>mdi-upload</v-icon>
                       </v-overlay>
                     </v-fade-transition>
@@ -30,7 +30,7 @@
                 class="text-none"
                 @click="openThumbnailDialog"
                 text
-                color="accent"
+                color="primary"
               >Set thumbnail</v-btn>
             </div>
             <v-rating
@@ -55,7 +55,7 @@
               >{{ label }}</v-chip>
               <v-chip
                 label
-                color="accent"
+                color="primary"
                 v-ripple
                 @click="openLabelSelector"
                 small
@@ -94,7 +94,7 @@
             </div>
           </v-col>
           <v-col cols="12" sm="8" md="9" lg="10" xl="10">
-            <v-tabs v-model="activeTab" background-color="transparent" color="accent" centered grow>
+            <v-tabs v-model="activeTab" background-color="transparent" color="primary" centered grow>
               <v-tab>Metadata</v-tab>
               <v-tab>Scenes</v-tab>
               <v-tab>Images</v-tab>
@@ -103,7 +103,7 @@
               <div class="text-center py-2">
                 <v-btn
                   class="text-none"
-                  color="accent"
+                  color="primary"
                   text
                   @click="updateCustomFields"
                   :disabled="!hasUpdatedFields"
@@ -235,7 +235,7 @@
 
         <v-text-field
           clearable
-          color="accent"
+          color="primary"
           hide-details
           class="px-5 mb-2"
           label="Find labels..."
@@ -253,7 +253,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="editLabels" text color="accent" class="text-none">Edit</v-btn>
+          <v-btn @click="editLabels" text color="primary" class="text-none">Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -279,7 +279,7 @@
         <v-card-title>Set thumbnail for '{{ currentActor.name }}'</v-card-title>
         <v-card-text>
           <v-file-input
-            color="accent"
+            color="primary"
             placeholder="Select image"
             @change="readThumbnail"
             v-model="selectedThumbnail"
@@ -298,7 +298,7 @@
           <v-spacer></v-spacer>
           <v-btn
             :disabled="!thumbnailDisplay"
-            color="accent"
+            color="primary"
             text
             class="text-none"
             @click="uploadThumbnail"

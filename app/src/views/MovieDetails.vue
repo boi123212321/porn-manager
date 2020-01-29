@@ -26,8 +26,8 @@
               </template>
             </v-hover>
             <div class="mt-2 text-center">
-              <v-btn color="accent" text small @click="frontCoverDialog = true">Set front cover</v-btn>
-              <v-btn color="accent" text small @click="backCoverDialog = true">Set back cover</v-btn>
+              <v-btn color="primary" text small @click="frontCoverDialog = true">Set front cover</v-btn>
+              <v-btn color="primary" text small @click="backCoverDialog = true">Set back cover</v-btn>
             </div>
           </v-container>
         </v-col>
@@ -182,11 +182,11 @@
       <v-card v-if="currentMovie">
         <v-card-title>Set front cover for '{{ currentMovie.name }}'</v-card-title>
         <v-card-text>
-          <v-file-input color="accent" placeholder="Select an image" v-model="frontCoverFile"></v-file-input>
+          <v-file-input color="primary" placeholder="Select an image" v-model="frontCoverFile"></v-file-input>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="uploadFrontCover" text class="text-none" color="accent">Upload</v-btn>
+          <v-btn @click="uploadFrontCover" text class="text-none" color="primary">Upload</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -195,11 +195,11 @@
       <v-card v-if="currentMovie">
         <v-card-title>Set back cover for '{{ currentMovie.name }}'</v-card-title>
         <v-card-text>
-          <v-file-input color="accent" placeholder="Select an image" v-model="backCoverFile"></v-file-input>
+          <v-file-input color="primary" placeholder="Select an image" v-model="backCoverFile"></v-file-input>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="uploadBackCover" text class="text-none" color="accent">Upload</v-btn>
+          <v-btn @click="uploadBackCover" text class="text-none" color="primary">Upload</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -4,7 +4,7 @@
     <v-card-text style="max-height: 400px">
       <v-file-input
         accept="video/*"
-        color="accent"
+        color="primary"
         v-model="files"
         multiple
         @change="addFiles"
@@ -16,7 +16,7 @@
           v-for="(item, i) in uploadItems"
           :key="item.file.name"
         >
-          <v-text-field color="accent" class="ml-2" hide-details v-model="uploadItems[i].name"></v-text-field>
+          <v-text-field color="primary" class="ml-2" hide-details v-model="uploadItems[i].name"></v-text-field>
           <v-spacer></v-spacer>
           <v-btn icon @click="uploadItems.splice(i, 1)">
             <v-icon>mdi-close</v-icon>
@@ -28,7 +28,7 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn @click="addToQueue" text color="accent" class="text-none">Add</v-btn>
+      <v-btn @click="addToQueue" text color="primary" class="text-none">Add</v-btn>
     </v-card-actions>
   </v-card>
 </template>

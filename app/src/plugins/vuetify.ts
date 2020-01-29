@@ -11,18 +11,14 @@ export default new Vuetify({
     },
     themes: {
       light: {
-        primary: colors.deepOrange.lighten4,
-        secondary: colors.deepOrange.lighten4,
-        accent: colors.blue.base,
+        primary: colors.blue.base,
         error: colors.red.accent3,
         info: colors.blue.darken2,
         success: colors.green.base,
         warning: colors.orange.darken2
       },
       dark: {
-        primary: "#221015",
-        secondary: colors.deepOrange.lighten4,
-        accent: colors.blue.lighten3,
+        primary: colors.blue.lighten3,
         error: colors.red.accent2,
         info: colors.blue.darken2,
         success: colors.green.base,

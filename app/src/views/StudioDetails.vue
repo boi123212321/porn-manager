@@ -17,7 +17,7 @@
               :src="thumbnail"
             >
               <v-fade-transition>
-                <v-overlay v-if="hover" absolute color="accent">
+                <v-overlay v-if="hover" absolute color="primary">
                   <v-icon x-large>mdi-upload</v-icon>
                 </v-overlay>
               </v-fade-transition>
@@ -29,7 +29,7 @@
       <div class="mt-3" v-if="currentStudio.parent">
         Part of
         <router-link
-          class="accent--text"
+          class="primary--text"
           :to="`/studio/${currentStudio.parent._id}`"
         >{{ currentStudio.parent.name }}</router-link>
       </div>
@@ -51,7 +51,7 @@
         >{{ label }}</v-chip>
         <v-chip
           label
-          color="accent"
+          color="primary"
           v-ripple
           @click="openLabelSelector"
           small
@@ -144,7 +144,7 @@
 
         <v-text-field
           clearable
-          color="accent"
+          color="primary"
           hide-details
           class="px-5 mb-2"
           label="Find labels..."
@@ -162,7 +162,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="editLabels" text color="accent" class="text-none">Edit</v-btn>
+          <v-btn @click="editLabels" text color="primary" class="text-none">Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -171,11 +171,11 @@
       <v-card v-if="currentStudio" :loading="thumbnailLoader">
         <v-card-title>Set logo for '{{ currentStudio.name }}'</v-card-title>
         <v-card-text>
-          <v-file-input color="accent" placeholder="Select an image" v-model="selectedThumbnail"></v-file-input>
+          <v-file-input color="primary" placeholder="Select an image" v-model="selectedThumbnail"></v-file-input>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="uploadThumbnail" text class="text-none" color="accent">Upload</v-btn>
+          <v-btn @click="uploadThumbnail" text class="text-none" color="primary">Upload</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

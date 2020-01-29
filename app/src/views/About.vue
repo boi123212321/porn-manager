@@ -7,18 +7,18 @@
         <div>
           <v-subheader>Scene cards aspect ratio</v-subheader>
           <v-radio-group v-model="sceneRatio">
-            <v-radio color="accent" :value="1" label="Square"></v-radio>
-            <v-radio color="accent" :value="16/9" label="16:9"></v-radio>
-            <v-radio color="accent" :value="4/3" label="4:3"></v-radio>
+            <v-radio color="primary" :value="1" label="Square"></v-radio>
+            <v-radio color="primary" :value="16/9" label="16:9"></v-radio>
+            <v-radio color="primary" :value="4/3" label="4:3"></v-radio>
           </v-radio-group>
         </div>
 
         <div>
           <v-subheader>Actor cards aspect ratio</v-subheader>
           <v-radio-group v-model="actorRatio">
-            <v-radio color="accent" :value="1" label="Square"></v-radio>
-            <v-radio color="accent" :value="9/16" label="9:16"></v-radio>
-            <v-radio color="accent" :value="3/4" label="3:4"></v-radio>
+            <v-radio color="primary" :value="1" label="Square"></v-radio>
+            <v-radio color="primary" :value="9/16" label="9:16"></v-radio>
+            <v-radio color="primary" :value="3/4" label="3:4"></v-radio>
           </v-radio-group>
         </div>
       </v-col>
@@ -34,13 +34,13 @@
         </div>
         <div>
           <v-checkbox
-            color="accent"
+            color="primary"
             hide-details
             v-model="scenePauseOnUnfocus"
             label="Pause video on window unfocus"
           ></v-checkbox>
           <v-checkbox
-            color="accent"
+            color="primary"
             hide-details
             v-model="showCardLabels"
             label="Show card labels on overview"
@@ -64,7 +64,7 @@
           depressed
           href="https://github.com/boi123212321/porn-manager"
           target="_blank"
-          color="accent mt-3"
+          color="primary mt-3"
           :class="`text-none ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
         >
           <v-icon left>mdi-github-circle</v-icon>GitHub

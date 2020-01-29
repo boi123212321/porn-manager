@@ -9,11 +9,11 @@
       app
     >
       <v-container>
-        <v-text-field clearable color="accent" v-model="query" label="Search query"></v-text-field>
+        <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 
         <v-subheader>Labels</v-subheader>
         <v-chip-group
-          active-class="accent--text"
+          active-class="primary--text"
           :items="allLabels"
           column
           v-model="selectedLabels"
@@ -25,7 +25,7 @@
         </v-chip-group>
         <v-select
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortBy"
@@ -35,7 +35,7 @@
         <v-select
           :disabled="sortBy == 'relevance'"
           hide-details
-          color="accent"
+          color="primary"
           item-text="text"
           item-value="value"
           v-model="sortDir"
@@ -95,7 +95,7 @@
 
         <v-card-text style="max-height: 400px">
           <v-textarea
-            color="accent"
+            color="primary"
             v-model="studiosBulkText"
             auto-grow
             :rows="3"
@@ -111,7 +111,7 @@
           <v-btn
             @click="runBulkImport"
             text
-            color="accent"
+            color="primary"
             class="text-none"
             :disabled="!studiosBulkImport.length"
           >Add {{ studiosBulkImport.length }} studios</v-btn>

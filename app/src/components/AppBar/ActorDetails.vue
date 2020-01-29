@@ -38,7 +38,7 @@
           <v-form v-model="validEdit">
             <v-text-field
               :rules="actorNameRules"
-              color="accent"
+              color="primary"
               v-model="editName"
               placeholder="Name"
             />
@@ -47,7 +47,7 @@
 
             <v-combobox
               clearable
-              color="accent"
+              color="primary"
               multiple
               chips
               v-model="editAliases"
@@ -61,7 +61,7 @@
           <v-btn
             text
             @click="editActor"
-            color="accent"
+            color="primary"
             class="text-none"
             :disabled="!validEdit"
           >Edit</v-btn>

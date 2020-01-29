@@ -70,7 +70,7 @@
         <div v-if="currentImage.scene">
           Part of scene
           <a
-            class="accent--text"
+            class="primary--text"
             :href="`#/scene/${currentImage.scene._id}`"
           >{{ currentImage.scene.name }}</a>
         </div>
@@ -111,7 +111,7 @@
           >{{ label.name }}</v-chip>
           <v-chip
             label
-            color="accent"
+            color="primary"
             v-ripple
             @click="openLabelSelector"
             small
@@ -144,7 +144,7 @@
 
         <v-text-field
           clearable
-          color="accent"
+          color="primary"
           hide-details
           class="px-5 mb-2"
           label="Find labels..."
@@ -162,7 +162,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="editLabels" text color="accent" class="text-none">Edit</v-btn>
+          <v-btn @click="editLabels" text color="primary" class="text-none">Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -186,7 +186,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="editImageActors" color="accent" class="text-none" text>Edit</v-btn>
+          <v-btn @click="editImageActors" color="primary" class="text-none" text>Edit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

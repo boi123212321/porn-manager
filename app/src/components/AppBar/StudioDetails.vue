@@ -32,14 +32,14 @@
           <v-form v-model="validEdit">
             <v-text-field
               :rules="studioNameRules"
-              color="accent"
+              color="primary"
               v-model="editName"
               placeholder="Name"
             />
 
             <v-textarea
               auto-grow
-              color="accent"
+              color="primary"
               v-model="editDescription"
               placeholder="Studio description"
               :rows="2"
@@ -47,7 +47,7 @@
 
             <v-combobox
               clearable
-              color="accent"
+              color="primary"
               multiple
               chips
               v-model="editAliases"
@@ -65,7 +65,7 @@
             text
             class="text-none"
             @click="editStudio"
-            color="accent"
+            color="primary"
             :disabled="!validEdit"
           >Edit</v-btn>
         </v-card-actions>

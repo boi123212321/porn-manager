@@ -17,7 +17,7 @@
         v-if="field.type == 'BOOLEAN'"
         v-model="innerValue[field._id]"
         @change="onInnerValueChange"
-        color="accent"
+        color="primary"
         hide-details
         :label="innerValue[field._id]===true ? 'Yes' : 'No'"
       />
@@ -28,7 +28,7 @@
         flat
         single-line
         :multiple="field.type == 'MULTI_SELECT'"
-        color="accent"
+        color="primary"
         v-else-if="field.type.includes('SELECT')"
         :placeholder="field.name"
         v-model="innerValue[field._id]"
@@ -48,7 +48,7 @@
         v-model="innerValue[field._id]"
         @input="onInnerValueChange"
         hide-details
-        color="accent"
+        color="primary"
         :suffix="field.unit"
       />
     </v-col>

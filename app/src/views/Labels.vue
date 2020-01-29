@@ -7,7 +7,7 @@
       <div style="max-width: 350px">
         <v-text-field
           clearable
-          color="accent"
+          color="primary"
           hide-details
           class="px-5 mb-3"
           label="Find labels..."
@@ -16,14 +16,16 @@
       </div>
 
       <v-list-item v-if="selectedLabels.length">
+        <v-list-item-action>
+          <v-btn class="mr-2" @click="selectedLabels = []" icon>
+            <v-icon>mdi-select-off</v-icon>
+          </v-btn>
+        </v-list-item-action>
         <v-list-item-content>
           <v-list-item-title>{{ selectedLabels.length }} labels selected</v-list-item-title>
         </v-list-item-content>
         <v-list-item-action>
           <div class="d-flex">
-            <v-btn class="mr-2" @click="selectedLabels = []" icon>
-              <v-icon>mdi-select-off</v-icon>
-            </v-btn>
             <v-btn @click="deleteLabels" icon>
               <v-icon>mdi-delete-forever</v-icon>
             </v-btn>
@@ -58,7 +60,7 @@
             <v-form v-model="validEditing">
               <v-text-field
                 clearable
-                color="accent"
+                color="primary"
                 v-model="editLabelName"
                 placeholder="Label name"
                 :rules="labelNameRules"
@@ -70,7 +72,7 @@
                 multiple
                 chips
                 placeholder="Alias names"
-                color="accent"
+                color="primary"
                 clearable
               ></v-combobox>
             </v-form>
@@ -83,7 +85,7 @@
               @click="editLabel"
               :disabled="!validEditing"
               text
-              color="accent"
+              color="primary"
               class="text-none"
             >Edit</v-btn>
           </v-card-actions>
@@ -98,7 +100,7 @@
             <v-form v-model="validCreation">
               <v-text-field
                 clearable
-                color="accent"
+                color="primary"
                 v-model="createLabelName"
                 placeholder="Label name"
                 :rules="labelNameRules"
@@ -110,7 +112,7 @@
                 multiple
                 chips
                 placeholder="Alias names"
-                color="accent"
+                color="primary"
                 clearable
               ></v-combobox>
             </v-form>
@@ -123,7 +125,7 @@
               @click="addLabel"
               :disabled="!validCreation"
               text
-              color="accent"
+              color="primary"
               class="text-none"
             >Add</v-btn>
           </v-card-actions>

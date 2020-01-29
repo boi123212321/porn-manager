@@ -55,7 +55,7 @@
           <v-form v-model="validEdit">
             <v-text-field
               :rules="sceneNameRules"
-              color="accent"
+              color="primary"
               v-model="editName"
               placeholder="Name"
             />
@@ -64,7 +64,7 @@
 
             <v-textarea
               auto-grow
-              color="accent"
+              color="primary"
               v-model="editDescription"
               placeholder="Scene description"
               :rows="2"
@@ -76,7 +76,7 @@
 
             <v-textarea
               auto-grow
-              color="accent"
+              color="primary"
               v-model="editStreamLinks"
               placeholder="Streaming links (per line)"
               :rows="2"
@@ -90,7 +90,7 @@
             text
             class="text-none"
             @click="editScene"
-            color="accent"
+            color="primary"
             :disabled="!validEdit"
           >Edit</v-btn>
         </v-card-actions>
