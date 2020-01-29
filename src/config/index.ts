@@ -162,12 +162,14 @@ export async function loadConfig() {
   if (await existsAsync("config.json")) {
     loadedConfig = JSON.parse(await readFileAsync("config.json", "utf-8"));
     configFile = "config.json";
+    return true;
   } else if (await existsAsync("config.yaml")) {
     loadedConfig = YAML.parse(await readFileAsync("config.yaml", "utf-8"));
     configFile = "config.yaml";
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 export function getConfig() {
