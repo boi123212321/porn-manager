@@ -26,7 +26,7 @@
     "vue-class-component": "^7.0.2",
     "vue-infinite-loading": "^2.4.4",
     "vue-property-decorator": "^8.3.0",
-    "vue-router": "^3.1.3",
+    "vue-router": "^3.1.5",
     "vue-the-mask": "^0.11.1",
     "vuetify": "^2.2.8",
     "vuex": "^3.0.1",
