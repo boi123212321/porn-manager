@@ -8,13 +8,7 @@ import * as logger from "../logger";
 import { libraryPath, mapAsync } from "./utility";
 import Label from "./label";
 import Actor from "./actor";
-import {
-  statAsync,
-  readdirAsync,
-  unlinkAsync,
-  rimrafAsync,
-  existsAsync
-} from "../fs/async";
+import { statAsync, readdirAsync, unlinkAsync, rimrafAsync } from "../fs/async";
 import CrossReference from "./cross_references";
 import path from "path";
 import { existsSync } from "fs";
@@ -552,19 +546,6 @@ export default class Scene {
       }
 
       const config = getConfig();
-
-      if (!(await existsAsync(config.FFMPEG_PATH))) {
-        logger.error("FFMPEG not found");
-        throw new Error("FFMPEG not found");
-      }
-
-      if (!(await existsAsync(config.FFPROBE_PATH))) {
-        logger.error("FFPROBE not found");
-        throw new Error("FFPROBE not found");
-      }
-
-      ffmpeg.setFfmpegPath(config.FFMPEG_PATH);
-      ffmpeg.setFfprobePath(config.FFPROBE_PATH);
 
       let amount: number;
 
