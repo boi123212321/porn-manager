@@ -786,7 +786,7 @@ export default class ActorDetails extends Vue {
       return `${serverBase}/image/${
         this.currentActor.thumbnail._id
       }?password=${localStorage.getItem("password")}`;
-    return "";
+    return `${serverBase}/broken`;
   }
 
   @Watch("$route.params.id")

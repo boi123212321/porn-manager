@@ -1047,7 +1047,7 @@ export default class SceneDetails extends Vue {
       return `${serverBase}/image/${
         this.currentScene.thumbnail._id
       }?password=${localStorage.getItem("password")}`;
-    return "";
+    return `${serverBase}/broken`;
   }
 
   get studioLogo() {
