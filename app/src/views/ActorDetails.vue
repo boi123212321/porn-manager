@@ -91,6 +91,16 @@
                 >Last watched: {{ new Date(currentActor.watches[currentActor.watches.length - 1]).toLocaleString() }}</span>
                 <span v-else>You haven't watched {{ currentActor.name }} yet!</span>
               </v-tooltip>
+
+              <div class="text-center mt-3">
+                <v-btn
+                  color="primary"
+                  :loading="pluginLoader"
+                  text
+                  class="text-none"
+                  @click="runPlugins"
+                >Run plugins</v-btn>
+              </div>
             </div>
           </v-col>
           <v-col cols="12" sm="8" md="9" lg="10" xl="10">
@@ -397,6 +407,35 @@ export default class ActorDetails extends Vue {
   hasUpdatedFields = false;
 
   sceneLoader = false;
+  pluginLoader = false;
+
+  runPlugins() {
+    if (!this.currentActor) return;
+
+    this.pluginLoader = true;
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($ids: [String!]!) {
+          runActorPlugins(ids: $ids) {
+            ...ActorFragment
+          }
+        }
+        ${actorFragment}
+      `,
+      variables: {
+        ids: [this.currentActor._id]
+      }
+    })
+      .then(res => {
+        actorModule.setCurrent(res.data.runActorPlugins[0]);
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => {
+        this.pluginLoader = false;
+      });
+  }
 
   updateCustomFields() {
     if (!this.currentActor) return;

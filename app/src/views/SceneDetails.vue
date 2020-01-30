@@ -183,6 +183,15 @@
               <v-subheader style="min-width: 150px">Last time watched</v-subheader>
               {{ new Date(currentScene.watches[currentScene.watches.length - 1]).toLocaleString() }}
             </div>
+            <div class="text-center mt-3">
+              <v-btn
+                color="primary"
+                :loading="pluginLoader"
+                text
+                class="text-none"
+                @click="runPlugins"
+              >Run plugins</v-btn>
+            </div>
           </div>
         </v-col>
       </v-row>
@@ -500,6 +509,44 @@ export default class SceneDetails extends Vue {
 
   editCustomFields = {} as any;
   hasUpdatedFields = false;
+
+  pluginLoader = false;
+
+  runPlugins() {
+    if (!this.currentScene) return;
+
+    this.pluginLoader = true;
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($ids: [String!]!) {
+          runScenePlugins(ids: $ids) {
+            ...SceneFragment
+            actors {
+              ...ActorFragment
+            }
+            studio {
+              ...StudioFragment
+            }
+          }
+        }
+        ${sceneFragment}
+        ${actorFragment}
+        ${studioFragment}
+      `,
+      variables: {
+        ids: [this.currentScene._id]
+      }
+    })
+      .then(res => {
+        sceneModule.setCurrent(res.data.runScenePlugins[0]);
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => {
+        this.pluginLoader = false;
+      });
+  }
 
   updateCustomFields() {
     if (!this.currentScene) return;
