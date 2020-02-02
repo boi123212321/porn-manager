@@ -12,7 +12,6 @@
     "apollo-cache-inmemory": "^1.6.5",
     "apollo-client": "^2.6.8",
     "apollo-link-context": "^1.0.19",
-    "apollo-link-http": "^1.5.16",
     "apollo-upload-client": "^12.1.0",
     "color": "^3.1.2",
     "core-js": "^3.6.4",

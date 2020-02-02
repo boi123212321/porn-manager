@@ -147,6 +147,11 @@ export default async () => {
     }
   );
 
+  app.get("/force-scan", (req, res) => {
+    scanFolders();
+    res.json("Started scan.");
+  });
+
   if (config.BACKUP_ON_STARTUP === true) {
     setupMessage = "Creating backup...";
     await createBackup(config.MAX_BACKUP_AMOUNT || 10);
