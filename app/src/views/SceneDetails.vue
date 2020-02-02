@@ -2,9 +2,112 @@
   <v-container fluid>
     <div v-if="currentScene">
       <BindTitle :value="currentScene.name" />
-      <div class="d-flex pb-2">
+      <div class="align-center d-flex pb-2">
         <div class="text-center pa-2" style="flex-grow: 1">
-          <div class="mx-auto" style="max-width: 1200px" id="dplayer" ref="dplayer"></div>
+          <!-- <div class="mx-auto" style="max-width: 1200px" id="dplayer" ref="dplayer"></div> -->
+          <div class="mx-auto" style="max-width: 1100px">
+            <v-hover v-slot:default="{ hover }">
+              <div style="cursor:pointer; position: relative">
+                <div
+                  style="pointer-events: none; overflow: hidden; z-index: 11; cursor: pointer; position: absolute; width: 100%; height: 100%"
+                  class="video-overlay"
+                >
+                  <v-img
+                    @click="playPause"
+                    :src="thumbnail"
+                    cover
+                    max-height="100%"
+                    style="pointer-events: auto; filter:blur(8px); position:absolute; left: 0; top: 0; width: 100%; height: 100%"
+                    v-if="thumbnail && showPoster"
+                  ></v-img>
+                  <v-img
+                    @click="playPause"
+                    class="text-center"
+                    :src="thumbnail"
+                    contain
+                    max-height="100%"
+                    style="pointer-events: auto; position:absolute; left: 0; top: 0; width: 100%; height: 100%"
+                    v-if="thumbnail && showPoster"
+                  ></v-img>
+                  <v-fade-transition>
+                    <div
+                      v-if="videoNotice"
+                      class="pa-2"
+                      style="background: #333333aa; position: absolute; left: 10px; top: 10px; border-radius: 6px"
+                    >{{ videoNotice }}</div>
+                  </v-fade-transition>
+
+                  <v-fade-transition>
+                    <div
+                      v-if="hover"
+                      class="d-flex align-center"
+                      style="pointer-events: auto; background: #121420ee; padding: 4px; height: 48px; position: absolute; bottom: 0px; left: 0px; width: 100%"
+                    >
+                      <div class="px-1 align-center d-flex" style="width: 100%; height: 100%">
+                        <v-btn @click="playPause" icon>
+                          <v-icon>{{ isPlaying ? 'mdi-pause' : 'mdi-play' }}</v-icon>
+                        </v-btn>
+                        <span class="mx-2 caption">{{ formatTime(progress) }}</span>
+                        <v-hover v-slot:default="{ hover }">
+                          <div
+                            @mousemove="mouseMove"
+                            id="progress-bar"
+                            style="height: 100%; position:relative; width: 100%"
+                            @click="onProgressClick"
+                          >
+                            <div
+                              id="progress-bar"
+                              :style="`transform: translateY(-50%); top: 50%; width: 100%; position: absolute; border-radius: 4px; height: 6px; background: #202a3b`"
+                            >
+                              <v-fade-transition>
+                                <div
+                                  class="elevation-4"
+                                  v-if="hover && currentScene.preview"
+                                  :style="`position: absolute; top: -120px; left: ${previewX * 100}%; transform: translateX(-60px)`"
+                                >
+                                  <div
+                                    style="position: relative; overflow: hidden; width: 160px; height: 90px"
+                                  >
+                                    <img
+                                      :style="`left: -${imageIndex * 160}px; position: absolute; height: 100%; background-style: cover; background-position: ${imageIndex * 160}`"
+                                      :src="imageLink(currentScene.preview)"
+                                    />
+                                  </div>
+                                </div>
+                              </v-fade-transition>
+                            </div>
+
+                            <div
+                              :style="`pointer-events: none; transform: translateY(-50%); top: 50%; width: ${progressPercent * 100}%; position: absolute; border-radius: 4px; height: 6px; left: 0px; background: #405090`"
+                            ></div>
+                            <v-tooltip v-for="marker in markers" :key="marker.id" top>
+                              <template v-slot:activator="{ on }">
+                                <v-hover v-slot:default="{ hover }">
+                                  <div
+                                    @click="jumpToTime(marker.time)"
+                                    v-on="on"
+                                    :style="`transition: all 0.15s ease-in-out; transform: translateY(-50%); top: 50%; background: ${hover ? '#50aacc' : '#4070aa'}; border-radius: 4px; position: absolute; left: ${percentOfVideo(marker.time) * 100}%; height: ${hover ? 16 : 12}px; width: 4px`"
+                                  ></div>
+                                </v-hover>
+                              </template>
+                              {{ marker.name }}
+                            </v-tooltip>
+                          </div>
+                        </v-hover>
+                        <span class="mx-2 caption">{{ formatTime(currentScene.meta.duration) }}</span>
+                        <v-btn @click="requestFullscreen" icon>
+                          <v-icon>mdi-fullscreen</v-icon>
+                        </v-btn>
+                      </div>
+                    </div>
+                  </v-fade-transition>
+                </div>
+                <video @click="playPause" id="video" style="width: 100%">
+                  <source :src="videoPath" type="video/mp4" />
+                </video>
+              </div>
+            </v-hover>
+          </div>
         </div>
         <v-divider vertical v-if="$vuetify.breakpoint.mdAndUp" />
         <div class="py-2" v-if="$vuetify.breakpoint.mdAndUp" style="width: 400px; max-width: 400px">
@@ -14,7 +117,7 @@
           <div class="mt-3">
             <MarkerItem
               style="width: 100%"
-              @jump="moveToTime(marker.time, marker.name)"
+              @jump="jumpToTime(marker.time, marker.name)"
               @delete="removeMarker(marker._id)"
               :marker="marker"
               v-for="marker in markers"
@@ -32,7 +135,7 @@
           <div class="mt-3">
             <MarkerItem
               style="width: 100%"
-              @jump="moveToTime(marker.time, marker.name)"
+              @jump="jumpToTime(marker.time, marker.name)"
               @delete="removeMarker(marker._id)"
               :marker="marker"
               v-for="marker in markers"
@@ -498,8 +601,6 @@ export default class SceneDetails extends Vue {
   uploadDialog = false;
   isUploading = false;
 
-  dp = null as any;
-
   markers = [] as { _id: string; name: string; time: number }[];
   markerName = "" as string | null;
   markerDialog = false;
@@ -511,6 +612,111 @@ export default class SceneDetails extends Vue {
   hasUpdatedFields = false;
 
   pluginLoader = false;
+
+  previewX = 0;
+  progress = 0;
+  isPlaying = false;
+  showPoster = true;
+  videoNotice = "";
+
+  requestFullscreen() {
+    const video = document.getElementById("video");
+    if (video && video.requestFullscreen) video.requestFullscreen();
+  }
+
+  get imageIndex() {
+    return Math.floor(this.previewX * 100);
+  }
+
+  mouseMove(ev) {
+    const progressBar = document.getElementById("progress-bar");
+    if (progressBar) {
+      const rect = progressBar.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      this.previewX = x / rect.width;
+    }
+  }
+
+  percentOfVideo(time: number) {
+    if (!this.currentScene) return 0;
+    return time / this.currentScene.meta.duration;
+  }
+
+  get progressPercent() {
+    return this.percentOfVideo(this.progress);
+  }
+
+  jumpToTime(time: number, text?: string) {
+    const vid = <HTMLVideoElement>document.getElementById("video");
+    if (vid && this.currentScene) {
+      vid.currentTime = time;
+      if (vid.paused) {
+        vid.play();
+        this.isPlaying = true;
+        this.showPoster = false;
+        vid.ontimeupdate = ev => {
+          this.progress = vid.currentTime;
+        };
+      }
+
+      if (text) {
+        this.notice(text);
+      }
+    }
+  }
+
+  onProgressClick(ev: any) {
+    const progressBar = document.getElementById("progress-bar");
+    if (progressBar && this.currentScene) {
+      const rect = progressBar.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const xPercentage = x / rect.width;
+      this.jumpToTime(xPercentage * this.currentScene.meta.duration);
+    }
+  }
+
+  notice(text: string, duration = 1500) {
+    this.videoNotice = text;
+    setTimeout(() => {
+      this.videoNotice = "";
+    }, duration);
+  }
+
+  play() {
+    const vid = <HTMLVideoElement>document.getElementById("video");
+    if (vid) {
+      vid.play();
+      this.isPlaying = true;
+      this.showPoster = false;
+      vid.ontimeupdate = ev => {
+        this.progress = vid.currentTime;
+      };
+    }
+  }
+
+  isPaused() {
+    const vid = <HTMLVideoElement>document.getElementById("video");
+    return vid && vid.paused;
+  }
+
+  pause() {
+    const vid = <HTMLVideoElement>document.getElementById("video");
+    if (vid) {
+      vid.pause();
+      this.isPlaying = false;
+    }
+  }
+
+  playPause() {
+    const vid = <HTMLVideoElement>document.getElementById("video");
+    if (vid) {
+      if (vid.paused) {
+        this.play();
+      } else {
+        this.pause();
+      }
+    }
+  }
 
   runPlugins() {
     if (!this.currentScene) return;
@@ -589,7 +795,7 @@ export default class SceneDetails extends Vue {
       variables: {
         // @ts-ignore
         id: this.currentScene._id,
-        sec: this.currentTime()
+        sec: this.progress
       }
     })
       .then(res => {})
@@ -629,7 +835,7 @@ export default class SceneDetails extends Vue {
       variables: {
         scene: this.currentScene._id,
         name: this.markerName,
-        time: this.currentTime()
+        time: this.progress
       }
     }).then(res => {
       this.markers.unshift(res.data.createMarker);
@@ -648,24 +854,11 @@ export default class SceneDetails extends Vue {
   }
 
   currentTimeFormatted() {
-    return this.formatTime(this.currentTime());
-  }
-
-  currentTime() {
-    if (this.dp) return Math.round(this.dp.video.currentTime);
-    return 0;
-  }
-
-  moveToTime(time: number, text?: string) {
-    if (this.dp) {
-      this.dp.seek(time);
-      this.dp.play();
-      if (text) this.dp.notice(text, 2000, 0.8);
-    }
+    return this.formatTime(this.progress);
   }
 
   openMarkerDialog() {
-    this.dp.pause();
+    // this.dp.pause();
     this.markerDialog = true;
   }
 
@@ -686,35 +879,6 @@ export default class SceneDetails extends Vue {
       return `${serverBase}/scene/${
         this.currentScene._id
       }?password=${localStorage.getItem("password")}`;
-  }
-
-  get dplayerOptions() {
-    if (this.currentScene) {
-      return {
-        container: this.$refs.dplayer,
-        autoplay: false,
-        preload: true,
-        video: {
-          url: this.videoPath,
-          poster: this.thumbnail,
-          pic: this.thumbnail,
-          type: "normal",
-          thumbnails: this.currentScene.preview
-            ? this.imageLink(this.currentScene.preview)
-            : null
-        },
-        highlight: this.markers.map(m => ({
-          text: m.name,
-          time: m.time
-        })),
-        contextmenu: [
-          {
-            text: "Follow on GitHub",
-            link: "https://github.com/boi123212321/porn-manager"
-          }
-        ]
-      };
-    }
   }
 
   @Watch("currentScene.actors", { deep: true })
@@ -1094,10 +1258,6 @@ export default class SceneDetails extends Vue {
       this.markers = res.data.getSceneById.markers;
       this.markers.sort((a, b) => a.time - b.time);
       this.editCustomFields = res.data.getSceneById.customFields;
-
-      setTimeout(() => {
-        this.dp = new DPlayer(this.dplayerOptions);
-      }, 100);
     });
   }
 
@@ -1106,22 +1266,20 @@ export default class SceneDetails extends Vue {
   }
 
   goToPreviousMarker() {
-    const prevMarkers = this.markers.filter(
-      m => m.time < this.currentTime() - 5
-    );
+    const prevMarkers = this.markers.filter(m => m.time < this.progress - 5);
     if (prevMarkers.length) {
       const prevMarker = prevMarkers.pop() as {
         _id: string;
         name: string;
         time: number;
       };
-      this.moveToTime(prevMarker.time, prevMarker.name);
-    } else this.moveToTime(0);
+      this.jumpToTime(prevMarker.time, prevMarker.name);
+    } else this.jumpToTime(0);
   }
 
   goToNextMarker() {
-    const nextMarker = this.markers.find(m => m.time > this.currentTime());
-    if (nextMarker) this.moveToTime(nextMarker.time, nextMarker.name);
+    const nextMarker = this.markers.find(m => m.time > this.progress);
+    if (nextMarker) this.jumpToTime(nextMarker.time, nextMarker.name);
   }
 
   destroyed() {
@@ -1140,49 +1298,27 @@ export default class SceneDetails extends Vue {
       return false;
     });
 
-    /* window.addEventListener("keydown", ev => {
-          if (ev.keyCode >= 48 && ev.keyCode <= 53) {
-            const rating = ev.keyCode - 48;
-            this.rate(rating);
-          } else if (ev.keyCode >= 96 && ev.keyCode <= 101) {
-            const rating = ev.keyCode - 96;
-            this.rate(rating);
-          }
-        }); */
-
-    /* window.addEventListener(
-      "pagehide",
-      event => {
-        if (event.persisted) {
-          this.dp.pause();
-          this.dp.notice("Auto pause", 4000, 0.8);
-        }
-      },
-      false
-    ); */
-
     window.onblur = () => {
       if (
         !document.hasFocus() &&
-        this.dp &&
-        !this.dp.video.paused &&
+        !this.isPaused() &&
         contextModule.scenePauseOnUnfocus
       ) {
-        this.dp.pause();
+        this.pause();
         this.autoPaused = true;
-        this.dp.notice("Auto pause", 4000, 0.8);
+        this.notice("Auto pause", 4000);
       }
     };
 
     window.onfocus = () => {
       if (
         document.hasFocus() &&
-        this.dp &&
+        // this.dp &&
         contextModule.scenePauseOnUnfocus &&
         this.autoPaused
       ) {
-        this.dp.play();
-        this.dp.notice("", 0, 0);
+        this.play();
+        this.notice("", 0);
         this.autoPaused = false;
       }
     };
@@ -1190,17 +1326,17 @@ export default class SceneDetails extends Vue {
     document.addEventListener(
       "visibilitychange",
       () => {
-        if (this.dp && contextModule.scenePauseOnUnfocus) {
+        if (contextModule.scenePauseOnUnfocus) {
           if (document.hidden) {
-            if (!this.dp.video.paused) {
-              this.dp.pause();
+            if (!this.isPaused()) {
+              this.pause();
               this.autoPaused = true;
-              this.dp.notice("Auto pause", 4000, 0.8);
+              this.notice("Auto pause", 4000);
             }
           } else if (this.autoPaused) {
-            this.dp.play();
+            this.play();
             this.autoPaused = false;
-            this.dp.notice("", 0, 0);
+            this.videoNotice = "";
           }
         }
       },
