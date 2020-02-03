@@ -29,6 +29,7 @@ export async function checkVideoFolders() {
 
   const allFiles = [] as string[];
 
+  if (config.EXCLUDE_FILES.length)
   logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
 
   for (const folder of config.VIDEO_PATHS) {
@@ -122,6 +123,7 @@ export async function checkImageFolders() {
   if (!config.READ_IMAGES_ON_IMPORT)
     logger.warn("Reading images on import is disabled.");
 
+  if (config.EXCLUDE_FILES.length)
   logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
 
   for (const folder of config.IMAGE_PATHS) {

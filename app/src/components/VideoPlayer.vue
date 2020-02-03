@@ -119,8 +119,24 @@ export default class VideoPlayer extends Vue {
   }
 
   requestFullscreen() {
-    const video = document.getElementById("video");
-    if (video && video.requestFullscreen) video.requestFullscreen();
+    const video = <HTMLVideoElement>document.getElementById("video");
+    if (video) {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+        // @ts-ignore
+      } else if (video.webkitRequestFullscreen) {
+        // @ts-ignore
+        video.webkitRequestFullscreen();
+        // @ts-ignore
+      } else if (video.mozRequestFullScreen) {
+        // @ts-ignore
+        video.mozRequestFullScreen();
+        // @ts-ignore
+      } else if (video.msRequestFullscreen) {
+        // @ts-ignore
+        video.msRequestFullscreen();
+      }
+    }
   }
 
   onMouseMove(ev) {

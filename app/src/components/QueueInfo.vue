@@ -1,7 +1,7 @@
 <template>
   <v-card v-if="info" class="mb-3" style="border-radius: 10px">
     <v-card-title>
-      <v-icon medium class="mr-2">mdi-progress-wrench</v-icon>Processing video queue
+      <v-icon medium class="mr-2">mdi-progress-wrench</v-icon>Video processing queue
     </v-card-title>
 
     <v-card-text>

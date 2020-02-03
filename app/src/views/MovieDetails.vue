@@ -3,7 +3,7 @@
     <div v-if="currentMovie">
       <BindTitle :value="currentMovie.name" />
       <v-row>
-        <v-col cols="12" sm="4" md="4" lg="3" xl="2">
+        <v-col cols="12" sm="6" md="4" lg="3" xl="2">
           <v-container>
             <v-hover>
               <template v-slot:default="{ hover }">
@@ -31,7 +31,7 @@
             </div>
           </v-container>
         </v-col>
-        <v-col cols="12" sm="8" md="8" lg="9" xl="10">
+        <v-col cols="12" sm="6" md="8" lg="9" xl="10">
           <div class="d-flex" v-if="currentMovie.studio">
             <v-spacer></v-spacer>
             <router-link :to="`/studio/${currentMovie.studio._id}`">

@@ -125,7 +125,7 @@ export async function checkConfig() {
 
     if (defaultOverride) {
       await writeFileAsync(
-        "config.json",
+        configFile,
         stringifyFormatted(loadedConfig),
         "utf-8"
       );
@@ -160,8 +160,8 @@ export async function checkConfig() {
 }
 
 export async function loadConfig() {
-  logger.message("Loading config...");
   if (await existsAsync("config.json")) {
+    logger.message("Loading config.json...");
     try {
       loadedConfig = JSON.parse(await readFileAsync("config.json", "utf-8"));
     } catch (error) {
@@ -171,6 +171,7 @@ export async function loadConfig() {
     configFile = "config.json";
     return true;
   } else if (await existsAsync("config.yaml")) {
+    logger.message("Loading config.yaml...");
     try {
       loadedConfig = YAML.parse(await readFileAsync("config.yaml", "utf-8"));
     } catch (error) {
