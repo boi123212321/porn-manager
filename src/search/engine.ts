@@ -1,6 +1,25 @@
 import { tokenize } from "./tokenize";
 import * as logger from "../logger/index";
 
+interface IScoredDocument {
+  id: string;
+  score: number;
+}
+
+function applyFilters<T>(
+  docs: IScoredDocument[],
+  items: Record<string, T>,
+  filters: ((x: T) => boolean)[]
+): IScoredDocument[] {
+  const result = [] as IScoredDocument[];
+  for (const doc of docs) {
+    const item = items[doc.id];
+    if (!item) continue;
+    if (filters.every(f => f(item))) result.push(doc);
+  }
+  return result;
+}
+
 export interface ISearchOptions<T> {
   query: string;
   skip?: number;
@@ -11,7 +30,7 @@ export interface ISearchOptions<T> {
 }
 
 export class SearchIndex<T> {
-  items: { [key: string]: T } = {};
+  items: Record<string, T> = {};
   tokens: { [key: string]: string[] } = {};
   idMap: { [key: string]: string } = {};
 
@@ -83,7 +102,7 @@ export class SearchIndex<T> {
 
     logger.search(`Tokenized query`);
 
-    let foundDocs = [] as { id: string; score: number }[];
+    let foundDocs = [] as IScoredDocument[];
 
     if (tokenizedQuery.length) {
       for (const token of tokenizedQuery) {
@@ -115,10 +134,7 @@ export class SearchIndex<T> {
     logger.search(`Found ${foundDocs.length} candidates`);
 
     if (search.filters && search.filters.length) {
-      const filterFuncs = search.filters;
-      foundDocs = foundDocs.filter(
-        d => this.items[d.id] && filterFuncs.every(f => f(this.items[d.id]))
-      );
+      foundDocs = applyFilters(foundDocs, this.items, search.filters);
       logger.search(`Applied ${search.filters.length} filters`);
     }
 
@@ -138,7 +154,7 @@ export class SearchIndex<T> {
       const skip = search.skip && search.skip >= 0 ? search.skip : 0;
       const take = search.take && search.take > 0 ? search.take : 1;
 
-      const page = [] as { id: string; score: number }[];
+      const page = [] as IScoredDocument[];
       for (let i = skip; i < foundDocs.length && page.length < take; i++) {
         const doc = foundDocs[i];
         page.push(doc);
