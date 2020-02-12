@@ -49,18 +49,15 @@ export async function createMovieSearchDoc(
   };
 }
 
-export const movieIndex = new SearchIndex(
-  (doc: IMovieSearchDoc) => {
-    return [
-      ...tokenize(doc.name),
-      ...tokenizeNames(doc.actors.map(l => l.name)),
-      ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
-      ...tokenizeNames(doc.labels.map(l => l.name)),
-      ...tokenize(doc.studio ? doc.studio.name : "")
-    ];
-  },
-  (movie: IMovieSearchDoc) => movie._id
-);
+export const movieIndex = new SearchIndex((doc: IMovieSearchDoc) => {
+  return [
+    ...tokenize(doc.name),
+    ...tokenizeNames(doc.actors.map(l => l.name)),
+    ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
+    ...tokenizeNames(doc.labels.map(l => l.name)),
+    ...tokenize(doc.studio ? doc.studio.name : "")
+  ];
+}, "_id");
 
 export async function buildMovieIndex() {
   const timeNow = +new Date();

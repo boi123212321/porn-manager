@@ -119,8 +119,24 @@ export default class VideoPlayer extends Vue {
   }
 
   requestFullscreen() {
-    const video = document.getElementById("video");
-    if (video && video.requestFullscreen) video.requestFullscreen();
+    const video = <HTMLVideoElement>document.getElementById("video");
+    if (video) {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+        // @ts-ignore
+      } else if (video.webkitRequestFullscreen) {
+        // @ts-ignore
+        video.webkitRequestFullscreen();
+        // @ts-ignore
+      } else if (video.mozRequestFullScreen) {
+        // @ts-ignore
+        video.mozRequestFullScreen();
+        // @ts-ignore
+      } else if (video.msRequestFullscreen) {
+        // @ts-ignore
+        video.msRequestFullscreen();
+      }
+    }
   }
 
   onMouseMove(ev) {
@@ -151,14 +167,15 @@ export default class VideoPlayer extends Vue {
     const vid = <HTMLVideoElement>document.getElementById("video");
     if (vid) {
       vid.currentTime = time;
-      if (vid.paused) {
+      /* if (vid.paused) {
         vid.play();
         this.isPlaying = true;
         this.showPoster = false;
         vid.ontimeupdate = ev => {
           this.progress = vid.currentTime;
         };
-      }
+        this.$emit("play");
+      } */
 
       if (text) {
         this.notice(text);
@@ -192,6 +209,7 @@ export default class VideoPlayer extends Vue {
       vid.ontimeupdate = ev => {
         this.progress = vid.currentTime;
       };
+      this.$emit("play");
     }
   }
 

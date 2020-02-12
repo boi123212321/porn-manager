@@ -42,7 +42,7 @@ export async function walk(
       if (stat.isDirectory()) {
         logger.log("Pushed folder " + path);
         folderStack.push(path);
-      } else if (exts.includes(extname(file))) {
+      } else if (exts.includes(extname(file).toLowerCase())) {
         logger.log("Found file " + file + "...");
         await cb(path);
       }

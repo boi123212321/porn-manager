@@ -1,6 +1,25 @@
 import { tokenize } from "./tokenize";
 import * as logger from "../logger/index";
 
+interface IScoredDocument {
+  id: string;
+  score: number;
+}
+
+function applyFilters<T>(
+  docs: IScoredDocument[],
+  items: Record<string, T>,
+  filters: ((x: T) => boolean)[]
+): IScoredDocument[] {
+  const result = [] as IScoredDocument[];
+  for (const doc of docs) {
+    const item = items[doc.id];
+    if (!item) continue;
+    if (filters.every(f => f(item))) result.push(doc);
+  }
+  return result;
+}
+
 export interface ISearchOptions<T> {
   query: string;
   skip?: number;
@@ -11,18 +30,22 @@ export interface ISearchOptions<T> {
 }
 
 export class SearchIndex<T> {
-  items: { [key: string]: T } = {};
+  items: Record<string, T> = {};
   tokens: { [key: string]: string[] } = {};
   idMap: { [key: string]: string } = {};
 
   tokenizer: (t: T) => string[];
-  identifier: (t: T) => string;
+  identifier: string;
 
   idCounter = 0;
 
-  constructor(tokenizer: (t: T) => string[], identifier: (t: T) => string) {
+  constructor(tokenizer: (t: T) => string[], identifier: string) {
     this.tokenizer = tokenizer;
     this.identifier = identifier;
+  }
+
+  numLinks() {
+    return Object.values(this.tokens).reduce((a, c) => a + c.length, 0);
   }
 
   numTokens() {
@@ -63,7 +86,7 @@ export class SearchIndex<T> {
     const tokens = this.tokenizer(t);
 
     const id = (this.idCounter++).toString();
-    const realId = this.identifier(t);
+    const realId = t[this.identifier];
     this.idMap[id] = realId;
 
     for (const token of tokens) {
@@ -72,14 +95,19 @@ export class SearchIndex<T> {
     }
 
     this.items[realId] = t;
+    delete t[this.identifier];
   }
 
   async search(search: ISearchOptions<T>) {
     const scores = {} as { [key: string]: number };
 
+    logger.search(`Searching for '${search.query}'`);
+
     const tokenizedQuery = tokenize(search.query);
 
-    let foundDocs = [] as { id: string; score: number }[];
+    logger.search(`Tokenized query`);
+
+    let foundDocs = [] as IScoredDocument[];
 
     if (tokenizedQuery.length) {
       for (const token of tokenizedQuery) {
@@ -101,17 +129,18 @@ export class SearchIndex<T> {
           });
       }
     } else {
+      logger.search(`No query: getting all items`);
       foundDocs = Object.keys(this.items).map(id => ({
         id,
         score: 1
       }));
     }
 
+    logger.search(`Found ${foundDocs.length} candidates`);
+
     if (search.filters && search.filters.length) {
-      const filterFuncs = search.filters;
-      foundDocs = foundDocs.filter(
-        d => this.items[d.id] && filterFuncs.every(f => f(this.items[d.id]))
-      );
+      foundDocs = applyFilters(foundDocs, this.items, search.filters);
+      logger.search(`Applied ${search.filters.length} filters`);
     }
 
     if (search.random) {
@@ -124,19 +153,23 @@ export class SearchIndex<T> {
     } // Sort by relevance
     else foundDocs.sort((a, b) => b.score - a.score);
 
+    logger.search(`Sorted result`);
+
     if (search.skip !== undefined || search.take) {
       const skip = search.skip && search.skip >= 0 ? search.skip : 0;
       const take = search.take && search.take > 0 ? search.take : 1;
 
-      const page = [] as { id: string; score: number }[];
+      const page = [] as IScoredDocument[];
       for (let i = skip; i < foundDocs.length && page.length < take; i++) {
         const doc = foundDocs[i];
         page.push(doc);
       }
 
+      logger.search(`Got page: ${page.length} items`);
       return page;
     }
 
+    logger.search(`Returning all ${foundDocs.length} found items`);
     return foundDocs;
   }
 }

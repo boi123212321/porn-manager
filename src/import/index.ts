@@ -69,7 +69,8 @@ export async function checkImportFolders() {
   // Files to process
   const newFiles = [] as string[];
 
-  logger.log(`Will ignore files: ${config.EXCLUDE_FILES}`);
+  if (config.EXCLUDE_FILES.length)
+    logger.log(`Will ignore files: ${config.EXCLUDE_FILES}`);
 
   for (const folder of config.BULK_IMPORT_PATHS) {
     logger.log(`Checking import folder: ${folder}...`);

@@ -38,15 +38,9 @@ export async function createStudioSearchDoc(
   };
 }
 
-export const studioIndex = new SearchIndex(
-  (doc: IStudioSearchDoc) => {
-    return [
-      ...tokenize(doc.name),
-      ...tokenizeNames(doc.labels.map(l => l.name))
-    ];
-  },
-  (studio: IStudioSearchDoc) => studio._id
-);
+export const studioIndex = new SearchIndex((doc: IStudioSearchDoc) => {
+  return [...tokenize(doc.name), ...tokenizeNames(doc.labels.map(l => l.name))];
+}, "_id");
 
 export async function buildStudioIndex() {
   const timeNow = +new Date();

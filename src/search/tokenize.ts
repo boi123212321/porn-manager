@@ -1,3 +1,5 @@
+const stopwords = require("n-stopwords")(["en"]);
+
 export const tokenize = (str: string) => [
   ...new Set(
     str
@@ -7,6 +9,7 @@ export const tokenize = (str: string) => [
       .filter(Boolean)
       .filter(s => /[a-z]/i.test(s))
       .filter(s => s.length > 1 || /^[0-9]+$/.test(s))
+      .filter(s => !stopwords.isStopWord(s))
   )
 ];
 

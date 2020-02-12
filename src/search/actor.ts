@@ -44,16 +44,13 @@ export async function createActorSearchDoc(
   };
 }
 
-export const actorIndex = new SearchIndex(
-  (doc: IActorSearchDoc) => {
-    return [
-      ...tokenize(doc.name),
-      ...tokenizeNames(doc.aliases),
-      ...tokenizeNames(doc.labels.map(l => l.name))
-    ];
-  },
-  (actor: IActorSearchDoc) => actor._id
-);
+export const actorIndex = new SearchIndex((doc: IActorSearchDoc) => {
+  return [
+    ...tokenize(doc.name),
+    ...tokenizeNames(doc.aliases),
+    ...tokenizeNames(doc.labels.map(l => l.name))
+  ];
+}, "_id");
 
 export async function buildActorIndex() {
   const timeNow = +new Date();

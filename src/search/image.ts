@@ -4,6 +4,7 @@ import { tokenizeNames, tokenize } from "./tokenize";
 import * as log from "../logger/index";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
+import { inspect } from "util";
 
 export interface IImageSearchDoc {
   _id: string;
@@ -44,17 +45,14 @@ export async function createImageSearchDoc(
   };
 }
 
-export const imageIndex = new SearchIndex(
-  (doc: IImageSearchDoc) => {
-    return [
-      ...tokenize(doc.name),
-      ...tokenizeNames(doc.actors.map(l => l.name)),
-      ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
-      ...tokenizeNames(doc.labels.map(l => l.name))
-    ];
-  },
-  (image: IImageSearchDoc) => image._id
-);
+export const imageIndex = new SearchIndex((doc: IImageSearchDoc) => {
+  return [
+    ...tokenize(doc.name),
+    ...tokenizeNames(doc.actors.map(l => l.name)),
+    ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
+    ...tokenizeNames(doc.labels.map(l => l.name))
+  ];
+}, "_id");
 
 export async function buildImageIndex() {
   const timeNow = +new Date();
@@ -64,7 +62,7 @@ export async function buildImageIndex() {
   }
   loader.succeed(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
   log.log(
-    `Index size: ${imageIndex.size()} items, ${imageIndex.numTokens()} tokens, ${memorySizeOf(
+    `Index size: ${imageIndex.size()} items, ${imageIndex.numTokens()} tokens, ${imageIndex.numLinks()} links, ${memorySizeOf(
       imageIndex
     )}`
   );

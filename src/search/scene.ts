@@ -5,6 +5,7 @@ import Studio from "../types/studio";
 import * as log from "../logger/index";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
+import { inspect } from "util";
 
 export interface ISceneSearchDoc {
   _id: string;
@@ -56,18 +57,15 @@ export async function createSceneSearchDoc(
   };
 }
 
-export const sceneIndex = new SearchIndex(
-  (doc: ISceneSearchDoc) => {
-    return [
-      ...tokenize(doc.name),
-      ...tokenizeNames(doc.actors.map(l => l.name)),
-      ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
-      ...tokenizeNames(doc.labels.map(l => l.name)),
-      ...tokenize(doc.studio ? doc.studio.name : "")
-    ];
-  },
-  (scene: ISceneSearchDoc) => scene._id
-);
+export const sceneIndex = new SearchIndex((doc: ISceneSearchDoc) => {
+  return [
+    ...tokenize(doc.name),
+    ...tokenizeNames(doc.actors.map(l => l.name)),
+    ...tokenizeNames(doc.actors.map(l => l.aliases).flat()),
+    ...tokenizeNames(doc.labels.map(l => l.name)),
+    ...tokenize(doc.studio ? doc.studio.name : "")
+  ];
+}, "_id");
 
 export async function buildSceneIndex() {
   const timeNow = +new Date();
@@ -77,7 +75,7 @@ export async function buildSceneIndex() {
   }
   loader.succeed(`Build done in ${(Date.now() - timeNow) / 1000}s.`);
   log.log(
-    `Index size: ${sceneIndex.size()} items, ${sceneIndex.numTokens()} tokens, ${memorySizeOf(
+    `Index size: ${sceneIndex.size()} items, ${sceneIndex.numTokens()} tokens, ${sceneIndex.numLinks()} links, ${memorySizeOf(
       sceneIndex
     )}`
   );
