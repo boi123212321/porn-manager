@@ -32,6 +32,7 @@ export interface IImportedMovie {
 
 export interface IImportedActor {
   name: string;
+  description?: string | null;
   bornOn?: number | null;
   aliases?: string[];
   labels?: string[];

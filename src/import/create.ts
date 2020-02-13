@@ -23,6 +23,7 @@ import Movie from "../types/movie";
 import Studio from "../types/studio";
 import args from "../args";
 import { onActorCreate } from "../plugin_events/actor";
+import { isString } from "./schemas/common";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -167,6 +168,9 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       if (isNumber(actorToCreate.rating))
         actor.rating = <number>actorToCreate.rating;
+
+      if (isString(actorToCreate.description))
+        actor.description = actorToCreate.description;
 
       if (actorToCreate.thumbnail) {
         const image = new Image(`${actor.name} (thumbnail)`);
