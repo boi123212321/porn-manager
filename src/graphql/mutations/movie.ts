@@ -4,6 +4,7 @@ import { Dictionary } from "../../types/utility";
 import * as logger from "../../logger";
 import { indices } from "../../search/index";
 import { createMovieSearchDoc } from "../../search/movie";
+import { onMovieCreate } from "../../plugin_events/movie";
 
 type IMovieUpdateOpts = Partial<{
   name: string;
@@ -21,15 +22,21 @@ type IMovieUpdateOpts = Partial<{
 
 export default {
   async addMovie(_, args: Dictionary<any>) {
-    const movie = new Movie(args.name, args.scenes);
+    let movie = new Movie(args.name, args.scenes);
 
     if (args.scenes) {
       if (Array.isArray(args.scenes)) await Movie.setScenes(movie, args.scenes);
     }
+
+    try {
+      movie = await onMovieCreate(movie, []);
+    } catch (error) {
+      logger.log(error);
+      logger.error(error.message);
+    }
+
     await database.insert(database.store.movies, movie);
     indices.movies.add(await createMovieSearchDoc(movie));
-
-    // TODO: plugin event
 
     return movie;
   },

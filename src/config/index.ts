@@ -100,8 +100,8 @@ export const defaultConfig: IConfig = {
     actorCreated: [],
     sceneCreated: [],
     actorCustom: [],
-    sceneCustom: []
-    // TODO: movieCreated: []
+    sceneCustom: [],
+    movieCreated: []
   },
   CREATE_MISSING_ACTORS: false,
   CREATE_MISSING_STUDIOS: false,

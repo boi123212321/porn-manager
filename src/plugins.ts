@@ -32,6 +32,7 @@ export async function runPluginsSerial(
       });
       Object.assign(result, pluginResult);
     } catch (error) {
+      logger.log(error);
       logger.error(error.message);
       numErrors++;
     }
@@ -62,6 +63,9 @@ export async function runPlugin(
 
     const fileContent = await readFileAsync(path, "utf-8");
     const func = eval(fileContent);
+
+    logger.log(plugin);
+
     try {
       const result = await func({
         $axios: axios,
