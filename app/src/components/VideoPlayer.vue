@@ -163,19 +163,12 @@ export default class VideoPlayer extends Vue {
     );
   }
 
-  seek(time: number, text?: string) {
+  seek(time: number, text?: string, play = false) {
     const vid = <HTMLVideoElement>document.getElementById("video");
     if (vid) {
       vid.currentTime = time;
-      /* if (vid.paused) {
-        vid.play();
-        this.isPlaying = true;
-        this.showPoster = false;
-        vid.ontimeupdate = ev => {
-          this.progress = vid.currentTime;
-        };
-        this.$emit("play");
-      } */
+
+      if (play && vid.paused) vid.play();
 
       if (text) {
         this.notice(text);
@@ -189,7 +182,7 @@ export default class VideoPlayer extends Vue {
       const rect = progressBar.getBoundingClientRect();
       const x = ev.clientX - rect.left;
       const xPercentage = x / rect.width;
-      this.seek(xPercentage * this.duration);
+      this.seek(xPercentage * this.duration, "", true);
     }
   }
 

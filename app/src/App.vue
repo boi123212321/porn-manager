@@ -1,6 +1,12 @@
 <template>
   <v-app>
     <v-app-bar style="z-index: 13" clipped-left app :color="appbarColor">
+      <v-btn icon to="/" v-if="$vuetify.breakpoint.smAndUp">
+        <v-icon>mdi-home</v-icon>
+      </v-btn>
+
+      <v-divider class="mx-2" inset vertical v-if="$vuetify.breakpoint.smAndUp"></v-divider>
+
       <div
         style="overflow: hidden; text-overflow: ellipsis"
         class="d-flex align-center"
@@ -41,6 +47,10 @@
         @click="filterDrawer = !filterDrawer"
       >
         <v-icon>mdi-filter</v-icon>
+      </v-btn>
+
+      <v-btn icon to="/settings">
+        <v-icon>mdi-settings</v-icon>
       </v-btn>
 
       <template v-slot:extension v-if="showDetailsBar">
@@ -172,10 +182,12 @@ export default class App extends Vue {
       this.$vuetify.theme.dark = darkModeLocalStorage == "true";
     }
 
-    const fillActorCardsLocalStorage = localStorage.getItem("pm_fillActorCards");
+    const fillActorCardsLocalStorage = localStorage.getItem(
+      "pm_fillActorCards"
+    );
     if (fillActorCardsLocalStorage) {
       // @ts-ignore
-      contextModule.toggleActorCardStyle(fillActorCardsLocalStorage == "true")
+      contextModule.toggleActorCardStyle(fillActorCardsLocalStorage == "true");
     }
 
     const sceneRatioLocalStorage = localStorage.getItem("pm_sceneRatio");
@@ -199,11 +211,6 @@ export default class App extends Vue {
   }
 
   navItems = [
-    {
-      icon: "mdi-home",
-      text: "Home",
-      url: "/"
-    },
     {
       icon: "mdi-camcorder-box",
       text: "Scenes",
@@ -233,11 +240,6 @@ export default class App extends Vue {
       icon: "mdi-image",
       text: "Images",
       url: "/images"
-    },
-    {
-      icon: "mdi-information",
-      text: "About",
-      url: "/about"
     }
   ];
 }
