@@ -40,7 +40,7 @@ release/
 releases/
 tmp/
 backups/
-plugins/
+/plugins/
 imports/
 
 config\.yaml

@@ -5,7 +5,7 @@ import Scene from "../types/scene";
 import Image from "../types/image";
 import { basename } from "path";
 import ProcessingQueue, { IQueueItem } from "../queue/index";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import * as database from "../database";
 import { extractLabels, extractActors, extractScenes } from "../extractor";
 import Jimp from "jimp";
@@ -37,8 +37,11 @@ export async function checkVideoFolders() {
       if (
         basename(path).startsWith(".") ||
         fileIsExcluded(config.EXCLUDE_FILES, path)
-      )
+      ) {
+        logger.log(`Ignoring file ${path}`);
         return;
+      }
+      logger.log(`Found matching file ${path}`);
       allFiles.push(path);
     });
   }

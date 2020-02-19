@@ -4,7 +4,7 @@ import Scene from "../../types/scene";
 import Movie from "../../types/movie";
 import Image from "../../types/image";
 import { stripStr } from "../../extractor";
-import * as logger from "../../logger/index";
+import * as logger from "../../logger";
 import { indices } from "../../search/index";
 import { createStudioSearchDoc } from "../../search/studio";
 import { buildSceneIndex } from "../../search/scene";

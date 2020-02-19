@@ -1,14 +1,14 @@
-import { IConfig } from "./config/index";
-import { readFileAsync, existsAsync } from "./fs/async";
+import { IConfig } from "../config/index";
+import { readFileAsync, existsAsync } from "../fs/async";
 import axios from "axios";
 import cheerio from "cheerio";
 import { resolve } from "path";
 import debug from "debug";
 import ora from "ora";
-import { Dictionary } from "./types/utility";
-import * as logger from "./logger/index";
+import { Dictionary } from "../types/utility";
+import * as logger from "../logger";
 import moment from "moment";
-import { mapAsync, filterAsync } from "./types/utility";
+import { mapAsync, filterAsync } from "../types/utility";
 
 export async function runPluginsSerial(
   config: IConfig,
@@ -80,7 +80,7 @@ export async function runPlugin(
           map: mapAsync,
           filter: filterAsync
         },
-        args: plugin.args,
+        args: plugin.args || {},
         ...inject
       });
 

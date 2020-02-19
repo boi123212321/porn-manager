@@ -9,7 +9,7 @@ import {
 } from "fs";
 import { promisify } from "util";
 import { join, extname } from "path";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import rimraf from "rimraf";
 
 export const existsAsync = promisify(exists);

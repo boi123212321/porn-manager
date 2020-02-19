@@ -1,7 +1,7 @@
 import { SearchIndex } from "./engine";
 import Studio from "../types/studio";
 import { tokenizeNames, tokenize } from "./tokenize";
-import * as log from "../logger/index";
+import * as log from "../logger";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
 

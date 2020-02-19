@@ -3,7 +3,7 @@ import Actor from "../../types/actor";
 import Scene from "../../types/scene";
 import { Dictionary } from "../../types/utility";
 import { stripStr } from "../../extractor";
-import * as logger from "../../logger/index";
+import * as logger from "../../logger";
 import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
 import { createActorSearchDoc } from "../../search/actor";

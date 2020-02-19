@@ -80,7 +80,7 @@ export const defaultConfig: IConfig = {
   FFPROBE_PATH: "",
   GENERATE_THUMBNAILS: true,
   GENERATE_MULTIPLE_THUMBNAILS: true,
-  GENERATE_PREVIEWS: false,
+  GENERATE_PREVIEWS: true,
   THUMBNAIL_INTERVAL: 120,
   PASSWORD: null,
   PORT: 3000,

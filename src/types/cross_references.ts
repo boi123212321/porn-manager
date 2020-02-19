@@ -1,6 +1,6 @@
 import * as database from "../database";
 import { generateHash } from "../hash";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 
 export default class CrossReference {
   _id: string;

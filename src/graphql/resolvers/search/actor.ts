@@ -1,6 +1,6 @@
 import Actor from "../../../types/actor";
 import extractQueryOptions, { SortTarget } from "../../../query_extractor";
-import * as logger from "../../../logger/index";
+import * as logger from "../../../logger";
 import * as search from "../../../search/index";
 import { IActorSearchDoc } from "../../../search/actor";
 

@@ -1,7 +1,7 @@
 import express from "express";
 import { getConfig } from "./config";
 const sha = require("js-sha512").sha512;
-import * as logger from "./logger/index";
+import * as logger from "./logger";
 import { readFileSync } from "fs";
 
 const SIGN_IN_HTML = readFileSync("./views/signin.html", "utf-8");

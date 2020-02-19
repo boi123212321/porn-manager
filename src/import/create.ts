@@ -12,7 +12,7 @@ import Scene from "../types/scene";
 import Actor from "../types/actor";
 import Image from "../types/image";
 import { stripStr } from "../extractor";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import * as database from "../database/index";
 import CustomField, { CustomFieldTarget } from "../types/custom_field";
 import CrossReference from "../types/cross_references";

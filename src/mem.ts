@@ -1,3 +1,14 @@
+import * as logger from "./logger";
+import v8 from "v8";
+
+export function printMaxMemory() {
+  logger.message(
+    `Max. memory: ${Math.round(
+      v8.getHeapStatistics().total_available_size / 1024 / 1024
+    )} MB`
+  );
+}
+
 export function memorySizeOf(obj: any) {
   var bytes = 0;
 

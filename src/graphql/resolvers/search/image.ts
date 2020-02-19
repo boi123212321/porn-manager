@@ -1,6 +1,6 @@
 import Image from "../../../types/image";
 import extractQueryOptions, { SortTarget } from "../../../query_extractor";
-import * as logger from "../../../logger/index";
+import * as logger from "../../../logger";
 import * as search from "../../../search/index";
 import { IImageSearchDoc } from "../../../search/image";
 

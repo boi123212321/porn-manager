@@ -1,5 +1,5 @@
 import Scene from "../types/scene";
-import { runPluginsSerial } from "../plugins";
+import { runPluginsSerial } from "../plugins/index";
 import { isValidUrl, libraryPath } from "../types/utility";
 import {
   extractLabels,
@@ -12,7 +12,7 @@ import { extname } from "path";
 import { downloadFile } from "../ffmpeg-download";
 import Image from "../types/image";
 import * as database from "../database/index";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import Studio from "../types/studio";
 import Label from "../types/label";
 import Actor from "../types/actor";
