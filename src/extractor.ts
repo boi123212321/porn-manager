@@ -4,8 +4,12 @@ import Studio from "./types/studio";
 import Scene from "./types/scene";
 import CustomField from "./types/custom_field";
 
+function ignoreSingleNames(arr: string[]) {
+  return arr.filter(str => str.split(" ").length > 1);
+}
+
 export function stripStr(str: string) {
-  return str.toLowerCase().replace(/[^a-zA-Z0-9']/g, "");
+  return str.toLowerCase().replace(/[^a-zA-Z0-9'/\\,()[\]{}]/g, "");
 }
 
 // Returns IDs of extracted custom fields
@@ -45,7 +49,9 @@ export async function extractActors(str: string): Promise<string[]> {
   allActors.forEach(actor => {
     if (
       stripStr(str).includes(stripStr(actor.name)) ||
-      actor.aliases.some(alias => stripStr(str).includes(stripStr(alias)))
+      ignoreSingleNames(actor.aliases).some(alias =>
+        stripStr(str).includes(stripStr(alias))
+      )
     ) {
       foundActors.push(actor._id);
     }

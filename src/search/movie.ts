@@ -2,7 +2,7 @@ import { SearchIndex } from "./engine";
 import Movie from "../types/movie";
 import { tokenizeNames, tokenize } from "./tokenize";
 import Studio from "../types/studio";
-import * as log from "../logger/index";
+import * as log from "../logger";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
 

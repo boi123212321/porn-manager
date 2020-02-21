@@ -4,7 +4,7 @@ import { getFFMpegURL, getFFProbeURL, downloadFile } from "./ffmpeg-download";
 const sha = require("js-sha512").sha512;
 import * as path from "path";
 import { existsAsync } from "./fs/async";
-import * as logger from "./logger/index";
+import * as logger from "./logger";
 import { chmodSync } from "fs";
 
 export default async () => {

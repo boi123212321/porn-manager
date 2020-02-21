@@ -43,6 +43,14 @@
               placeholder="Name"
             />
 
+            <v-textarea
+              auto-grow
+              color="primary"
+              v-model="editDescription"
+              placeholder="Actor description"
+              :rows="2"
+            />
+
             <DateInput v-if="editDialog" v-model="editBirthDate" />
 
             <v-combobox
@@ -102,6 +110,7 @@ export default class ActorToolbar extends Vue {
   editName = "";
   editAliases = [] as string[];
   editBirthDate = null as number | null;
+  editDescription = "";
 
   actorNameRules = [v => (!!v && !!v.length) || "Invalid actor name"];
 
@@ -159,7 +168,6 @@ export default class ActorToolbar extends Vue {
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
           updateActors(ids: $ids, opts: $opts) {
             name
-            aliases
           }
         }
       `,
@@ -167,13 +175,15 @@ export default class ActorToolbar extends Vue {
         ids: [this.currentActor._id],
         opts: {
           name: this.editName,
+          description: this.editDescription,
           aliases: this.editAliases,
           bornOn: this.editBirthDate
         }
       }
     })
       .then(res => {
-        actorModule.setName(this.editName);
+        actorModule.setName(this.editName.trim());
+        actorModule.setDescription(this.editDescription.trim());
         actorModule.setAliases(this.editAliases);
         actorModule.setBornOn(this.editBirthDate);
         this.editDialog = false;
@@ -189,6 +199,7 @@ export default class ActorToolbar extends Vue {
     this.editAliases = this.currentActor.aliases;
     this.editDialog = true;
     this.editBirthDate = this.currentActor.bornOn;
+    this.editDescription = this.currentActor.description || "";
   }
 
   favorite() {

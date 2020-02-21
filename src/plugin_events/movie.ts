@@ -1,4 +1,3 @@
-import Actor from "../types/actor";
 import { runPluginsSerial } from "../plugins/index";
 import { libraryPath } from "../types/utility";
 import { extractLabels, extractFields } from "../extractor";
@@ -11,17 +10,18 @@ import * as logger from "../logger";
 import { indices } from "../search/index";
 import { createImageSearchDoc } from "../search/image";
 import Label from "../types/label";
+import Movie from "../types/movie";
 
 // This function has side effects
-export async function onActorCreate(
-  actor: Actor,
-  actorLabels: string[],
-  event = "actorCreated"
+export async function onMovieCreate(
+  movie: Movie,
+  movieLabels: string[],
+  event = "movieCreated"
 ) {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {
-    actorName: actor.name,
+    movieName: movie.name,
     $createImage: async (url: string, name: string, thumbnail?: boolean) => {
       // if (!isValidUrl(url)) throw new Error(`Invalid URL: ` + url);
       logger.log("Creating image from " + url);
@@ -31,7 +31,6 @@ export async function onActorCreate(
       const path = libraryPath(`images/${img._id}${ext}`);
       await downloadFile(url, path);
       img.path = path;
-      await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
       if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
@@ -40,25 +39,26 @@ export async function onActorCreate(
   });
 
   if (
-    typeof pluginResult.thumbnail == "string" &&
-    pluginResult.thumbnail.startsWith("im_")
+    typeof pluginResult.frontCover == "string" &&
+    pluginResult.frontCover.startsWith("im_")
   )
-    actor.thumbnail = pluginResult.thumbnail;
+    movie.frontCover = pluginResult.frontCover;
 
-  if (typeof pluginResult.name === "string") actor.name = pluginResult.name;
+  if (
+    typeof pluginResult.backCover == "string" &&
+    pluginResult.backCover.startsWith("im_")
+  )
+    movie.backCover = pluginResult.backCover;
 
-  if (typeof pluginResult.bornOn === "number")
-    actor.bornOn = new Date(pluginResult.bornOn).valueOf();
+  if (typeof pluginResult.name === "string") movie.name = pluginResult.name;
 
-  if (pluginResult.aliases && Array.isArray(pluginResult.aliases)) {
-    actor.aliases.push(...pluginResult.aliases);
-    actor.aliases = [...new Set(actor.aliases)];
-  }
+  if (typeof pluginResult.releaseDate === "number")
+    movie.releaseDate = new Date(pluginResult.releaseDate).valueOf();
 
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length) actor.customFields[fields[0]] = pluginResult[key];
+      if (fields.length) movie.customFields[fields[0]] = pluginResult[key];
     }
   }
 
@@ -77,8 +77,8 @@ export async function onActorCreate(
         logger.log("Created label " + label.name);
       }
     }
-    actorLabels.push(...labelIds);
+    movieLabels.push(...labelIds);
   }
 
-  return actor;
+  return movie;
 }

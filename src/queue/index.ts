@@ -1,6 +1,6 @@
 import DataStore from "nedb";
 import * as database from "../database/index";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import Actor from "../types/actor";
 import Label from "../types/label";
 import Scene, { ThumbnailFile } from "../types/scene";

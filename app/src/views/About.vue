@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <BindTitle value="About" />
+    <BindTitle value="Settings" />
     <div class="text-center headline mt-4">Settings</div>
     <v-row>
       <v-col :cols="12" :sm="6">

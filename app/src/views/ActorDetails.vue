@@ -104,6 +104,18 @@
             </div>
           </v-col>
           <v-col cols="12" sm="8" md="9" lg="10" xl="10">
+            <div class="mb-2">
+              <div v-if="currentActor.description">
+                <div class="d-flex align-center">
+                  <v-icon>mdi-text</v-icon>
+                  <v-subheader>Description</v-subheader>
+                </div>
+                <div
+                  class="pa-2 med--text"
+                  v-if="currentActor.description"
+                >{{ currentActor.description }}</div>
+              </div>
+            </div>
             <v-tabs
               v-model="activeTab"
               background-color="transparent"

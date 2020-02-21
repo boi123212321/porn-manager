@@ -12,6 +12,10 @@ export const actorSchema = new Schema({
     required: true
   },
   aliases: stringArray(false),
+  description: {
+    type: String,
+    required: false
+  },
   bornOn: {
     type: Number,
     required: false,

@@ -2,7 +2,7 @@ import { SearchIndex } from "./engine";
 import Actor from "../types/actor";
 import { tokenizeNames, tokenize } from "./tokenize";
 import Scene from "../types/scene";
-import * as log from "../logger/index";
+import * as log from "../logger";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
 

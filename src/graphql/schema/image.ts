@@ -35,6 +35,7 @@ export default gql`
     studio: String
     scene: String
     customFields: Object
+    color: String
   }
 
   extend type Query {

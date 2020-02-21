@@ -2,7 +2,7 @@ import { existsAsync } from "./fs/async";
 import Scene from "./types/scene";
 import Image from "./types/image";
 import * as database from "./database/index";
-import * as logger from "./logger/index";
+import * as logger from "./logger";
 import { getConfig } from "./config/index";
 
 export async function checkSceneSources() {

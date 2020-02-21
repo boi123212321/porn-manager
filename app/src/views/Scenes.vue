@@ -14,13 +14,7 @@
       </template>
     </v-banner>
 
-    <v-navigation-drawer
-      style="z-index: 14"
-      v-model="drawer"
-      :permanent="$vuetify.breakpoint.mdAndUp"
-      clipped
-      app
-    >
+    <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
         <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 
@@ -37,18 +31,6 @@
             :key="label._id"
           >{{ label.name }}</div>
         </div>
-
-        <!-- <v-chip-group
-          active-class="primary--text"
-          :items="allLabels"
-          column
-          v-model="selectedLabels"
-          multiple
-        >
-          <div style="max-height:30vh; overflow-y:scroll">
-            <v-chip label small v-for="label in allLabels" :key="label._id">{{ label.name }}</v-chip>
-          </div>
-        </v-chip-group>-->
 
         <v-subheader>Filter by duration</v-subheader>
         <v-range-slider hide-details :max="durationMax" v-model="durationRange" color="primary"></v-range-slider>

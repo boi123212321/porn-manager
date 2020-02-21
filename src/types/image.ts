@@ -2,7 +2,7 @@ import * as database from "../database";
 import { generateHash } from "../hash";
 import Actor from "./actor";
 import Label from "./label";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import { unlinkAsync } from "../fs/async";
 import { mapAsync } from "./utility";
 import CrossReference from "./cross_references";

@@ -1,5 +1,5 @@
 import { tokenize } from "./tokenize";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 
 interface IScoredDocument {
   id: string;

@@ -1,13 +1,7 @@
 <template>
   <v-container fluid>
     <BindTitle value="Studios" />
-    <v-navigation-drawer
-      style="z-index: 14"
-      v-model="drawer"
-      :permanent="$vuetify.breakpoint.mdAndUp"
-      clipped
-      app
-    >
+    <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
         <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 
@@ -151,8 +145,7 @@ import StudioCard from "../components/StudioCard.vue";
 @Component({
   components: {
     InfiniteLoading,
-    StudioCard,
-    
+    StudioCard
   }
 })
 export default class StudioList extends Vue {

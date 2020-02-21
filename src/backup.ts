@@ -6,7 +6,7 @@ import {
 } from "./fs/async";
 import { join } from "path";
 import { libraryPath, mapAsync } from "./types/utility";
-import * as log from "./logger/index";
+import * as log from "./logger";
 import { mkdirSync } from "fs";
 
 async function checkBackupMax(amount = 10) {

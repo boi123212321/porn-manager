@@ -14,13 +14,7 @@
       </template>
     </v-banner>
 
-    <v-navigation-drawer
-      style="z-index: 14"
-      v-model="drawer"
-      :permanent="$vuetify.breakpoint.mdAndUp"
-      clipped
-      app
-    >
+    <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
         <v-checkbox color="primary" hide-details v-model="largeThumbs" label="Large thumbnails"></v-checkbox>
         <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>

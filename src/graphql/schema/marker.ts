@@ -5,10 +5,20 @@ export default gql`
     _id: String!
     name: String!
     time: Int!
+    rating: Int
+    favorite: Boolean
+    bookmark: Boolean
   }
 
   extend type Mutation {
-    createMarker(scene: String!, name: String!, time: Int!): Marker!
+    createMarker(
+      scene: String!
+      name: String!
+      time: Int!
+      rating: Int
+      favorite: Boolean
+      bookmark: Boolean
+    ): Marker!
     removeMarkers(ids: [String!]!): Boolean!
   }
 `;

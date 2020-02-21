@@ -4,6 +4,7 @@ export default gql`
   type Actor {
     _id: String!
     name: String!
+    description: String
     aliases: [String!]!
     addedOn: Long!
     bornOn: Long
@@ -33,6 +34,7 @@ export default gql`
 
   input ActorUpdateOpts {
     name: String
+    description: String
     rating: Int
     labels: [String!]
     aliases: [String!]

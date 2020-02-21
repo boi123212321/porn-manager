@@ -2,7 +2,7 @@ import * as os from "os";
 const ProgressBar = require("cli-progress");
 import axios from "axios";
 import { createWriteStream } from "fs";
-import * as logger from "./logger/index";
+import * as logger from "./logger";
 import { existsAsync } from "./fs/async";
 
 const FFMpegVersions = {

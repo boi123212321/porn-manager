@@ -1,7 +1,7 @@
 import DataStore, { EnsureIndexOptions } from "nedb";
 import mkdirp from "mkdirp";
 import { libraryPath } from "../types/utility";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import Scene from "../types/scene";
 import Actor from "../types/actor";
 import Label from "../types/label";

@@ -1,13 +1,7 @@
 <template>
   <v-container fluid>
     <BindTitle value="Actors" />
-    <v-navigation-drawer
-      style="z-index: 14"
-      v-model="drawer"
-      :permanent="$vuetify.breakpoint.mdAndUp"
-      clipped
-      app
-    >
+    <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
         <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
 

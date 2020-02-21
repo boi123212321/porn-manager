@@ -1,5 +1,5 @@
 import Scene from "../types/scene";
-import { runPluginsSerial } from "../plugins";
+import { runPluginsSerial } from "../plugins/index";
 import { isValidUrl, libraryPath } from "../types/utility";
 import {
   extractLabels,
@@ -12,7 +12,7 @@ import { extname } from "path";
 import { downloadFile } from "../ffmpeg-download";
 import Image from "../types/image";
 import * as database from "../database/index";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import Studio from "../types/studio";
 import Label from "../types/label";
 import Actor from "../types/actor";
@@ -35,6 +35,7 @@ export async function onSceneCreate(
     scenePath: scene.path,
     $createImage: async (url: string, name: string, thumbnail?: boolean) => {
       // if (!isValidUrl(url)) throw new Error(`Invalid URL: ` + url);
+      logger.log("Creating image from " + url);
       const img = new Image(name);
       if (thumbnail) img.name += " (thumbnail)";
       const ext = extname(url);

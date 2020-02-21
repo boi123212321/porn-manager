@@ -3,7 +3,7 @@ import Actor from "../../types/actor";
 import Scene from "../../types/scene";
 import { Dictionary } from "../../types/utility";
 import { stripStr } from "../../extractor";
-import * as logger from "../../logger/index";
+import * as logger from "../../logger";
 import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
 import { createActorSearchDoc } from "../../search/actor";
@@ -11,6 +11,7 @@ import { onActorCreate } from "../../plugin_events/actor";
 
 type IActorUpdateOpts = Partial<{
   name: string;
+  description: string;
   rating: number;
   labels: string[];
   aliases: string[];
@@ -107,6 +108,9 @@ export default {
         if (typeof opts.favorite == "boolean") actor.favorite = opts.favorite;
 
         if (typeof opts.name == "string") actor.name = opts.name.trim();
+
+        if (typeof opts.description == "string")
+          actor.description = opts.description.trim();
 
         if (typeof opts.thumbnail == "string") actor.thumbnail = opts.thumbnail;
 

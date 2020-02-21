@@ -10,6 +10,11 @@ class ActorModule extends VuexModule {
   }
 
   @Mutation
+  setDescription(description: string) {
+    if (this.current) this.current.description = description;
+  }
+
+  @Mutation
   setAliases(aliases: string[]) {
     if (this.current) this.current.aliases = aliases;
   }

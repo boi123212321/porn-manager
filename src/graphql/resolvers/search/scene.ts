@@ -1,6 +1,6 @@
 import Scene from "../../../types/scene";
 import extractQueryOptions, { SortTarget } from "../../../query_extractor";
-import * as logger from "../../../logger/index";
+import * as logger from "../../../logger";
 import * as search from "../../../search/index";
 import { ISceneSearchDoc } from "../../../search/scene";
 
@@ -107,7 +107,7 @@ export async function getScenes(
 
     const scenes = await Promise.all(result.map(i => Scene.getById(i.id)));
     logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
-    return scenes;
+    return scenes.filter(Boolean);
   } catch (error) {
     logger.error(error);
   }

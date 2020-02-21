@@ -1,7 +1,7 @@
 import { getConfig } from "../config";
 import { walk, existsAsync, readFileAsync } from "../fs/async";
 import { basename, extname } from "path";
-import * as logger from "../logger/index";
+import * as logger from "../logger";
 import { libraryPath } from "../types/utility";
 import YAML from "yaml";
 import { verifyFileData } from "./verify";

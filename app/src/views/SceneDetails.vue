@@ -413,11 +413,39 @@
       <v-card v-if="currentScene">
         <v-card-title>Create marker at {{ currentTimeFormatted() }}</v-card-title>
         <v-card-text>
-          <v-text-field placeholder="Marker title" color="primary" v-model="markerName"></v-text-field>
+          <v-combobox
+            clearable
+            :items="allLabels.map(l => l.name)"
+            placeholder="Marker title"
+            color="primary"
+            v-model="markerName"
+          ></v-combobox>
+          <v-rating
+            half-increments
+            @input="markerRating = $event * 2"
+            class="px-2"
+            :value="markerRating / 2"
+            background-color="grey"
+            color="amber"
+            dense
+            hide-details
+          ></v-rating>
+          <div
+            @click="markerRating = null"
+            class="d-inline-block pl-3 mt-1 med--text caption hover"
+          >Reset rating</div>
+          <v-checkbox hide-details color="primary" v-model="markerFavorite" label="Favorite?"></v-checkbox>
+          <v-checkbox hide-details color="primary" v-model="markerBookmark" label="Bookmark?"></v-checkbox>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="createMarker" class="text-none">Create</v-btn>
+          <v-btn
+            :disabled="!markerName || !markerName.length"
+            color="primary"
+            text
+            @click="createMarker"
+            class="text-none"
+          >Create</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -513,7 +541,11 @@ export default class SceneDetails extends Vue {
 
   markers = [] as { _id: string; name: string; time: number }[];
   markerName = "" as string | null;
+  markerRating = null as number | null;
+  markerFavorite = false;
+  markerBookmark = false;
   markerDialog = false;
+
   autoPaused = false;
   manuallyStarted = false;
 
@@ -592,7 +624,7 @@ export default class SceneDetails extends Vue {
 
     ApolloClient.mutate({
       mutation: gql`
-        mutation($id: String!, $sec: Int!) {
+        mutation($id: String!, $sec: Float!) {
           screenshotScene(id: $id, sec: $sec) {
             _id
           }
@@ -601,10 +633,12 @@ export default class SceneDetails extends Vue {
       variables: {
         // @ts-ignore
         id: this.currentScene._id,
-        sec: Math.floor(this.$refs.player.currentProgress())
+        sec: this.$refs.player.currentProgress()
       }
     })
-      .then(res => {})
+      .then(res => {
+        sceneModule.setThumbnail(res.data.screenshotScene._id);
+      })
       .finally(() => {
         this.screenshotLoader = false;
       });
@@ -630,18 +664,38 @@ export default class SceneDetails extends Vue {
 
     ApolloClient.mutate({
       mutation: gql`
-        mutation($scene: String!, $name: String!, $time: Int!) {
-          createMarker(scene: $scene, name: $name, time: $time) {
+        mutation(
+          $scene: String!
+          $name: String!
+          $time: Int!
+          $rating: Int
+          $favorite: Boolean
+          $bookmark: Boolean
+        ) {
+          createMarker(
+            scene: $scene
+            name: $name
+            time: $time
+            rating: $rating
+            favorite: $favorite
+            bookmark: $bookmark
+          ) {
             _id
             name
             time
+            rating
+            favorite
+            bookmark
           }
         }
       `,
       variables: {
         scene: this.currentScene._id,
         name: this.markerName,
-        time: Math.floor(this.$refs.player.currentProgress())
+        time: Math.floor(this.$refs.player.currentProgress()),
+        rating: this.markerRating,
+        favorite: this.markerFavorite,
+        bookmark: this.markerBookmark
       }
     }).then(res => {
       this.markers.unshift(res.data.createMarker);
@@ -665,6 +719,7 @@ export default class SceneDetails extends Vue {
   }
 
   openMarkerDialog() {
+    if (!this.allLabels.length) this.loadLabels();
     this.$refs.player.pause();
     this.markerDialog = true;
   }
@@ -940,25 +995,29 @@ export default class SceneDetails extends Vue {
       });
   }
 
+  async loadLabels() {
+    const res = await ApolloClient.query({
+      query: gql`
+        {
+          getLabels {
+            _id
+            name
+            aliases
+          }
+        }
+      `
+    });
+
+    this.allLabels = res.data.getLabels;
+  }
+
   openLabelSelector() {
     if (!this.currentScene) return;
 
     if (!this.allLabels.length) {
-      ApolloClient.query({
-        query: gql`
-          {
-            getLabels {
-              _id
-              name
-              aliases
-            }
-          }
-        `
-      })
+      this.loadLabels()
         .then(res => {
           if (!this.currentScene) return;
-
-          this.allLabels = res.data.getLabels;
           this.selectedLabels = this.currentScene.labels.map(l =>
             this.allLabels.findIndex(k => k._id == l._id)
           );
@@ -1060,7 +1119,10 @@ export default class SceneDetails extends Vue {
         id: (<any>this).$route.params.id
       }
     }).then(res => {
+      if (!res.data.getSceneById) return this.$router.replace("/scenes");
+
       sceneModule.setCurrent(res.data.getSceneById);
+
       this.actors = res.data.getSceneById.actors;
       this.markers = res.data.getSceneById.markers;
       this.markers.sort((a, b) => a.time - b.time);

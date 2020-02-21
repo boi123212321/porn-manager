@@ -1,6 +1,6 @@
 import Movie from "../../../types/movie";
 import extractQueryOptions, { SortTarget } from "../../../query_extractor";
-import * as logger from "../../../logger/index";
+import * as logger from "../../../logger";
 import * as search from "../../../search/index";
 import { IMovieSearchDoc } from "../../../search/movie";
 
@@ -59,5 +59,5 @@ export async function getMovies(_, { query }: { query: string | undefined }) {
 
   const movies = await Promise.all(result.map(i => Movie.getById(i.id)));
   logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
-  return movies;
+  return movies.filter(Boolean);
 }
