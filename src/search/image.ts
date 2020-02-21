@@ -2,7 +2,7 @@ import Image from "../types/image";
 import * as log from "../logger";
 import ora from "ora";
 import Axios from "axios";
-import extractQueryOptions, { SortTarget } from "../query_extractor";
+import extractQueryOptions from "../query_extractor";
 import * as logger from "../logger";
 
 const PAGE_SIZE = 24;
@@ -25,8 +25,8 @@ export async function searchImages(query: string) {
       favorite: options.favorite ? "true" : undefined,
       bookmark: options.bookmark ? "true" : undefined,
       rating: options.rating || 0,
-      include: options.include.length ? options.include.join(",") : undefined, // TODO: update twigs to handle this
-      exclude: options.exclude.length ? options.exclude.join(",") : undefined // TODO: update twigs to handle this
+      include: options.include.join(","),
+      exclude: options.exclude.join(",")
     }
   });
 }
@@ -58,7 +58,10 @@ export async function indexImages(images: Image[]) {
 }
 
 export async function addImageSearchDocs(docs: IImageSearchDoc[]) {
-  return Axios.post("http://localhost:8000/image", docs);
+  const timeNow = +new Date();
+  const res = await Axios.post("http://localhost:8000/image", docs);
+  logger.log(`Twigs indexing done in ${(Date.now() - timeNow) / 1000}s`);
+  return res;
 }
 
 export async function buildImageIndex() {
