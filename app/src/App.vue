@@ -208,6 +208,13 @@ export default class App extends Vue {
         scenePauseOnUnfocusLocalStorage == "true"
       );
     }
+
+    const showCardLabelsLocalStorage = localStorage.getItem(
+      "pm_showCardLabels"
+    );
+    if (showCardLabelsLocalStorage) {
+      contextModule.toggleCardLabels(showCardLabelsLocalStorage == "true");
+    }
   }
 
   navItems = [
