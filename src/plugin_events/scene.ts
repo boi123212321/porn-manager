@@ -1,6 +1,6 @@
 import Scene from "../types/scene";
 import { runPluginsSerial } from "../plugins/index";
-import { isValidUrl, libraryPath } from "../types/utility";
+import { libraryPath } from "../types/utility";
 import {
   extractLabels,
   extractStudios,

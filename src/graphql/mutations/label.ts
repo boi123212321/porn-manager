@@ -1,8 +1,6 @@
 import * as database from "../../database";
-import Actor from "../../types/actor";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
-import Image from "../../types/image";
 import { Dictionary } from "../../types/utility";
 import { stripStr } from "../../extractor";
 import * as logger from "../../logger";

@@ -5,7 +5,6 @@ import Studio from "../types/studio";
 import * as log from "../logger";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
-import { inspect } from "util";
 
 export interface ISceneSearchDoc {
   _id: string;
