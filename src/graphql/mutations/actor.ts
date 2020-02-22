@@ -8,6 +8,7 @@ import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
 import { createActorSearchDoc } from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
+import { createSceneSearchDoc } from "../../search/scene";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -65,12 +66,11 @@ export default {
           await Scene.setLabels(scene, sceneLabels.concat(actorLabels));
           logger.log(`Applied actor labels of new actor to ${scene._id}`);
         }
-
         await Scene.setActors(
           scene,
           (await Scene.getActors(scene)).map(l => l._id).concat(actor._id)
         );
-
+        indices.scenes.update(scene._id, await createSceneSearchDoc(scene));
         logger.log(`Updated actors of ${scene._id}`);
       }
     }

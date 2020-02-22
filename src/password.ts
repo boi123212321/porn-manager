@@ -1,6 +1,6 @@
 import express from "express";
 import { getConfig } from "./config";
-const sha = require("js-sha512").sha512;
+const sha = require("js-sha512").sha512 as (str: string) => string;
 import * as logger from "./logger";
 import { readFileSync } from "fs";
 
@@ -36,7 +36,7 @@ export async function passwordHandler(
   if (
     req.headers["x-pass"] &&
     (req.headers["x-pass"] == config.PASSWORD ||
-      sha(req.headers["x-pass"]) == config.PASSWORD)
+      sha(<string>req.headers["x-pass"]) == config.PASSWORD)
   ) {
     logger.log("Auth OK");
     return next();

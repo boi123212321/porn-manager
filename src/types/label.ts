@@ -1,6 +1,5 @@
 import * as database from "../database";
 import { generateHash } from "../hash";
-import CrossReference from "./cross_references";
 import * as logger from "../logger";
 
 export default class Label {
