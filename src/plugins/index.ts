@@ -24,18 +24,37 @@ export async function runPluginsSerial(
 
   let numErrors = 0;
 
-  for (const pluginName of config.PLUGIN_EVENTS[event]) {
-    logger.message(`Running plugin ${pluginName}:`);
-    try {
-      const pluginResult = await runPlugin(config, pluginName, {
-        event,
-        ...inject
-      });
-      Object.assign(result, pluginResult);
-    } catch (error) {
-      logger.log(error);
-      logger.error(error.message);
-      numErrors++;
+  for (const pluginItem of config.PLUGIN_EVENTS[event]) {
+    if (typeof pluginItem == "string") {
+      const pluginName = pluginItem;
+      logger.message(`Running plugin ${pluginName}:`);
+      try {
+        const pluginResult = await runPlugin(config, pluginName, {
+          event,
+          ...inject
+        });
+        Object.assign(result, pluginResult);
+      } catch (error) {
+        logger.log(error);
+        logger.error(error.message);
+        numErrors++;
+      }
+    } else {
+      const pluginName = pluginItem[0];
+      const pluginArgs = pluginItem[1];
+      logger.message(`Running plugin ${pluginName}:`);
+      try {
+        const pluginResult = await runPlugin(config, pluginName, {
+          event,
+          ...inject,
+          pluginArgs
+        });
+        Object.assign(result, pluginResult);
+      } catch (error) {
+        logger.log(error);
+        logger.error(error.message);
+        numErrors++;
+      }
     }
   }
   logger.log(`Plugin run over...`);
@@ -53,7 +72,8 @@ export async function runPluginsSerial(
 export async function runPlugin(
   config: IConfig,
   pluginName: string,
-  inject?: Dictionary<any>
+  inject?: Dictionary<any>,
+  args?: Dictionary<any>
 ) {
   const plugin = config.PLUGINS[pluginName];
   const path = resolve(plugin.path);
@@ -82,7 +102,7 @@ export async function runPlugin(
           map: mapAsync,
           filter: filterAsync
         },
-        args: plugin.args || {},
+        args: args || plugin.args || {},
         ...inject
       });
 
