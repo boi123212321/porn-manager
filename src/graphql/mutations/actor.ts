@@ -23,26 +23,37 @@ type IActorUpdateOpts = Partial<{
   customFields: Dictionary<string[] | boolean | string | null>;
 }>;
 
-export default {
-  async runActorPlugins(_, { ids }: { ids: string[] }) {
-    const changedActors = [] as Actor[];
-    for (const id of ids) {
-      let actor = await Actor.getById(id);
+async function runActorPlugins(ids: string[]) {
+  const changedActors = [] as Actor[];
+  for (const id of ids) {
+    let actor = await Actor.getById(id);
 
-      if (actor) {
-        logger.message(`Running plugin action event for '${actor.name}'...`);
+    if (actor) {
+      logger.message(`Running plugin action event for '${actor.name}'...`);
 
-        const labels = (await Actor.getLabels(actor)).map(l => l._id);
-        actor = await onActorCreate(actor, labels, "actorCustom");
+      const labels = (await Actor.getLabels(actor)).map(l => l._id);
+      actor = await onActorCreate(actor, labels, "actorCustom");
 
-        await Actor.setLabels(actor, labels);
-        await database.update(database.store.actors, { _id: actor._id }, actor);
-        indices.actors.update(actor._id, await createActorSearchDoc(actor));
+      await Actor.setLabels(actor, labels);
+      await database.update(database.store.actors, { _id: actor._id }, actor);
+      indices.actors.update(actor._id, await createActorSearchDoc(actor));
 
-        changedActors.push(actor);
-      }
+      changedActors.push(actor);
+    } else {
+      logger.warn(`Actor ${id} not found`);
     }
-    return changedActors;
+  }
+  return changedActors;
+}
+
+export default {
+  async runAllActorPlugins() {
+    const ids = (await Actor.getAll()).map(a => a._id);
+    return runActorPlugins(ids);
+  },
+
+  async runActorPlugins(_, { ids }: { ids: string[] }) {
+    return runActorPlugins(ids);
   },
 
   async addActor(_, args: Dictionary<any>) {

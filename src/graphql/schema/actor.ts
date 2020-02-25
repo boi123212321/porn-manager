@@ -50,5 +50,6 @@ export default gql`
     updateActors(ids: [String!]!, opts: ActorUpdateOpts!): [Actor!]!
     removeActors(ids: [String!]!): Boolean!
     runActorPlugins(ids: [String!]!): [Actor!]!
+    runAllActorPlugins: [Actor!]!
   }
 `;
