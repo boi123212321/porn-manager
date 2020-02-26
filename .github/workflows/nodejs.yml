@@ -29,3 +29,10 @@ jobs:
           releases/win.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Discord notification
+      env:
+        DISCORD_USERNAME: GitHub
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_HOOK }}
+      uses: Ilshidur/action-discord@master
+      with:
+        args: 'New version of {{ EVENT_PAYLOAD.repository.full_name }} released!!'
