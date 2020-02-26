@@ -14,7 +14,7 @@ export default gql`
     addedOn: Long!
     releaseDate: Long
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     customFields: Object!
 
     # Resolvers
@@ -36,7 +36,7 @@ export default gql`
     frontCover: String
     backCover: String
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     rating: Int
     scenes: [String!]
     studio: String

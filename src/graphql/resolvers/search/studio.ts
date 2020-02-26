@@ -14,7 +14,7 @@ export async function getStudios(_, { query }: { query: string | undefined }) {
 
     const filters = [] as ((doc: IStudioSearchDoc) => boolean)[];
 
-    if (options.bookmark) filters.push(doc => doc.bookmark);
+    if (options.bookmark) filters.push(doc => !!doc.bookmark);
 
     if (options.favorite) filters.push(doc => doc.favorite);
 
@@ -41,6 +41,10 @@ export async function getStudios(_, { query }: { query: string | undefined }) {
         case SortTarget.NUM_SCENES:
           if (sortDir == "asc") return (a, b) => a.numScenes - b.numScenes;
           return (a, b) => b.numScenes - a.numScenes;
+        case SortTarget.BOOKMARK:
+          if (sortDir == "asc")
+            return (a, b) => (a.bookmark || 0) - (b.bookmark || 0);
+          return (a, b) => (b.bookmark || 0) - (a.bookmark || 0);
         default:
           return undefined;
       }

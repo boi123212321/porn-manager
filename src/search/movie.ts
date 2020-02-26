@@ -13,7 +13,7 @@ export interface IMovieSearchDoc {
   actors: { _id: string; name: string; aliases: string[] }[];
   labels: { _id: string; name: string; aliases: string[] }[];
   rating: number;
-  bookmark: boolean;
+  bookmark: number | null;
   favorite: boolean;
   releaseDate: number | null;
   duration: number | null;

@@ -316,6 +316,10 @@ export default class SceneList extends mixins(DrawerMixin) {
     {
       text: "Age",
       value: "date"
+    },
+    {
+      text: "Bookmarked",
+      value: "bookmark"
     }
   ];
 

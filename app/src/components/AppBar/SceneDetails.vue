@@ -290,7 +290,7 @@ export default class SceneToolbar extends Vue {
       variables: {
         ids: [this.currentScene._id],
         opts: {
-          bookmark: !this.currentScene.bookmark
+          bookmark: this.currentScene.bookmark ? null : Date.now()
         }
       }
     }).then(res => {

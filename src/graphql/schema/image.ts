@@ -6,7 +6,7 @@ export default gql`
     name: String!
     addedOn: Long!
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     rating: Int
     customFields: Object!
     meta: ImageMeta!
@@ -31,7 +31,7 @@ export default gql`
     labels: [String!]
     actors: [String!]
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     studio: String
     scene: String
     customFields: Object

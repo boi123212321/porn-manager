@@ -73,7 +73,8 @@ export default {
 
         if (opts.parent !== undefined) studio.parent = opts.parent;
 
-        if (typeof opts.bookmark == "boolean") studio.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          studio.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") studio.favorite = opts.favorite;
 

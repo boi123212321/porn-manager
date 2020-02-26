@@ -242,7 +242,7 @@ export default class StudioToolbar extends Vue {
       variables: {
         ids: [this.currentStudio._id],
         opts: {
-          bookmark: !this.currentStudio.bookmark
+          bookmark: this.currentStudio.bookmark ? null : Date.now()
         }
       }
     }).then(res => {

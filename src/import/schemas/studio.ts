@@ -23,7 +23,7 @@ export const studioSchema = new Schema({
   labels: stringArray(false),
   bookmark: {
     required: false,
-    type: Boolean
+    type: Number
   },
   favorite: {
     required: false,

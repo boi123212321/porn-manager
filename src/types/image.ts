@@ -25,7 +25,7 @@ export default class Image {
   scene: string | null = null;
   addedOn = +new Date();
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: number | null = null;
   rating: number = 0;
   customFields: any = {};
   labels?: string[]; // backwards compatibility
@@ -80,11 +80,22 @@ export default class Image {
 
   static async checkIntegrity() {
     const allImages = await Image.getAll();
+    const timeNow = Date.now();
 
     for (const image of allImages) {
       const imageId = image._id.startsWith("im_")
         ? image._id
         : `im_${image._id}`;
+
+      if (typeof image.bookmark == "boolean") {
+        logger.log(`Setting bookmark to timestamp...`);
+        const time = image.bookmark ? timeNow : null;
+        await database.update(
+          database.store.images,
+          { _id: imageId },
+          { $set: { bookmark: time } }
+        );
+      }
 
       if (image.actors && image.actors.length) {
         for (const actor of image.actors) {

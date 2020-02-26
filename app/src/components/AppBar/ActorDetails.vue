@@ -242,7 +242,7 @@ export default class ActorToolbar extends Vue {
       variables: {
         ids: [this.currentActor._id],
         opts: {
-          bookmark: !this.currentActor.bookmark
+          bookmark: this.currentActor.bookmark ? null : Date.now()
         }
       }
     })

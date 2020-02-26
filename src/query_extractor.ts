@@ -9,7 +9,8 @@ export enum SortTarget {
   NUM_SCENES = "scenes",
   SIZE = "size",
   RESOLUTION = "resolution",
-  AGE = "age"
+  AGE = "age",
+  BOOKMARK = "bookmark"
 }
 
 interface IQueryOptions {

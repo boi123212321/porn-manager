@@ -227,7 +227,8 @@ export default {
             await Image.setLabels(image, opts.labels);
         }
 
-        if (typeof opts.bookmark == "boolean") image.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          image.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") image.favorite = opts.favorite;
 

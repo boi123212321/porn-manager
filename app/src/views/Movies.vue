@@ -273,6 +273,10 @@ export default class MovieList extends mixins(DrawerMixin) {
     {
       text: "Duration",
       value: "duration"
+    },
+    {
+      text: "Bookmarked",
+      value: "bookmark"
     }
     /* TODO: amount of scenes */
   ];
@@ -372,26 +376,6 @@ export default class MovieList extends mixins(DrawerMixin) {
       .finally(() => {
         this.addMovieLoader = false;
       });
-  }
-
-  favorite(id: any, favorite: boolean) {
-    const index = this.movies.findIndex(sc => sc._id == id);
-
-    if (index > -1) {
-      const movie = this.movies[index];
-      movie.favorite = favorite;
-      Vue.set(this.movies, index, movie);
-    }
-  }
-
-  bookmark(id: any, bookmark: boolean) {
-    const index = this.movies.findIndex(sc => sc._id == id);
-
-    if (index > -1) {
-      const movie = this.movies[index];
-      movie.bookmark = bookmark;
-      Vue.set(this.movies, index, movie);
-    }
   }
 
   movieLabels(movie: any) {

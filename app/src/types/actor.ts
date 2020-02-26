@@ -6,7 +6,7 @@ export default interface IActor {
   aliases: string[];
   rating: number | null;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
   labels: {
     _id: string;
     name: string;

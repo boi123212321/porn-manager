@@ -13,7 +13,7 @@ export async function getMovies(_, { query }: { query: string | undefined }) {
 
   const filters = [] as ((doc: IMovieSearchDoc) => boolean)[];
 
-  if (options.bookmark) filters.push(doc => doc.bookmark);
+  if (options.bookmark) filters.push(doc => !!doc.bookmark);
 
   if (options.favorite) filters.push(doc => doc.favorite);
 
@@ -40,6 +40,10 @@ export async function getMovies(_, { query }: { query: string | undefined }) {
       case SortTarget.DURATION:
         if (sortDir == "asc") return (a, b) => a.duration - b.duration;
         return (a, b) => b.duration - a.duration;
+      case SortTarget.BOOKMARK:
+        if (sortDir == "asc")
+          return (a, b) => (a.bookmark || 0) - (b.bookmark || 0);
+        return (a, b) => (b.bookmark || 0) - (a.bookmark || 0);
       case SortTarget.DATE:
         if (sortDir == "asc")
           return (a, b) => (a.releaseDate || 0) - (b.releaseDate || 0);

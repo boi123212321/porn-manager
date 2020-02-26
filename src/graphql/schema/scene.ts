@@ -29,7 +29,7 @@ export default gql`
     addedOn: Long!
     releaseDate: Long
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     rating: Int
     path: String
     streamLinks: [String!]!
@@ -50,7 +50,7 @@ export default gql`
 
   input SceneUpdateOpts {
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     actors: [String!]
     name: String
     description: String

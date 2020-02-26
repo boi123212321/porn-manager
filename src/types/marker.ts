@@ -7,7 +7,7 @@ export default class Marker {
   name: string;
   addedOn = +new Date();
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: boolean = false; // TODO: replace with timestamp
   rating: number = 0;
   customFields: any = {};
   scene: string;

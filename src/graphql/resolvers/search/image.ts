@@ -17,7 +17,7 @@ export async function getImages(
 
     const filters = [] as ((doc: IImageSearchDoc) => boolean)[];
 
-    if (options.bookmark) filters.push(doc => doc.bookmark);
+    if (options.bookmark) filters.push(doc => !!doc.bookmark);
 
     if (options.favorite) filters.push(doc => doc.favorite);
 
@@ -65,6 +65,10 @@ export async function getImages(
         case SortTarget.ALPHABETIC:
           if (sortDir == "asc") return (a, b) => a.name.localeCompare(b.name);
           return (a, b) => b.name.localeCompare(a.name);
+        case SortTarget.BOOKMARK:
+          if (sortDir == "asc")
+            return (a, b) => (a.bookmark || 0) - (b.bookmark || 0);
+          return (a, b) => (b.bookmark || 0) - (a.bookmark || 0);
         default:
           return undefined;
       }

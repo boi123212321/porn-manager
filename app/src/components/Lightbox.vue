@@ -441,7 +441,7 @@ export default class Lightbox extends Vue {
       variables: {
         ids: [this.currentImage._id],
         opts: {
-          bookmark: !this.currentImage.bookmark
+          bookmark: this.currentImage.bookmark ? null : Date.now()
         }
       }
     })

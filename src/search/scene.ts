@@ -13,7 +13,7 @@ export interface ISceneSearchDoc {
   actors: { _id: string; name: string; aliases: string[] }[];
   labels: { _id: string; name: string; aliases: string[] }[];
   rating: number;
-  bookmark: boolean;
+  bookmark: number | null;
   favorite: boolean;
   views: number;
   releaseDate: number | null;

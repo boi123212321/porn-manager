@@ -4,7 +4,6 @@ import { tokenizeNames, tokenize } from "./tokenize";
 import * as log from "../logger";
 import { memorySizeOf } from "../mem";
 import ora from "ora";
-import { inspect } from "util";
 
 export interface IImageSearchDoc {
   _id: string;
@@ -13,7 +12,7 @@ export interface IImageSearchDoc {
   actors: { _id: string; name: string; aliases: string[] }[];
   labels: { _id: string; name: string; aliases: string[] }[];
   rating: number;
-  bookmark: boolean;
+  bookmark: number | null;
   favorite: boolean;
   scene: string | null;
 }

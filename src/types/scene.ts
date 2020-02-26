@@ -53,7 +53,7 @@ export default class Scene {
   thumbnail: string | null = null;
   preview: string | null = null;
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: number | null = null;
   rating: number = 0;
   customFields: any = {};
   labels?: string[]; // backwards compatibility
@@ -66,11 +66,22 @@ export default class Scene {
 
   static async checkIntegrity() {
     const allScenes = await Scene.getAll();
+    const timeNow = Date.now();
 
     for (const scene of allScenes) {
       const sceneId = scene._id.startsWith("sc_")
         ? scene._id
         : `sc_${scene._id}`;
+
+      if (typeof scene.bookmark == "boolean") {
+        logger.log(`Setting bookmark to timestamp...`);
+        const time = scene.bookmark ? timeNow : null;
+        await database.update(
+          database.store.scenes,
+          { _id: sceneId },
+          { $set: { bookmark: time } }
+        );
+      }
 
       if (scene.preview === undefined) {
         logger.log(`Undefined scene preview, setting to null...`);

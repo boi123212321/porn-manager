@@ -126,8 +126,8 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       const studio = new Studio(studioToCreate.name);
 
-      if (isBoolean(studioToCreate.bookmark))
-        studio.bookmark = <boolean>studioToCreate.bookmark;
+      if (isNumber(studioToCreate.bookmark))
+        studio.bookmark = <number>studioToCreate.bookmark;
 
       if (isBoolean(studioToCreate.favorite))
         studio.favorite = <boolean>studioToCreate.favorite;
@@ -158,8 +158,8 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       let actor = new Actor(actorToCreate.name, actorToCreate.aliases || []);
 
-      if (isBoolean(actorToCreate.bookmark))
-        actor.bookmark = <boolean>actorToCreate.bookmark;
+      if (isNumber(actorToCreate.bookmark))
+        actor.bookmark = <number>actorToCreate.bookmark;
 
       if (isBoolean(actorToCreate.favorite))
         actor.favorite = <boolean>actorToCreate.favorite;
@@ -261,8 +261,8 @@ export async function createFromFileData(opts: ICreateOptions) {
         path: sceneToCreate.path,
         name: sceneToCreate.name,
         description: sceneToCreate.description || null,
-        bookmark: isBoolean(sceneToCreate.bookmark)
-          ? <boolean>sceneToCreate.bookmark
+        bookmark: isNumber(sceneToCreate.bookmark)
+          ? <number>sceneToCreate.bookmark
           : undefined,
         favorite: isBoolean(sceneToCreate.favorite)
           ? <boolean>sceneToCreate.favorite
@@ -296,8 +296,8 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       let movie = new Movie(movieToCreate.name, Object.keys(createdScenes));
 
-      if (isBoolean(movieToCreate.bookmark))
-        movie.bookmark = <boolean>movieToCreate.bookmark;
+      if (isNumber(movieToCreate.bookmark))
+        movie.bookmark = <number>movieToCreate.bookmark;
 
       if (isBoolean(movieToCreate.favorite))
         movie.favorite = <boolean>movieToCreate.favorite;

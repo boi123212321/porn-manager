@@ -222,6 +222,10 @@ export default class ImagesView extends mixins(DrawerMixin) {
     {
       text: "Rating",
       value: "rating"
+    },
+    {
+      text: "Bookmarked",
+      value: "bookmark"
     }
   ];
 

@@ -20,7 +20,7 @@ type IActorUpdateOpts = Partial<{
   aliases: string[];
   thumbnail: string;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
   bornOn: number;
   customFields: Dictionary<string[] | boolean | string | null>;
 }>;
@@ -140,7 +140,8 @@ export default {
         if (Array.isArray(opts.labels))
           await Actor.setLabels(actor, opts.labels);
 
-        if (typeof opts.bookmark == "boolean") actor.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          actor.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") actor.favorite = opts.favorite;
 

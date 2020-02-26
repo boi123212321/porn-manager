@@ -34,7 +34,7 @@ export interface IQueueItem {
   description?: string | null;
   thumbnail?: string | null;
   favorite?: boolean;
-  bookmark?: boolean;
+  bookmark?: number;
   rating?: number;
   releaseDate?: number;
   studio?: string | null;

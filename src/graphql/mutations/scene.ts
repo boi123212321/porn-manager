@@ -20,7 +20,7 @@ import { onSceneCreate } from "../../plugin_events/scene";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number;
   actors: string[];
   name: string;
   description: string;
@@ -267,7 +267,8 @@ export default {
         if (Array.isArray(opts.streamLinks))
           scene.streamLinks = [...new Set(opts.streamLinks)];
 
-        if (typeof opts.bookmark == "boolean") scene.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          scene.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") scene.favorite = opts.favorite;
 

@@ -8,7 +8,7 @@ export default interface IMovie {
   releaseDate: number | null;
   rating: number | null;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
 
   frontCover: {
     _id: string;

@@ -14,7 +14,7 @@ export default class Actor {
   bornOn: number | null = null;
   thumbnail: string | null = null;
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: number | null = null;
   rating: number = 0;
   customFields: any = {};
   labels?: string[]; // backwards compatibility
@@ -31,11 +31,22 @@ export default class Actor {
 
   static async checkIntegrity() {
     const allActors = await Actor.getAll();
+    const timeNow = Date.now();
 
     for (const actor of allActors) {
       const actorId = actor._id.startsWith("ac_")
         ? actor._id
         : `ac_${actor._id}`;
+
+      if (typeof actor.bookmark == "boolean") {
+        logger.log(`Setting bookmark to timestamp...`);
+        const time = actor.bookmark ? timeNow : null;
+        await database.update(
+          database.store.actors,
+          { _id: actorId },
+          { $set: { bookmark: time } }
+        );
+      }
 
       if (actor.labels && actor.labels.length) {
         for (const label of actor.labels) {

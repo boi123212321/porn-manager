@@ -17,7 +17,7 @@ export async function getScenes(
 
     const filters = [] as ((doc: ISceneSearchDoc) => boolean)[];
 
-    if (options.bookmark) filters.push(doc => doc.bookmark);
+    if (options.bookmark) filters.push(doc => !!doc.bookmark);
 
     if (options.favorite) filters.push(doc => doc.favorite);
 
@@ -88,6 +88,10 @@ export async function getScenes(
           if (sortDir == "asc")
             return (a, b) => (a.resolution || 0) - (b.resolution || 0);
           return (a, b) => (b.resolution || 0) - (a.resolution || 0);
+        case SortTarget.BOOKMARK:
+          if (sortDir == "asc")
+            return (a, b) => (a.bookmark || 0) - (b.bookmark || 0);
+          return (a, b) => (b.bookmark || 0) - (a.bookmark || 0);
         case SortTarget.SIZE:
           if (sortDir == "asc") return (a, b) => (a.size || 0) - (b.size || 0);
           return (a, b) => (b.size || 0) - (a.size || 0);

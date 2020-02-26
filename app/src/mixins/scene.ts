@@ -101,7 +101,7 @@ export default class SceneMixin extends Vue {
       variables: {
         ids: [this.value._id],
         opts: {
-          bookmark: !this.value.bookmark
+          bookmark: this.value.bookmark ? null : Date.now()
         }
       }
     }).then(res => {

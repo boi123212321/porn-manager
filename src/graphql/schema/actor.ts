@@ -9,7 +9,7 @@ export default gql`
     addedOn: Long!
     bornOn: Long
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     rating: Int
     customFields: Object!
 
@@ -40,7 +40,7 @@ export default gql`
     aliases: [String!]
     thumbnail: String
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     bornOn: Long
     customFields: Object
   }
