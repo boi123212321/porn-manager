@@ -9,8 +9,8 @@ import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
 import { createActorSearchDoc } from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
-import { createSceneSearchDoc } from "../../search/scene";
-import { createImageSearchDoc } from "../../search/image";
+import { updateSceneDoc } from "../../search/scene";
+import { updateImageDoc } from "../../search/image";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -83,7 +83,7 @@ export default {
           scene,
           (await Scene.getActors(scene)).map(l => l._id).concat(actor._id)
         );
-        indices.scenes.update(scene._id, await createSceneSearchDoc(scene));
+        await updateSceneDoc(scene);
         logger.log(`Updated actors of ${scene._id}`);
       }
     }
@@ -107,7 +107,7 @@ export default {
         // TODO: investigate why this is not working
         // may be fixed with twigs?
         // vvvvvvvvvv
-        indices.images.update(image._id, await createImageSearchDoc(image));
+        await updateImageDoc(image);
         logger.log(`Updated actors of ${image._id}`);
       }
     }

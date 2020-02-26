@@ -35,12 +35,19 @@ export interface IImageSearchDoc {
   added_on: number;
   actors: { id: string; name: string; aliases: string[] }[];
   labels: { id: string; name: string; aliases: string[] }[];
-  bookmark: boolean;
+  bookmark: number | null;
   favorite: boolean;
   rating: number;
   scene: string | null;
   scene_name: string | null;
   studio_name: string | null;
+}
+
+export async function updateImageDoc(image: Image) {
+  return Axios.put(
+    `http://localhost:8000/image/${image._id}`,
+    await createImageSearchDoc(image)
+  );
 }
 
 export async function removeImageDoc(imageId: string) {

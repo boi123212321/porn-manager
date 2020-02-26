@@ -34,7 +34,9 @@ export async function onActorCreate(
       await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) {
+        await indexImages([img]);
+      }
       return img._id;
     },
     $createImage: async (url: string, name: string, thumbnail?: boolean) => {

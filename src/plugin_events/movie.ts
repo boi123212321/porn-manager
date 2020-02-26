@@ -1,15 +1,13 @@
 import { runPluginsSerial } from "../plugins/index";
 import { libraryPath } from "../types/utility";
-import { extractLabels, extractFields } from "../extractor";
+import { extractFields } from "../extractor";
 import { getConfig } from "../config";
 import { extname } from "path";
 import { downloadFile } from "../ffmpeg-download";
 import Image from "../types/image";
 import * as database from "../database/index";
 import * as logger from "../logger";
-import { indices } from "../search/index";
-import { createImageSearchDoc, indexImages } from "../search/image";
-import Label from "../types/label";
+import { indexImages } from "../search/image";
 import Movie from "../types/movie";
 
 // This function has side effects
@@ -29,7 +27,9 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
       img.path = path;
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) {
+        await indexImages([img]);
+      }
       return img._id;
     },
     $createImage: async (url: string, name: string, thumbnail?: boolean) => {

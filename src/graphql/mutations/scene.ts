@@ -41,20 +41,19 @@ async function runScenePlugins(ids: string[]) {
   for (const id of ids) {
     let scene = await Scene.getById(id);
 
-      if (scene) {
-        const labels = (await Scene.getLabels(scene)).map(l => l._id);
-        const actors = (await Scene.getActors(scene)).map(a => a._id);
-        logger.log("Labels before plugin: ", labels);
-        scene = await onSceneCreate(scene, labels, actors, "sceneCustom");
-        logger.log("Labels after plugin: ", labels);
+    if (scene) {
+      const labels = (await Scene.getLabels(scene)).map(l => l._id);
+      const actors = (await Scene.getActors(scene)).map(a => a._id);
+      logger.log("Labels before plugin: ", labels);
+      scene = await onSceneCreate(scene, labels, actors, "sceneCustom");
+      logger.log("Labels after plugin: ", labels);
 
-        await Scene.setLabels(scene, labels);
-        await Scene.setActors(scene, actors);
-        await database.update(database.store.scenes, { _id: scene._id }, scene);
-        await updateSceneDoc(scene);
+      await Scene.setLabels(scene, labels);
+      await Scene.setActors(scene, actors);
+      await database.update(database.store.scenes, { _id: scene._id }, scene);
+      await updateSceneDoc(scene);
 
-        changedScenes.push(scene);
-      }
+      changedScenes.push(scene);
     }
   }
   return changedScenes;
