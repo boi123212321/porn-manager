@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="{{ frontCover }}" type="image/x-icon" />
+    <title>{{ movieName }} in 3D!</title>
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="http://threejs.org/examples/js/controls/OrbitControls.js"
+    ></script>
+    <style>
+      * {
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body style="margin: 0">
+    <div
+      style="padding-top: 5px; color: white; width: 100%; position: fixed; text-align: center"
+    >
+      <div style="font-weight: bold; font-size: 24px">
+        {{ movieName }}
+      </div>
+      <div id="studio-name" style="opacity: 0.6; font-size: 14px"></div>
+    </div>
+    <script>
+      function createBoxWithRoundedEdges(
+        width,
+        height,
+        depth,
+        radius0,
+        smoothness
+      ) {
+        let shape = new THREE.Shape();
+        let eps = 0.00001;
+        let radius = radius0 - eps;
+        shape.absarc(eps, eps, eps, -Math.PI / 2, -Math.PI, true);
+        shape.absarc(eps, height - radius * 2, eps, Math.PI, Math.PI / 2, true);
+        shape.absarc(
+          width - radius * 2,
+          height - radius * 2,
+          eps,
+          Math.PI / 2,
+          0,
+          true
+        );
+        shape.absarc(width - radius * 2, eps, eps, 0, -Math.PI / 2, true);
+        let geometry = new THREE.ExtrudeBufferGeometry(shape, {
+          amount: depth - radius0 * 2,
+          bevelEnabled: true,
+          bevelSegments: smoothness * 2,
+          steps: 1,
+          bevelSize: radius,
+          bevelThickness: radius0,
+          curveSegments: smoothness
+        });
+
+        geometry.center();
+
+        return geometry;
+      }
+    </script>
+    <script>
+      let scene, camera, renderer;
+      THREE.crossOrigin = "";
+
+      const dvdWidth = 13.5; // in cm
+      const dvdHeight = 19.0; // in cm
+      const dvdDepth = 1.4; // in cm
+      const coverPadding = 0.2;
+      const scaleFactor = 0.4;
+      const roundness = 0.125;
+      const shininess = 100;
+
+      const studioName = "{{ studioName }}";
+      const frontCover = "{{ frontCover }}".replace("&#x3D;", "=");
+      const backCover = "{{ backCover }}".replace("&#x3D;", "=");
+      const color = "{{ color }}";
+
+      if (studioName)
+        document.getElementById("studio-name").textContent = "by " + studioName;
+
+      // Sets up the scene.
+      function init() {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        scene = new THREE.Scene();
+        let WIDTH = window.innerWidth,
+          HEIGHT = window.innerHeight;
+
+        const loader = new THREE.TextureLoader();
+
+        const boxWidth = dvdWidth * scaleFactor;
+        const boxHeight = dvdHeight * scaleFactor;
+        const boxDepth = dvdDepth * scaleFactor;
+
+        const geometry = createBoxWithRoundedEdges(
+          boxWidth,
+          boxHeight,
+          boxDepth,
+          roundness,
+          16
+        );
+
+        const frontTex = loader.load(frontCover);
+        const backTex = loader.load(backCover);
+        const bumpMap = loader.load("/bump");
+
+        frontTex.minFilter = THREE.LinearFilter;
+        backTex.minFilter = THREE.LinearFilter;
+
+        var front = new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            boxWidth - coverPadding,
+            boxHeight - coverPadding
+          ),
+          new THREE.MeshPhongMaterial({
+            map: frontTex,
+            shininess,
+            bumpMap: bumpMap,
+            bumpScale: 0.2
+          })
+        );
+        front.position.set(0, 0, boxDepth / 2 + 0.025);
+        scene.add(front);
+
+        var back = new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            boxWidth - coverPadding,
+            boxHeight - coverPadding
+          ),
+          new THREE.MeshPhongMaterial({
+            map: backTex,
+            shininess,
+            bumpMap: bumpMap,
+            bumpScale: 0.2
+          })
+        );
+        back.rotation.x = Math.PI;
+        back.rotation.z = Math.PI;
+        back.position.set(0, 0, -(boxDepth / 2 + 0.025));
+        scene.add(back);
+
+        mesh = new THREE.Mesh(
+          geometry,
+          new THREE.MeshPhongMaterial({
+            color: "#121212",
+            shininess
+          })
+        );
+        scene.add(mesh);
+
+        renderer.setSize(WIDTH, HEIGHT);
+        document.body.appendChild(renderer.domElement);
+
+        camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
+        camera.position.set(-6, 3, 12);
+        scene.add(camera);
+
+        window.addEventListener("resize", function() {
+          let WIDTH = window.innerWidth,
+            HEIGHT = window.innerHeight;
+          renderer.setSize(WIDTH, HEIGHT);
+          camera.aspect = WIDTH / HEIGHT;
+          camera.updateProjectionMatrix();
+        });
+
+        renderer.setClearColor(0x302530, 1);
+
+        {
+          let light = new THREE.PointLight(0x666666);
+          light.position.set(-9, 0, 9);
+          scene.add(light);
+        }
+
+        {
+          let light = new THREE.PointLight(0x666666);
+          light.position.set(9, 0, -9);
+          scene.add(light);
+        }
+
+        {
+          let light = new THREE.PointLight(0x444444);
+          light.position.set(9, 0, 9);
+          scene.add(light);
+        }
+
+        {
+          let light = new THREE.PointLight(0x444444);
+          light.position.set(-9, 0, -9);
+          scene.add(light);
+        }
+
+        let ambience = new THREE.AmbientLight(0x777777); // soft white light
+        scene.add(ambience);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+      }
+
+      // Renders the scene and updates the render as needed.
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+        controls.update();
+      }
+
+      init();
+      animate();
+    </script>
+  </body>
+</html>

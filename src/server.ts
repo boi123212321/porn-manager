@@ -23,6 +23,8 @@ import { checkImportFolders } from "./import/index";
 import cors from "./middlewares/cors";
 import Handlebars from "handlebars";
 import { spawnTwigs, ensureTwigsExists } from "./twigs";
+import Movie from "./types/movie";
+import Studio from "./types/studio";
 
 async function renderHandlebars(file: string, context: any) {
   const text = await readFileAsync(file, "utf-8");
@@ -51,6 +53,13 @@ export default async () => {
   const app = express();
   app.use(cors);
 
+  app.use((req, res, next) => {
+    logger.http(
+      `${req.method} ${req.originalUrl}: ${new Date().toLocaleString()}`
+    );
+    next();
+  });
+
   app.get("/setup", (req, res) => {
     res.json({
       serverReady,
@@ -69,6 +78,49 @@ export default async () => {
     }
   });
 
+  app.get("/bump", (req, res) => {
+    res.sendFile(path.resolve("./views/bump.jpg"));
+  });
+
+  app.get("/normal", (req, res) => {
+    res.sendFile(path.resolve("./views/normal.jpg"));
+  });
+
+  app.get("/dvd-renderer/:id", async (req, res, next) => {
+    const movie = await Movie.getById(req.params.id);
+
+    if (!movie) {
+      res.status(404).send(
+        await renderHandlebars("./views/error.html", {
+          code: 404,
+          message: `Movie <b>${req.params.id}</b> not found`
+        })
+      );
+    } else {
+      const color = movie.frontCover
+        ? (await Image.getById(movie.frontCover))?.color
+        : "#333333";
+
+      const studioName = movie.studio
+        ? (await Studio.getById(movie.studio))?.name
+        : "";
+
+      res.status(200).send(
+        await renderHandlebars("./views/dvd-renderer.html", {
+          color,
+          movieName: movie.name,
+          studioName,
+          frontCover: movie.frontCover
+            ? `/image/${movie.frontCover}?password=${config.PASSWORD}`
+            : null,
+          backCover: movie.backCover
+            ? `/image/${movie.backCover}?password=${config.PASSWORD}`
+            : null
+        })
+      );
+    }
+  });
+
   app.get("/broken", (_, res) => {
     const b64 = BROKEN_IMAGE;
 
@@ -79,13 +131,6 @@ export default async () => {
       "Content-Length": img.length
     });
     res.end(img);
-  });
-
-  app.use((req, res, next) => {
-    logger.http(
-      `${req.method} ${req.originalUrl}: ${new Date().toLocaleString()}`
-    );
-    next();
   });
 
   const config = getConfig();

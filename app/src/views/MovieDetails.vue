@@ -22,6 +22,14 @@
                   <template v-slot:placeholder>
                     <v-sheet style="width: 100%; height: 100%;" color="grey" />
                   </template>
+
+                  <v-btn
+                    @click="show3d = true"
+                    style="position: absolute; top: 5px; right: 5px;"
+                    icon
+                  >
+                    <v-icon>mdi-eye</v-icon>
+                  </v-btn>
                 </v-img>
               </template>
             </v-hover>
@@ -220,6 +228,8 @@
         <div>That's all!</div>
       </div>
     </infinite-loading>
+
+    <DVDRenderer v-model="show3d" :movie="currentMovie._id" />
   </v-container>
 </template>
 
@@ -246,6 +256,7 @@ import ILabel from "../types/label";
 import IScene from "../types/scene";
 import { movieModule } from "../store/movie";
 import movieFragment from "../fragments/movie";
+import DVDRenderer from "@/components/DVDRenderer.vue";
 
 @Component({
   components: {
@@ -253,7 +264,8 @@ import movieFragment from "../fragments/movie";
     Lightbox,
     ImageCard,
     InfiniteLoading,
-    MovieItem
+    MovieItem,
+    DVDRenderer
   },
   beforeRouteLeave(_to, _from, next) {
     movieModule.setCurrent(null);
@@ -268,6 +280,7 @@ export default class SceneDetails extends Vue {
 
   infiniteId = 0;
   page = 0;
+  show3d = false;
 
   frontCoverFile = null as File | null;
   frontCoverDialog = false;
