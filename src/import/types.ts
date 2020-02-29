@@ -27,6 +27,7 @@ export interface IImportedMovie {
   customFields?: Dictionary<string> | null;
   frontCover?: string | null;
   backCover?: string | null;
+  spineCover?: string | null;
   studio?: string | null;
 }
 

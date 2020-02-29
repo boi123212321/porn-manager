@@ -332,6 +332,15 @@ export async function createFromFileData(opts: ICreateOptions) {
           await database.insert(database.store.images, image);
       }
 
+      if (movieToCreate.spineCover) {
+        const image = new Image(`${movie.name} (back cover)`);
+        image.path = movieToCreate.spineCover;
+        movie.spineCover = image._id;
+
+        if (args["commit-import"])
+          await database.insert(database.store.images, image);
+      }
+
       try {
         movie = await onMovieCreate(movie);
       } catch (error) {

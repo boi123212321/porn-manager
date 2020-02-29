@@ -23,6 +23,10 @@ export const movieSchema = new Schema({
     type: String,
     required: false
   },
+  spineCover: {
+    type: String,
+    required: false
+  },
   studio: {
     type: String,
     required: false
