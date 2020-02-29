@@ -33,16 +33,7 @@
                 color="primary"
               >Set thumbnail</v-btn>
             </div>
-            <v-rating
-              half-increments
-              @input="rate"
-              :value="currentActor.rating / 2"
-              background-color="grey"
-              color="amber"
-              hide-details
-              dense
-              class="my-2 text-center"
-            />
+            <Rating @change="rate" :value="currentActor.rating" class="my-2 text-center" />
 
             <div class="pa-2">
               <v-chip
@@ -834,8 +825,6 @@ export default class ActorDetails extends Vue {
 
   rate(rating: number) {
     if (!this.currentActor) return;
-
-    rating = rating * 2;
 
     ApolloClient.mutate({
       mutation: gql`

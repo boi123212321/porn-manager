@@ -47,15 +47,7 @@
     <v-card-subtitle
       class="pb-0"
     >{{ value.numScenes }} {{ value.numScenes == 1 ? 'scene' : 'scenes' }}</v-card-subtitle>
-    <v-rating
-      half-increments
-      @input="rate"
-      class="ml-3 mb-2"
-      :value="value.rating / 2"
-      background-color="grey"
-      color="amber"
-      dense
-    ></v-rating>
+    <Rating @change="rate" class="ml-3 mb-2" :value="value.rating" />
     <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         class="mr-1 mb-1"
@@ -99,7 +91,7 @@ export default class ActorCard extends Vue {
   }
 
   rate($event) {
-    const rating = $event * 2;
+    const rating = $event;
 
     ApolloClient.mutate({
       mutation: gql`

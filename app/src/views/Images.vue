@@ -53,17 +53,7 @@
         <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
         <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
 
-        <v-rating
-          half-increments
-          @input="ratingFilter = $event * 2"
-          :value="ratingFilter / 2"
-          class="pb-0 pa-2"
-          background-color="grey"
-          color="amber"
-          dense
-          hide-details
-        ></v-rating>
-        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
+        <Rating @change="ratingFilter = $event" :value="ratingFilter" class="pb-0 pa-2" />
       </v-container>
     </v-navigation-drawer>
 

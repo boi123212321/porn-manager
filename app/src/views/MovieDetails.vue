@@ -74,16 +74,7 @@
             <v-icon>mdi-star</v-icon>
             <v-subheader>Rating</v-subheader>
           </div>
-          <v-rating
-            half-increments
-            class="px-2"
-            :value="currentMovie.rating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-            readonly
-          ></v-rating>
+          <Rating class="px-2" :value="currentMovie.rating" :readonly="true" />
           <div class="d-flex align-center">
             <v-icon>mdi-label</v-icon>
             <v-subheader>Labels</v-subheader>

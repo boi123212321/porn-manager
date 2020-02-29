@@ -85,20 +85,7 @@
         </div>
 
         <div>
-          <v-rating
-            half-increments
-            @input="rate"
-            class="pa-2 pb-0"
-            :value="currentImage.rating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-          ></v-rating>
-          <div
-            @click="rate(0)"
-            class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating</div>
+          <Rating @change="rate" class="pa-2 pb-0" :value="currentImage.rating" />
         </div>
         <div class="pa-2">
           <v-chip
@@ -371,8 +358,6 @@ export default class Lightbox extends Vue {
 
   rate(rating: number) {
     if (!this.currentImage) return;
-
-    rating = rating * 2;
 
     ApolloClient.mutate({
       mutation: gql`

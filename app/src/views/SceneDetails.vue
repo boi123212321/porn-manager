@@ -83,20 +83,7 @@
             <v-icon>mdi-star</v-icon>
             <v-subheader>Rating</v-subheader>
           </div>
-          <v-rating
-            half-increments
-            @input="rate"
-            class="px-2"
-            :value="currentScene.rating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-          ></v-rating>
-          <div
-            @click="rate(0)"
-            class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating</div>
+          <Rating @change="rate" class="px-2" :value="currentScene.rating" />
           <div class="d-flex align-center">
             <v-icon>mdi-label</v-icon>
             <v-subheader>Labels</v-subheader>
@@ -420,20 +407,7 @@
             color="primary"
             v-model="markerName"
           ></v-combobox>
-          <v-rating
-            half-increments
-            @input="markerRating = $event * 2"
-            class="px-2"
-            :value="markerRating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-          ></v-rating>
-          <div
-            @click="markerRating = null"
-            class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating</div>
+          <Rating @input="markerRating = $event" class="px-2" :value="markerRating" />
           <v-checkbox hide-details color="primary" v-model="markerFavorite" label="Favorite?"></v-checkbox>
           <v-checkbox hide-details color="primary" v-model="markerBookmark" label="Bookmark?"></v-checkbox>
         </v-card-text>
@@ -1049,7 +1023,7 @@ export default class SceneDetails extends Vue {
   rate($event) {
     if (!this.currentScene) return;
 
-    const rating = $event * 2;
+    const rating = $event;
 
     ApolloClient.mutate({
       mutation: gql`
