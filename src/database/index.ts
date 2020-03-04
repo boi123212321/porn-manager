@@ -63,6 +63,8 @@ export async function loadStores() {
     mkdirp.sync(libraryPath("previews/"));
   } catch (err) {}
 
+  const dbLoader = ora("Loading DB...").start();
+
   store = {
     crossReferences: await loadStore(libraryPath("cross_references.db")),
     scenes: await loadStore(libraryPath("scenes.db")),
@@ -75,6 +77,10 @@ export async function loadStores() {
     markers: await loadStore(libraryPath("markers.db")),
     customFields: await loadStore(libraryPath("custom_fields.db"))
   };
+
+  dbLoader.succeed();
+
+  const indexLoader = ora("Building DB indices...").start();
 
   await buildIndex(store.crossReferences, {
     fieldName: "from"
@@ -101,7 +107,9 @@ export async function loadStores() {
     fieldName: "scene"
   });
 
-  const loader = ora(
+  indexLoader.succeed();
+
+  const integrityLoader = ora(
     "Checking database integrity. This might take a minute..."
   ).start();
   await Scene.checkIntegrity();
@@ -111,7 +119,7 @@ export async function loadStores() {
   await Studio.checkIntegrity();
   await Movie.checkIntegrity();
   await CrossReference.checkIntegrity();
-  loader.succeed("Integrity check done.");
+  integrityLoader.succeed("Integrity check done.");
 }
 
 export function count(store: DataStore, query: any): Promise<number> {
@@ -129,6 +137,38 @@ export function insert<T>(store: DataStore, doc: T | T[]) {
       if (err) return reject(err);
       resolve(doc);
     });
+  });
+}
+
+export function getOne(store: DataStore, skip = 0) {
+  return new Promise((resolve, reject) => {
+    store
+      .find({})
+      .skip(skip)
+      .limit(1)
+      .exec(function(err, docs) {
+        if (err) return reject(err);
+        resolve(docs[0]);
+      });
+  });
+}
+
+export function getAllIterative<T>(
+  store: DataStore,
+  cb: (doc: T) => Promise<void>
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let skip = 0;
+      let doc = await getOne(store, skip++);
+      while (doc) {
+        await cb(<T>doc);
+        doc = await getOne(store, skip++);
+      }
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 

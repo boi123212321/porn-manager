@@ -5,6 +5,7 @@ import Scene from "./scene";
 import { mapAsync } from "./utility";
 import CrossReference from "./cross_references";
 import * as logger from "../logger";
+import moment = require("moment");
 
 export default class Actor {
   _id: string;
@@ -13,6 +14,7 @@ export default class Actor {
   addedOn = +new Date();
   bornOn: number | null = null;
   thumbnail: string | null = null;
+  hero?: string | null = null;
   favorite: boolean = false;
   bookmark: number | null = null;
   rating: number = 0;
@@ -20,6 +22,11 @@ export default class Actor {
   labels?: string[]; // backwards compatibility
   studio?: string | null; // backwards compatibility
   description?: string | null = null;
+
+  static getAge(actor: Actor) {
+    if (actor.bornOn) return moment().diff(actor.bornOn, "years");
+    return null;
+  }
 
   static async filterCustomField(fieldId: string) {
     await database.update(
@@ -31,7 +38,6 @@ export default class Actor {
 
   static async checkIntegrity() {
     const allActors = await Actor.getAll();
-    const timeNow = Date.now();
 
     for (const actor of allActors) {
       const actorId = actor._id.startsWith("ac_")
@@ -40,7 +46,7 @@ export default class Actor {
 
       if (typeof actor.bookmark == "boolean") {
         logger.log(`Setting bookmark to timestamp...`);
-        const time = actor.bookmark ? timeNow : null;
+        const time = actor.bookmark ? actor.addedOn : null;
         await database.update(
           database.store.actors,
           { _id: actorId },
@@ -98,7 +104,7 @@ export default class Actor {
     await database.update(
       database.store.actors,
       { thumbnail },
-      { $set: { thumbnail: null } }
+      { $set: { thumbnail: null, hero: null } }
     );
   }
 

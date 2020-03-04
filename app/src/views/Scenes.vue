@@ -39,17 +39,7 @@
         <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
         <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
 
-        <v-rating
-          half-increments
-          @input="ratingFilter = $event * 2"
-          :value="ratingFilter / 2"
-          class="pb-0 pa-2"
-          background-color="grey"
-          color="amber"
-          dense
-          hide-details
-        ></v-rating>
-        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
+        <Rating @input="ratingFilter = $event" :value="ratingFilter" class="pb-0 pa-2" />
 
         <v-select
           hide-details
@@ -82,7 +72,7 @@
         <!-- <v-btn class="mr-3" @click="openUploadDialog" icon>
           <v-icon>mdi-upload</v-icon>
         </v-btn>-->
-        <v-btn @click="getRandom" icon>
+        <v-btn :loading="fetchingRandom" @click="getRandom" icon>
           <v-icon>mdi-shuffle-variant</v-icon>
         </v-btn>
       </div>
@@ -256,6 +246,7 @@ import { mixins } from "vue-class-component";
 export default class SceneList extends mixins(DrawerMixin) {
   scenes = [] as IScene[];
   fetchLoader = false;
+  fetchingRandom = false;
 
   waiting = false;
   allLabels = [] as ILabel[];
@@ -615,25 +606,34 @@ export default class SceneList extends mixins(DrawerMixin) {
   }
 
   infiniteHandler($state) {
-    this.fetchPage().then(items => {
-      if (items.length) {
-        this.page++;
-        this.scenes.push(...items);
-        $state.loaded();
-      } else {
-        $state.complete();
-      }
-    });
+    this.fetchPage()
+      .then(items => {
+        if (items.length) {
+          this.page++;
+          this.scenes.push(...items);
+          $state.loaded();
+        } else {
+          $state.complete();
+        }
+      })
+      .catch(err => {
+        $state.error();
+      });
   }
 
   getRandom() {
-    this.fetchPage(true).then(scenes => {
-      // @ts-ignore
-      this.$router.push(`/scene/${scenes[0]._id}`);
-    });
+    this.fetchingRandom = true;
+    this.fetchPage(1)
+      .then(scenes => {
+        // @ts-ignore
+        this.$router.push(`/scene/${scenes[0]._id}`);
+      })
+      .catch(err => {
+        this.fetchingRandom = false;
+      });
   }
 
-  async fetchPage(random = false) {
+  async fetchPage(random = 0) {
     try {
       let include = "";
       let exclude = "";
@@ -653,7 +653,7 @@ export default class SceneList extends mixins(DrawerMixin) {
 
       const result = await ApolloClient.query({
         query: gql`
-          query($query: String, $random: Boolean) {
+          query($query: String, $random: Int) {
             getScenes(query: $query, random: $random) {
               ...SceneFragment
               actors {

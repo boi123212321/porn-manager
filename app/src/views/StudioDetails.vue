@@ -106,7 +106,7 @@
               :key="actor._id"
               cols="12"
               sm="6"
-              md="4"
+              md="3"
               lg="2"
               xl="2"
             >
@@ -348,7 +348,7 @@ export default class StudioDetails extends Vue {
     if (!this.currentStudio) return;
 
     try {
-      const query = `page:${this.page} sortDir:asc sortBy:addedOn studios:${this.currentStudio._id}`;
+      const query = `page:${this.page} sortDir:desc sortBy:addedOn studios:${this.currentStudio._id}`;
 
       const result = await ApolloClient.query({
         query: gql`

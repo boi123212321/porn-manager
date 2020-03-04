@@ -14,12 +14,14 @@ export default gql`
     customFields: Object!
 
     # Resolvers
+    age: Int
     availableFields: [CustomField!]!
     watches: [Long!]!
     labels: [Label!]!
     scenes: [Scene!]
     numScenes: Int!
     thumbnail: Image
+    hero: Image
     images: [Image!]!
   }
 
@@ -39,6 +41,7 @@ export default gql`
     labels: [String!]
     aliases: [String!]
     thumbnail: String
+    hero: String
     favorite: Boolean
     bookmark: Long
     bornOn: Long

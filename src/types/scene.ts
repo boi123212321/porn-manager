@@ -16,6 +16,7 @@ import Jimp from "jimp";
 import mergeImg from "merge-img";
 import Marker from "./marker";
 import Image from "./image";
+import Movie from "./movie";
 
 export type ThumbnailFile = {
   name: string;
@@ -66,7 +67,6 @@ export default class Scene {
 
   static async checkIntegrity() {
     const allScenes = await Scene.getAll();
-    const timeNow = Date.now();
 
     for (const scene of allScenes) {
       const sceneId = scene._id.startsWith("sc_")
@@ -75,7 +75,7 @@ export default class Scene {
 
       if (typeof scene.bookmark == "boolean") {
         logger.log(`Setting bookmark to timestamp...`);
-        const time = scene.bookmark ? timeNow : null;
+        const time = scene.bookmark ? scene.addedOn : null;
         await database.update(
           database.store.scenes,
           { _id: sceneId },
@@ -255,6 +255,16 @@ export default class Scene {
         r => Marker.getById(r.to)
       )
     ).filter(Boolean) as Marker[];
+  }
+
+  static async getMovies(scene: Scene) {
+    const references = await CrossReference.getByDest(scene._id);
+    return (
+      await mapAsync(
+        references.filter(r => r.from.startsWith("mo_")),
+        r => Movie.getById(r.from)
+      )
+    ).filter(Boolean) as Movie[];
   }
 
   static async getActors(scene: Scene) {
@@ -468,7 +478,8 @@ export default class Scene {
                 folder,
                 count: 1,
                 filename: `${scene._id} (thumbnail).jpg`,
-                timestamps: ["50%"]
+                timestamps: ["50%"],
+                size: "400x?"
               });
           });
         })();
@@ -523,6 +534,7 @@ export default class Scene {
         .seekInput(sec)
         .output(image.path)
         .outputOptions("-frames", "1")
+        .size("400x?")
         .on("end", async () => {
           logger.log("Screenshot done.");
           await database.insert(database.store.images, image);
@@ -624,7 +636,8 @@ export default class Scene {
                   "{{index}}",
                   index.toString().padStart(3, "0")
                 ),
-                folder: options.thumbnailPath
+                folder: options.thumbnailPath,
+                size: "400x?"
               });
           });
         });

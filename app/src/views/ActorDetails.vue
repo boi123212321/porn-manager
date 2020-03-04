@@ -1,11 +1,20 @@
 <template>
   <div>
     <div v-if="currentActor">
+      <v-img
+        :max-height="450"
+        :aspect-ratio="2.75"
+        v-if="heroImage && $vuetify.breakpoint.smAndUp"
+        :src="heroImage"
+      ></v-img>
       <BindTitle :value="currentActor.name" />
       <v-container fluid>
         <v-row>
           <v-col cols="12" sm="4" md="3" lg="2" xl="2">
-            <v-hover v-if="thumbnail">
+            <v-hover
+              :class="($vuetify.breakpoint.xsOnly || !heroImage) ? '' : 'elevation-8 avatar-margin-top'"
+              v-if="thumbnail"
+            >
               <template v-slot:default="{ hover }">
                 <div
                   v-ripple
@@ -33,16 +42,7 @@
                 color="primary"
               >Set thumbnail</v-btn>
             </div>
-            <v-rating
-              half-increments
-              @input="rate"
-              :value="currentActor.rating / 2"
-              background-color="grey"
-              color="amber"
-              hide-details
-              dense
-              class="my-2 text-center"
-            />
+            <Rating @change="rate" :value="currentActor.rating" class="my-2 text-center" />
 
             <div class="pa-2">
               <v-chip
@@ -100,6 +100,13 @@
                   class="text-none"
                   @click="runPlugins"
                 >Run plugins</v-btn>
+
+                <v-btn
+                  color="primary"
+                  text
+                  class="text-none"
+                  @click="heroDialog=true"
+                >Change hero image</v-btn>
               </div>
             </div>
           </v-col>
@@ -338,7 +345,7 @@
               class="cropper"
               :src="thumbnailDisplay"
               :stencilProps="{ aspectRatio: aspectRatio }"
-              @change="changeCrop"
+              @change="changeThumbnailCrop"
             ></cropper>
           </div>
         </v-card-text>
@@ -350,6 +357,39 @@
             text
             class="text-none"
             @click="uploadThumbnail"
+          >Upload</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="heroDialog" max-width="600px">
+      <v-card v-if="currentActor" :loading="heroLoader">
+        <v-card-title>Set hero image for '{{ currentActor.name }}'</v-card-title>
+        <v-card-text>
+          <v-file-input
+            color="primary"
+            placeholder="Select image"
+            @change="readHero"
+            v-model="selectedHero"
+          ></v-file-input>
+          <div v-if="heroDisplay" class="text-center">
+            <cropper
+              style="height: 400px"
+              class="cropper"
+              :src="heroDisplay"
+              :stencilProps="{ aspectRatio: 2.75 }"
+              @change="changeHeroCrop"
+            ></cropper>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            :disabled="!heroDisplay"
+            color="primary"
+            text
+            class="text-none"
+            @click="uploadHero"
           >Upload</v-btn>
         </v-card-actions>
       </v-card>
@@ -429,7 +469,13 @@ export default class ActorDetails extends Vue {
   thumbnailLoader = false;
   thumbnailDisplay = null as string | null;
   selectedThumbnail = null as File | null;
-  crop: ICropCoordinates = { left: 0, top: 0, width: 0, height: 0 };
+  thumbnailCrop: ICropCoordinates = { left: 0, top: 0, width: 0, height: 0 };
+
+  heroDialog = false;
+  heroLoader = false;
+  heroDisplay = null as string | null;
+  selectedHero = null as File | null;
+  heroCrop: ICropCoordinates = { left: 0, top: 0, width: 0, height: 0 };
 
   uploadDialog = false;
   isUploading = false;
@@ -439,6 +485,16 @@ export default class ActorDetails extends Vue {
 
   sceneLoader = false;
   pluginLoader = false;
+
+  labelSearchQuery = "";
+
+  get heroImage() {
+    if (!this.currentActor) return null;
+    if (!this.currentActor.hero) return null;
+    return `${serverBase}/image/${
+      this.currentActor.hero._id
+    }?password=${localStorage.getItem("password")}`;
+  }
 
   sceneInfiniteHandler($state) {
     this.fetchScenePage().then(items => {
@@ -452,7 +508,7 @@ export default class ActorDetails extends Vue {
     });
   }
 
-  async fetchScenePage(random = false) {
+  async fetchScenePage() {
     try {
       if (!this.currentActor) return;
 
@@ -460,8 +516,8 @@ export default class ActorDetails extends Vue {
 
       const result = await ApolloClient.query({
         query: gql`
-          query($query: String, $random: Boolean) {
-            getScenes(query: $query, random: $random) {
+          query($query: String) {
+            getScenes(query: $query) {
               ...SceneFragment
               actors {
                 ...ActorFragment
@@ -476,8 +532,7 @@ export default class ActorDetails extends Vue {
           ${studioFragment}
         `,
         variables: {
-          query,
-          random
+          query
         }
       });
 
@@ -542,8 +597,6 @@ export default class ActorDetails extends Vue {
       });
   }
 
-  labelSearchQuery = "";
-
   get aspectRatio() {
     return contextModule.actorAspectRatio;
   }
@@ -552,8 +605,17 @@ export default class ActorDetails extends Vue {
     this.uploadDialog = true;
   }
 
-  changeCrop(crop: ICropResult) {
-    this.crop = {
+  changeThumbnailCrop(crop: ICropResult) {
+    this.thumbnailCrop = {
+      left: Math.round(crop.coordinates.left),
+      top: Math.round(crop.coordinates.top),
+      width: Math.round(crop.coordinates.width),
+      height: Math.round(crop.coordinates.height)
+    };
+  }
+
+  changeHeroCrop(crop: ICropResult) {
+    this.heroCrop = {
       left: Math.round(crop.coordinates.left),
       top: Math.round(crop.coordinates.top),
       width: Math.round(crop.coordinates.width),
@@ -577,6 +639,73 @@ export default class ActorDetails extends Vue {
     if (file) this.thumbnailDisplay = await this.readImage(file);
   }
 
+  async readHero(file: File) {
+    if (file) this.heroDisplay = await this.readImage(file);
+  }
+
+  uploadHero() {
+    if (!this.currentActor) return;
+
+    this.heroLoader = true;
+
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation(
+          $file: Upload!
+          $name: String
+          $crop: Crop
+          $actors: [String!]
+          $labels: [String!]
+          $compress: Boolean
+        ) {
+          uploadImage(
+            file: $file
+            name: $name
+            crop: $crop
+            actors: $actors
+            labels: $labels
+            compress: $compress
+          ) {
+            ...ImageFragment
+            actors {
+              ...ActorFragment
+            }
+            scene {
+              _id
+              name
+            }
+          }
+        }
+        ${imageFragment}
+        ${actorFragment}
+      `,
+      variables: {
+        file: this.selectedHero,
+        name: this.currentActor.name + " (hero image)",
+        actors: [this.currentActor._id],
+        labels: this.currentActor.labels.map(a => a._id),
+        crop: {
+          left: this.heroCrop.left,
+          top: this.heroCrop.top,
+          width: this.heroCrop.width,
+          height: this.heroCrop.height
+        },
+        compress: false
+      }
+    })
+      .then(res => {
+        const image = res.data.uploadImage;
+        this.images.unshift(image);
+        this.setAsHero(image._id);
+        this.heroDialog = false;
+        this.heroDisplay = null;
+        this.selectedHero = null;
+      })
+      .finally(() => {
+        this.heroLoader = false;
+      });
+  }
+
   uploadThumbnail() {
     if (!this.currentActor) return;
 
@@ -590,6 +719,7 @@ export default class ActorDetails extends Vue {
           $crop: Crop
           $actors: [String!]
           $labels: [String!]
+          $compress: Boolean
         ) {
           uploadImage(
             file: $file
@@ -597,6 +727,7 @@ export default class ActorDetails extends Vue {
             crop: $crop
             actors: $actors
             labels: $labels
+            compress: $compress
           ) {
             ...ImageFragment
             actors {
@@ -617,11 +748,12 @@ export default class ActorDetails extends Vue {
         actors: [this.currentActor._id],
         labels: this.currentActor.labels.map(a => a._id),
         crop: {
-          left: this.crop.left,
-          top: this.crop.top,
-          width: this.crop.width,
-          height: this.crop.height
-        }
+          left: this.thumbnailCrop.left,
+          top: this.thumbnailCrop.top,
+          width: this.thumbnailCrop.width,
+          height: this.thumbnailCrop.height
+        },
+        compress: true
       }
     })
       .then(res => {
@@ -725,6 +857,34 @@ export default class ActorDetails extends Vue {
 
   get currentActor() {
     return actorModule.current;
+  }
+
+  setAsHero(id: string) {
+    if (!this.currentActor) return;
+
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
+          updateActors(ids: $ids, opts: $opts) {
+            hero {
+              _id
+            }
+          }
+        }
+      `,
+      variables: {
+        ids: [this.currentActor._id],
+        opts: {
+          hero: id
+        }
+      }
+    })
+      .then(res => {
+        actorModule.setHero(id);
+      })
+      .catch(err => {
+        console.error(err);
+      });
   }
 
   setAsThumbnail(id: string) {
@@ -833,8 +993,6 @@ export default class ActorDetails extends Vue {
   rate(rating: number) {
     if (!this.currentActor) return;
 
-    rating = rating * 2;
-
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
@@ -882,6 +1040,9 @@ export default class ActorDetails extends Vue {
         query($id: String!) {
           getActorById(id: $id) {
             ...ActorFragment
+            hero {
+              _id
+            }
           }
         }
         ${actorFragment}
@@ -914,6 +1075,9 @@ export default class ActorDetails extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.avatar-margin-top {
+  margin-top: -160px;
+}
 .avatar {
   max-width: 100%;
 }

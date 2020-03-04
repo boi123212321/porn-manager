@@ -54,6 +54,14 @@ class ActorModule extends VuexModule {
   }
 
   @Mutation
+  setHero(id: string) {
+    if (this.current) {
+      if (!this.current.hero) this.current.hero = { _id: id, color: null };
+      this.current.hero._id = id;
+    }
+  }
+
+  @Mutation
   setLabels(labels: { _id: string; name: string }[]) {
     if (this.current) this.current.labels = labels;
   }

@@ -22,7 +22,6 @@ export default class Studio {
 
   static async checkIntegrity() {
     const allStudios = await Studio.getAll();
-    const timeNow = Date.now();
 
     for (const studio of allStudios) {
       const studioId = studio._id.startsWith("st_")
@@ -31,7 +30,7 @@ export default class Studio {
 
       if (typeof studio.bookmark == "boolean") {
         logger.log(`Setting bookmark to timestamp...`);
-        const time = studio.bookmark ? timeNow : null;
+        const time = studio.bookmark ? studio.addedOn : null;
         await database.update(
           database.store.studios,
           { _id: studioId },

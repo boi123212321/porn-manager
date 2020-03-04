@@ -44,7 +44,7 @@ export default class SceneMixin extends Vue {
   }
 
   rate($event) {
-    const rating = $event * 2;
+    const rating = $event;
 
     ApolloClient.mutate({
       mutation: gql`

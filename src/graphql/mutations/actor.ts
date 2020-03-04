@@ -9,8 +9,8 @@ import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
 import { createActorSearchDoc } from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
-import { createSceneSearchDoc } from "../../search/scene";
-import { createImageSearchDoc } from "../../search/image";
+import { updateSceneDoc } from "../../search/scene";
+import { updateImageDoc } from "../../search/image";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -19,6 +19,7 @@ type IActorUpdateOpts = Partial<{
   labels: string[];
   aliases: string[];
   thumbnail: string;
+  hero: string;
   favorite: boolean;
   bookmark: number | null;
   bornOn: number;
@@ -67,6 +68,15 @@ export default {
       actorLabels = args.labels;
     }
 
+    try {
+      actor = await onActorCreate(actor, actorLabels);
+    } catch (error) {
+      logger.error(error.message);
+    }
+
+    await Actor.setLabels(actor, actorLabels);
+    await database.insert(database.store.actors, actor);
+
     for (const scene of await Scene.getAll()) {
       const perms = stripStr(scene.path || scene.name);
 
@@ -83,7 +93,11 @@ export default {
           scene,
           (await Scene.getActors(scene)).map(l => l._id).concat(actor._id)
         );
-        indices.scenes.update(scene._id, await createSceneSearchDoc(scene));
+        try {
+          await updateSceneDoc(scene);
+        } catch (error) {
+          logger.error(error.message);
+        }
         logger.log(`Updated actors of ${scene._id}`);
       }
     }
@@ -104,22 +118,15 @@ export default {
           image,
           (await Image.getActors(image)).map(l => l._id).concat(actor._id)
         );
-        // TODO: investigate why this is not working
-        // may be fixed with twigs?
-        // vvvvvvvvvv
-        indices.images.update(image._id, await createImageSearchDoc(image));
+        try {
+          await updateImageDoc(image);
+        } catch (error) {
+          logger.error(error.message);
+        }
         logger.log(`Updated actors of ${image._id}`);
       }
     }
 
-    try {
-      actor = await onActorCreate(actor, actorLabels);
-    } catch (error) {
-      logger.error(error.message);
-    }
-
-    await Actor.setLabels(actor, actorLabels);
-    await database.insert(database.store.actors, actor);
     indices.actors.add(await createActorSearchDoc(actor));
     return actor;
   },
@@ -151,6 +158,8 @@ export default {
           actor.description = opts.description.trim();
 
         if (typeof opts.thumbnail == "string") actor.thumbnail = opts.thumbnail;
+
+        if (typeof opts.hero == "string") actor.hero = opts.hero;
 
         if (typeof opts.rating == "number") actor.rating = opts.rating;
 

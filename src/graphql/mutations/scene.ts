@@ -14,8 +14,11 @@ import { extname } from "path";
 import { getConfig } from "../../config/index";
 import Studio from "../../types/studio";
 import Marker from "../../types/marker";
-import { indices } from "../../search/index";
-import { createSceneSearchDoc } from "../../search/scene";
+import {
+  createSceneSearchDoc,
+  removeSceneDoc,
+  updateSceneDoc
+} from "../../search/scene";
 import { onSceneCreate } from "../../plugin_events/scene";
 
 type ISceneUpdateOpts = Partial<{
@@ -48,7 +51,7 @@ async function runScenePlugins(ids: string[]) {
       await Scene.setLabels(scene, labels);
       await Scene.setActors(scene, actors);
       await database.update(database.store.scenes, { _id: scene._id }, scene);
-      indices.scenes.update(scene._id, await createSceneSearchDoc(scene));
+      await updateSceneDoc(scene);
 
       changedScenes.push(scene);
     }
@@ -291,7 +294,7 @@ export default {
 
         await database.update(database.store.scenes, { _id: scene._id }, scene);
         updatedScenes.push(scene);
-        indices.scenes.update(scene._id, await createSceneSearchDoc(scene));
+        await updateSceneDoc(scene);
       }
     }
 
@@ -307,7 +310,8 @@ export default {
 
       if (scene) {
         await Scene.remove(scene);
-        indices.scenes.remove(scene._id);
+        // indices.scenes.remove(scene._id);
+        await removeSceneDoc(scene._id);
         await Image.filterScene(scene._id);
         await Movie.filterScene(scene._id);
 

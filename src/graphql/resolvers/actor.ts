@@ -17,6 +17,10 @@ export default {
     if (actor.thumbnail) return await Image.getById(actor.thumbnail);
     return null;
   },
+  async hero(actor: Actor) {
+    if (actor.hero) return await Image.getById(actor.hero);
+    return null;
+  },
   async watches(actor: Actor) {
     return await Actor.getWatches(actor);
   },
@@ -28,5 +32,8 @@ export default {
     return fields.filter(field =>
       field.target.includes(CustomFieldTarget.ACTORS)
     );
+  },
+  age(actor: Actor) {
+    return Actor.getAge(actor);
   }
 };

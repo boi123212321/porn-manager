@@ -41,21 +41,13 @@
         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
       >
         {{ value.name }}
-        <span class="subtitle-1 med--text" v-if="value.bornOn">({{ age }})</span>
+        <span class="subtitle-1 med--text" v-if="value.bornOn">({{ value.age }})</span>
       </span>
     </v-card-title>
     <v-card-subtitle
       class="pb-0"
     >{{ value.numScenes }} {{ value.numScenes == 1 ? 'scene' : 'scenes' }}</v-card-subtitle>
-    <v-rating
-      half-increments
-      @input="rate"
-      class="ml-3 mb-2"
-      :value="value.rating / 2"
-      background-color="grey"
-      color="amber"
-      dense
-    ></v-rating>
+    <Rating @change="rate" class="ml-3 mb-2" :value="value.rating" />
     <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         class="mr-1 mb-1"
@@ -94,18 +86,12 @@ export default class ActorCard extends Vue {
     return null;
   }
 
-  get age() {
-    if (this.value.bornOn) {
-      return moment().diff(this.value.bornOn, "years");
-    }
-  }
-
   get aspectRatio() {
     return contextModule.actorAspectRatio;
   }
 
   rate($event) {
-    const rating = $event * 2;
+    const rating = $event;
 
     ApolloClient.mutate({
       mutation: gql`

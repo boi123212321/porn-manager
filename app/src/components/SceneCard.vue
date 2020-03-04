@@ -71,15 +71,7 @@
       With
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
-    <v-rating
-      half-increments
-      @input="rate"
-      class="ml-3 mb-2"
-      :value="value.rating / 2"
-      background-color="grey"
-      color="amber"
-      dense
-    ></v-rating>
+    <Rating @change="rate" class="ml-3 mb-2" :value="value.rating" />
     <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         label

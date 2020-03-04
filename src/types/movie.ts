@@ -15,6 +15,7 @@ export default class Movie {
   releaseDate: number | null = null;
   frontCover: string | null = null;
   backCover: string | null = null;
+  spineCover: string | null = null;
   favorite: boolean = false;
   bookmark: number | null = null;
   rating: number = 0;
@@ -32,7 +33,6 @@ export default class Movie {
 
   static async checkIntegrity() {
     const allMovies = await Movie.getAll();
-    const timeNow = Date.now();
 
     for (const movie of allMovies) {
       const movieId = movie._id.startsWith("mo_")
@@ -41,7 +41,7 @@ export default class Movie {
 
       if (typeof movie.bookmark == "boolean") {
         logger.log(`Setting bookmark to timestamp...`);
-        const time = movie.bookmark ? timeNow : null;
+        const time = movie.bookmark ? movie.addedOn : null;
         await database.update(
           database.store.movies,
           { _id: movieId },

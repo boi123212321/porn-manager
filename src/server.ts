@@ -4,7 +4,7 @@ import Image from "./types/image";
 import Scene from "./types/scene";
 import * as path from "path";
 import { checkPassword, passwordHandler } from "./password";
-import { getConfig } from "./config/index";
+import { getConfig, watchConfig } from "./config/index";
 import ProcessingQueue from "./queue/index";
 import {
   checkVideoFolders,
@@ -14,19 +14,17 @@ import {
 import * as database from "./database/index";
 import { checkSceneSources, checkImageSources } from "./integrity";
 import { loadStores } from "./database/index";
-import { existsAsync, readFileAsync } from "./fs/async";
+import { existsAsync } from "./fs/async";
 import { createBackup } from "./backup";
 import BROKEN_IMAGE from "./broken_image";
 import { mountApolloServer } from "./apollo";
 import { buildIndices } from "./search";
 import { checkImportFolders } from "./import/index";
 import cors from "./middlewares/cors";
-import Handlebars from "handlebars";
-
-async function renderHandlebars(file: string, context: any) {
-  const text = await readFileAsync(file, "utf-8");
-  return Handlebars.compile(text)(context);
-}
+import { spawnTwigs, ensureTwigsExists } from "./twigs";
+import { httpLog } from "./logger";
+import { renderHandlebars } from "./render";
+import { dvdRenderer } from "./dvd_renderer";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
@@ -49,6 +47,8 @@ async function scanFolders() {
 export default async () => {
   const app = express();
   app.use(cors);
+
+  app.use(httpLog);
 
   app.get("/setup", (req, res) => {
     res.json({
@@ -80,13 +80,6 @@ export default async () => {
     res.end(img);
   });
 
-  app.use((req, res, next) => {
-    logger.http(
-      `${req.method} ${req.originalUrl}: ${new Date().toLocaleString()}`
-    );
-    next();
-  });
-
   const config = getConfig();
 
   const port = config.PORT || 3000;
@@ -98,6 +91,8 @@ export default async () => {
   app.use("/css", express.static("./app/dist/css"));
   app.use("/fonts", express.static("./app/dist/fonts"));
   app.use("/previews", express.static("./library/previews"));
+  app.use("/assets", express.static("./assets"));
+  app.get("/dvd-renderer/:id", dvdRenderer);
 
   app.get("/password", checkPassword);
 
@@ -164,6 +159,9 @@ export default async () => {
   setupMessage = "Checking imports...";
   await checkImportFolders();
 
+  await ensureTwigsExists();
+  await spawnTwigs();
+
   setupMessage = "Creating search indices...";
   await buildIndices();
 
@@ -172,6 +170,8 @@ export default async () => {
   checkPreviews();
 
   serverReady = true;
+
+  watchConfig();
 
   if (config.SCAN_ON_STARTUP) {
     scanFolders();

@@ -1,9 +1,12 @@
 import * as database from "../../database";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
+import Image from "../../types/image";
 import { Dictionary } from "../../types/utility";
 import { stripStr } from "../../extractor";
 import * as logger from "../../logger";
+import { updateSceneDoc } from "../../search/scene";
+import { updateImageDoc } from "../../search/image";
 
 type ILabelUpdateOpts = Partial<{
   name: string;
@@ -39,7 +42,23 @@ export default {
         const labels = (await Scene.getLabels(scene)).map(l => l._id);
         labels.push(label._id);
         await Scene.setLabels(scene, labels);
+        await updateSceneDoc(scene);
         logger.log(`Updated labels of ${scene._id}.`);
+      }
+    }
+
+    for (const image of await Image.getAll()) {
+      const perms = stripStr(image.path || image.name);
+
+      if (
+        perms.includes(stripStr(label.name)) ||
+        label.aliases.some(alias => perms.includes(stripStr(alias)))
+      ) {
+        const labels = (await Image.getLabels(image)).map(l => l._id);
+        labels.push(label._id);
+        await Image.setLabels(image, labels);
+        await updateImageDoc(image);
+        logger.log(`Updated labels of ${image._id}.`);
       }
     }
 

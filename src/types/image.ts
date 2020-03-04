@@ -80,7 +80,6 @@ export default class Image {
 
   static async checkIntegrity() {
     const allImages = await Image.getAll();
-    const timeNow = Date.now();
 
     for (const image of allImages) {
       const imageId = image._id.startsWith("im_")
@@ -89,7 +88,7 @@ export default class Image {
 
       if (typeof image.bookmark == "boolean") {
         logger.log(`Setting bookmark to timestamp...`);
-        const time = image.bookmark ? timeNow : null;
+        const time = image.bookmark ? image.addedOn : null;
         await database.update(
           database.store.images,
           { _id: imageId },

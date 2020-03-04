@@ -11,7 +11,7 @@ import { extractLabels, extractActors, extractScenes } from "../extractor";
 import Jimp from "jimp";
 import ora = require("ora");
 import { indices } from "../search/index";
-import { createImageSearchDoc } from "../search/image";
+import { createImageSearchDoc, indexImages } from "../search/image";
 
 async function getAll() {
   return (await database.find(database.store.queue, {})) as IQueueItem[];
@@ -115,7 +115,7 @@ async function processImage(
     await Image.setLabels(image, [...new Set(extractedLabels)]);
 
     await database.insert(database.store.images, image);
-    indices.images.add(await createImageSearchDoc(image));
+    await indexImages([image]);
     logger.success(`Image '${imageName}' done.`);
   } catch (error) {
     logger.error(error);
@@ -195,7 +195,7 @@ export async function checkPreviews() {
           image.meta.size = stats.size;
 
           await database.insert(database.store.images, image);
-          indices.images.add(await createImageSearchDoc(image));
+          await indexImages([image]);
 
           await database.update(
             database.store.scenes,
