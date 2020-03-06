@@ -82,6 +82,7 @@
             height="100%"
             @open="lightboxIndex = index"
             :image="image"
+            :contain="true"
           >
             <template v-slot:action>
               <v-checkbox
