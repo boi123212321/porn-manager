@@ -2,6 +2,7 @@ import Actor from "../../types/actor";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
 import Movie from "../../types/movie";
+import CrossReference from "../../types/cross_references";
 import { Dictionary, mapAsync } from "../../types/utility";
 import ProcessingQueue from "../../queue/index";
 import Studio from "../../types/studio";
@@ -120,6 +121,16 @@ export default {
   },
   async getLabels() {
     const labels = await Label.getAll();
+    return labels.sort((a, b) => a.name.localeCompare(b.name));
+  },
+  async getAreaLabels(_, { idfront }: { idfront: string }) {
+    const references = await CrossReference.getAll()
+    var labels = (
+      await mapAsync(
+        references.filter(r => r.to.startsWith("la_")).filter(r => r.from.startsWith(idfront)),
+        r => Label.getById(r.to)
+      )
+    ).filter(Boolean) as Label[];
     return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
   async numScenes() {

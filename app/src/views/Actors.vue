@@ -550,7 +550,7 @@ export default class SceneList extends mixins(DrawerMixin) {
     ApolloClient.query({
       query: gql`
         {
-          getLabels {
+          getAreaLabels(idfront: "ac_") {
             _id
             name
             aliases

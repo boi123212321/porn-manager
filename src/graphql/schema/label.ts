@@ -4,6 +4,7 @@ export default gql`
   extend type Query {
     numLabels: Int!
     getLabels: [Label!]!
+    getAreaLabels(idfront: String!): [Label]!
     getLabelById(id: String!): Label
   }
 
