@@ -20,6 +20,7 @@ export default gql`
     labels: [Label!]!
     scenes: [Scene!]
     numScenes: Int!
+    avatar: Image
     thumbnail: Image
     altThumbnail: Image
     hero: Image
@@ -41,6 +42,7 @@ export default gql`
     rating: Int
     labels: [String!]
     aliases: [String!]
+    avatar: String
     thumbnail: String
     altThumbnail: String
     hero: String

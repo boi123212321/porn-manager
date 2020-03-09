@@ -62,7 +62,8 @@ const blacklist = [
   "(front cover)",
   "(back cover)",
   "(spine cover)",
-  "(hero image)"
+  "(hero image)",
+  "(avatar)"
 ];
 
 export async function indexImages(images: Image[]) {

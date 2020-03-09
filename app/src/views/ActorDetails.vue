@@ -11,117 +11,137 @@
       <v-container fluid>
         <v-row>
           <v-col cols="12" sm="4" md="3" lg="2" xl="2">
-            <v-hover
-              :class="($vuetify.breakpoint.xsOnly || !heroImage) ? '' : 'elevation-8 avatar-margin-top'"
-              v-if="thumbnail"
-            >
-              <template v-slot:default="{ hover }">
-                <div style="position: relative" class="text-center">
-                  <img class="avatar" :src="thumbnail" />
+            <v-row>
+              <v-col cols="6" sm="12">
+                <div
+                  v-if="avatar"
+                  :class="($vuetify.breakpoint.xsOnly || !heroImage) ? '' : 'avatar-margin-top'"
+                  class="text-center"
+                >
+                  <v-avatar
+                    class="elevation-8"
+                    size="180"
+                    color="white"
+                    style="border: 3px solid white"
+                  >
+                    <v-img :src="avatar"></v-img>
+                  </v-avatar>
+                </div>
+                <v-hover
+                  :class="($vuetify.breakpoint.xsOnly || !heroImage) ? '' : 'elevation-8 thumb-margin-top'"
+                  v-else
+                >
+                  <template v-slot:default="{ hover }">
+                    <div style="position: relative" class="text-center">
+                      <img class="avatar" :src="thumbnail" />
 
-                  <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
-                    <v-fade-transition>
-                      <v-img
-                        style="z-index: 5"
-                        eager
-                        cover
-                        :src="altThumbnail"
-                        v-if="altThumbnail && hover"
-                      ></v-img>
-                    </v-fade-transition>
+                      <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
+                        <v-fade-transition>
+                          <v-img
+                            style="z-index: 5"
+                            eager
+                            cover
+                            :src="altThumbnail"
+                            v-if="altThumbnail && hover"
+                          ></v-img>
+                        </v-fade-transition>
+                      </div>
+                    </div>
+                  </template>
+                </v-hover>
+
+                <Rating @change="rate" :value="currentActor.rating" class="my-2 text-center" />
+
+                <div class="pa-2">
+                  <v-chip
+                    label
+                    class="mr-1 mb-1"
+                    small
+                    outlined
+                    v-for="label in labelNames"
+                    :key="label"
+                  >{{ label }}</v-chip>
+                  <v-chip
+                    label
+                    color="primary"
+                    v-ripple
+                    @click="openLabelSelector"
+                    small
+                    :class="`hover mr-1 mb-1 ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
+                  >+ Add</v-chip>
+                </div>
+              </v-col>
+
+              <v-col cols="6" sm="12">
+                <div class="d-flex align-center">
+                  <v-icon>mdi-information-outline</v-icon>
+                  <v-subheader>General</v-subheader>
+                </div>
+                <div class="px-2">
+                  <div
+                    v-if="currentActor.aliases.length"
+                    class="py-1 med--text body-2"
+                  >a.k.a. {{ currentActor.aliases.join(", ") }}</div>
+                  <div
+                    v-if="currentActor.bornOn"
+                    class="py-1"
+                  >Born on {{ new Date(currentActor.bornOn).toLocaleDateString() }}</div>
+
+                  <v-tooltip bottom class="py-1">
+                    <template v-slot:activator="{ on }">
+                      <div v-on="on" class="d-flex align-center">
+                        <b>
+                          <pre>{{ currentActor.watches.length }} </pre>
+                        </b>
+                        <span class="med-text">views</span>
+                      </div>
+                    </template>
+                    <span
+                      v-if="currentActor.watches.length"
+                    >Last watched: {{ new Date(currentActor.watches[currentActor.watches.length - 1]).toLocaleString() }}</span>
+                    <span v-else>You haven't watched {{ currentActor.name }} yet!</span>
+                  </v-tooltip>
+
+                  <div class="text-center mt-3">
+                    <v-btn
+                      color="primary"
+                      :loading="pluginLoader"
+                      text
+                      class="text-none"
+                      @click="runPlugins"
+                    >Run plugins</v-btn>
+
+                    <v-btn
+                      color="primary"
+                      text
+                      class="text-none"
+                      @click="avatarDialog=true"
+                    >Change avatar</v-btn>
+
+                    <v-btn
+                      color="primary"
+                      text
+                      class="text-none"
+                      @click="thumbnailDialog=true"
+                    >Change thumbnail</v-btn>
+
+                    <v-btn
+                      color="primary"
+                      text
+                      class="text-none"
+                      @click="altThumbnailDialog=true"
+                    >Change alt. thumbnail</v-btn>
+
+                    <v-btn
+                      color="primary"
+                      text
+                      class="text-none"
+                      @click="heroDialog=true"
+                    >Change hero image</v-btn>
                   </div>
                 </div>
-              </template>
-            </v-hover>
-            <div v-else class="text-center">
-              <v-btn
-                class="text-none"
-                @click="openThumbnailDialog"
-                text
-                color="primary"
-              >Set thumbnail</v-btn>
-            </div>
-            <Rating @change="rate" :value="currentActor.rating" class="my-2 text-center" />
-
-            <div class="pa-2">
-              <v-chip
-                label
-                class="mr-1 mb-1"
-                small
-                outlined
-                v-for="label in labelNames"
-                :key="label"
-              >{{ label }}</v-chip>
-              <v-chip
-                label
-                color="primary"
-                v-ripple
-                @click="openLabelSelector"
-                small
-                :class="`hover mr-1 mb-1 ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
-              >+ Add</v-chip>
-            </div>
-
-            <div class="d-flex align-center">
-              <v-icon>mdi-information-outline</v-icon>
-              <v-subheader>General</v-subheader>
-            </div>
-            <div class="px-2">
-              <div
-                v-if="currentActor.aliases.length"
-                class="py-1 med--text body-2"
-              >a.k.a. {{ currentActor.aliases.join(", ") }}</div>
-              <div
-                v-if="currentActor.bornOn"
-                class="py-1"
-              >Born on {{ new Date(currentActor.bornOn).toLocaleDateString() }}</div>
-
-              <v-tooltip bottom class="py-1">
-                <template v-slot:activator="{ on }">
-                  <div v-on="on" class="d-flex align-center">
-                    <b>
-                      <pre>{{ currentActor.watches.length }} </pre>
-                    </b>
-                    <span class="med-text">views</span>
-                  </div>
-                </template>
-                <span
-                  v-if="currentActor.watches.length"
-                >Last watched: {{ new Date(currentActor.watches[currentActor.watches.length - 1]).toLocaleString() }}</span>
-                <span v-else>You haven't watched {{ currentActor.name }} yet!</span>
-              </v-tooltip>
-
-              <div class="text-center mt-3">
-                <v-btn
-                  color="primary"
-                  :loading="pluginLoader"
-                  text
-                  class="text-none"
-                  @click="runPlugins"
-                >Run plugins</v-btn>
-
-                <v-btn
-                  color="primary"
-                  text
-                  class="text-none"
-                  @click="thumbnailDialog=true"
-                >Change thumbnail</v-btn>
-
-                <v-btn
-                  color="primary"
-                  text
-                  class="text-none"
-                  @click="altThumbnailDialog=true"
-                >Change alt. thumbnail</v-btn>
-
-                <v-btn
-                  color="primary"
-                  text
-                  class="text-none"
-                  @click="heroDialog=true"
-                >Change hero image</v-btn>
-              </div>
-            </div>
+              </v-col>
+            </v-row>
           </v-col>
           <v-col cols="12" sm="8" md="9" lg="10" xl="10">
             <div class="mb-2">
@@ -342,6 +362,39 @@
       />
     </v-dialog>
 
+    <v-dialog v-model="avatarDialog" max-width="600px">
+      <v-card v-if="currentActor" :loading="avatarLoader">
+        <v-card-title>Set avatar for '{{ currentActor.name }}'</v-card-title>
+        <v-card-text>
+          <v-file-input
+            color="primary"
+            placeholder="Select image"
+            @change="readAvatar"
+            v-model="selectedAvatar"
+          ></v-file-input>
+          <div v-if="avatarDisplay" class="text-center">
+            <cropper
+              style="height: 400px"
+              class="cropper"
+              :src="avatarDisplay"
+              :stencilProps="{ aspectRatio: 1 }"
+              @change="changeAvatarCrop"
+            ></cropper>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            :disabled="!avatarDisplay"
+            color="primary"
+            text
+            class="text-none"
+            @click="uploadAvatar"
+          >Upload</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-dialog v-model="thumbnailDialog" max-width="600px">
       <v-card v-if="currentActor" :loading="thumbnailLoader">
         <v-card-title>Set thumbnail for '{{ currentActor.name }}'</v-card-title>
@@ -511,6 +564,12 @@ export default class ActorDetails extends Vue {
   infiniteId = 0;
   page = 0;
 
+  avatarDialog = false;
+  avatarLoader = false;
+  avatarDisplay = null as string | null;
+  selectedAvatar = null as File | null;
+  avatarCrop: ICropCoordinates = { left: 0, top: 0, width: 0, height: 0 };
+
   thumbnailDialog = false;
   thumbnailLoader = false;
   thumbnailDisplay = null as string | null;
@@ -539,6 +598,14 @@ export default class ActorDetails extends Vue {
   pluginLoader = false;
 
   labelSearchQuery = "";
+
+  get avatar() {
+    if (!this.currentActor) return null;
+    if (!this.currentActor.avatar) return null;
+    return `${serverBase}/image/${
+      this.currentActor.avatar._id
+    }?password=${localStorage.getItem("password")}`;
+  }
 
   get heroImage() {
     if (!this.currentActor) return null;
@@ -657,6 +724,15 @@ export default class ActorDetails extends Vue {
     this.uploadDialog = true;
   }
 
+  changeAvatarCrop(crop: ICropResult) {
+    this.avatarCrop = {
+      left: Math.round(crop.coordinates.left),
+      top: Math.round(crop.coordinates.top),
+      width: Math.round(crop.coordinates.width),
+      height: Math.round(crop.coordinates.height)
+    };
+  }
+
   changeThumbnailCrop(crop: ICropResult) {
     this.thumbnailCrop = {
       left: Math.round(crop.coordinates.left),
@@ -696,6 +772,10 @@ export default class ActorDetails extends Vue {
     });
   }
 
+  async readAvatar(file: File) {
+    if (file) this.avatarDisplay = await this.readImage(file);
+  }
+
   async readThumbnail(file: File) {
     if (file) this.thumbnailDisplay = await this.readImage(file);
   }
@@ -706,6 +786,69 @@ export default class ActorDetails extends Vue {
 
   async readHero(file: File) {
     if (file) this.heroDisplay = await this.readImage(file);
+  }
+
+  uploadAvatar() {
+    if (!this.currentActor) return;
+
+    this.avatarLoader = true;
+
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation(
+          $file: Upload!
+          $name: String
+          $crop: Crop
+          $actors: [String!]
+          $labels: [String!]
+          $compress: Boolean
+        ) {
+          uploadImage(
+            file: $file
+            name: $name
+            crop: $crop
+            actors: $actors
+            labels: $labels
+            compress: $compress
+          ) {
+            ...ImageFragment
+            actors {
+              ...ActorFragment
+            }
+            scene {
+              _id
+              name
+            }
+          }
+        }
+        ${imageFragment}
+        ${actorFragment}
+      `,
+      variables: {
+        file: this.selectedAvatar,
+        name: this.currentActor.name + " (avatar)",
+        actors: [this.currentActor._id],
+        labels: this.currentActor.labels.map(a => a._id),
+        crop: {
+          left: this.avatarCrop.left,
+          top: this.avatarCrop.top,
+          width: this.avatarCrop.width,
+          height: this.avatarCrop.height
+        },
+        compress: true
+      }
+    })
+      .then(res => {
+        const image = res.data.uploadImage;
+        this.images.unshift(image);
+        this.setAsAvatar(image._id);
+        this.avatarDialog = false;
+        this.avatarDisplay = null;
+        this.selectedAvatar = null;
+      })
+      .finally(() => {
+        this.heroLoader = false;
+      });
   }
 
   uploadHero() {
@@ -991,6 +1134,34 @@ export default class ActorDetails extends Vue {
     return actorModule.current;
   }
 
+  setAsAvatar(id: string) {
+    if (!this.currentActor) return;
+
+    ApolloClient.mutate({
+      mutation: gql`
+        mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
+          updateActors(ids: $ids, opts: $opts) {
+            avatar {
+              _id
+            }
+          }
+        }
+      `,
+      variables: {
+        ids: [this.currentActor._id],
+        opts: {
+          avatar: id
+        }
+      }
+    })
+      .then(res => {
+        actorModule.setHero(id);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
+
   setAsHero(id: string) {
     if (!this.currentActor) return;
 
@@ -1211,6 +1382,9 @@ export default class ActorDetails extends Vue {
             hero {
               _id
             }
+            avatar {
+              _id
+            }
           }
         }
         ${actorFragment}
@@ -1243,8 +1417,11 @@ export default class ActorDetails extends Vue {
 </script>
 
 <style lang="scss" scoped>
-.avatar-margin-top {
+.thumb-margin-top {
   margin-top: -160px;
+}
+.avatar-margin-top {
+  margin-top: -120px;
 }
 .avatar {
   max-width: 100%;

@@ -63,6 +63,14 @@ class ActorModule extends VuexModule {
   }
 
   @Mutation
+  setAvatar(id: string) {
+    if (this.current) {
+      if (!this.current.avatar) this.current.avatar = { _id: id, color: null };
+      this.current.avatar._id = id;
+    }
+  }
+
+  @Mutation
   setHero(id: string) {
     if (this.current) {
       if (!this.current.hero) this.current.hero = { _id: id, color: null };

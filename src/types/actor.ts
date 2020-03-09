@@ -16,6 +16,7 @@ export default class Actor {
   thumbnail: string | null = null;
   altThumbnail: string | null = null;
   hero?: string | null = null;
+  avatar?: string | null = null;
   favorite: boolean = false;
   bookmark: number | null = null;
   rating: number = 0;

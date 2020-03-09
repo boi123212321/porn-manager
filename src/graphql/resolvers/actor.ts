@@ -13,6 +13,10 @@ export default {
   async labels(actor: Actor) {
     return await Actor.getLabels(actor);
   },
+  async avatar(actor: Actor) {
+    if (actor.avatar) return await Image.getById(actor.avatar);
+    return null;
+  },
   async thumbnail(actor: Actor) {
     if (actor.thumbnail) return await Image.getById(actor.thumbnail);
     return null;
