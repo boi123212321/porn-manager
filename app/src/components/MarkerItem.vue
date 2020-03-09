@@ -1,7 +1,12 @@
 <template>
   <div class="mb-1 px-3 d-flex align-center">
     <div class="mr-2 med--text">{{ formatTime(marker.time) }}</div>
-    <div class="text-truncate" style="overflow: hidden">{{ marker.name }}</div>
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <div v-on="on" class="text-truncate" style="overflow: hidden">{{ marker.name }}</div>
+      </template>
+      {{ marker.labels.map(l => l.name).join(", ") }}
+    </v-tooltip>
     <v-spacer></v-spacer>
     <v-btn small text color="primary" class="px-0 mr-2 text-none" @click="$emit('jump')">Jump</v-btn>
     <v-btn

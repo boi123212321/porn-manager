@@ -210,14 +210,6 @@ export default class Image {
     );
   }
 
-  static async filterLabel(label: string) {
-    await database.update(
-      database.store.images,
-      {},
-      { $pull: { labels: label } }
-    );
-  }
-
   static async getByScene(id: string) {
     return (await database.find(database.store.images, {
       scene: id

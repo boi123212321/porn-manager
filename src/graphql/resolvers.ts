@@ -8,6 +8,7 @@ import LabelResolver from "./resolvers/label";
 import MovieResolver from "./resolvers/movie";
 import StudioResolver from "./resolvers/studio";
 import CustomFieldResolver from "./resolvers/custom_field";
+import MarkerResolver from "./resolvers/marker";
 import { GraphQLJSONObject } from "graphql-type-json";
 
 const resolvers = {
@@ -22,7 +23,8 @@ const resolvers = {
   Label: LabelResolver,
   Movie: MovieResolver,
   Studio: StudioResolver,
-  CustomField: CustomFieldResolver
+  CustomField: CustomFieldResolver,
+  Marker: MarkerResolver
 };
 
 export default resolvers;

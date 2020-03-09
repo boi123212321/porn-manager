@@ -329,6 +329,40 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog scrollable v-model="markerLabelSelectorDialog" max-width="400px">
+      <v-card v-if="currentScene">
+        <v-card-title>Select marker labels</v-card-title>
+
+        <v-text-field
+          clearable
+          color="primary"
+          hide-details
+          class="px-5 mb-2"
+          label="Find labels..."
+          v-model="markerLabelSearchQuery"
+        />
+
+        <v-card-text style="max-height: 400px">
+          <LabelSelector
+            :searchQuery="markerLabelSearchQuery"
+            :items="allLabels"
+            v-model="selectedMarkerLabels"
+          />
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="markerLabelSelectorDialog = false"
+            text
+            color="primary"
+            class="text-none"
+          >OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <infinite-loading v-if="currentScene" :identifier="infiniteId" @infinite="infiniteHandler">
       <div slot="no-results">
         <v-icon large>mdi-close</v-icon>
@@ -407,6 +441,14 @@
             color="primary"
             v-model="markerName"
           ></v-combobox>
+
+          <v-btn
+            @click="markerLabelSelectorDialog = true"
+            text
+            color="primary"
+            class="text-none mb-2"
+          >{{ selectedMarkerLabels.length ? `Selected ${selectedMarkerLabels.length} ${selectedMarkerLabels.length == 1 ? 'label' : 'labels'}` : 'Select labels' }}</v-btn>
+
           <Rating @input="markerRating = $event" class="px-2" :value="markerRating" />
           <v-checkbox hide-details color="primary" v-model="markerFavorite" label="Favorite?"></v-checkbox>
           <v-checkbox hide-details color="primary" v-model="markerBookmark" label="Bookmark?"></v-checkbox>
@@ -519,6 +561,9 @@ export default class SceneDetails extends Vue {
   markerFavorite = false;
   markerBookmark = false;
   markerDialog = false;
+  markerLabelSelectorDialog = false;
+  selectedMarkerLabels = [] as number[];
+  markerLabelSearchQuery = "";
 
   autoPaused = false;
   manuallyStarted = false;
@@ -644,7 +689,8 @@ export default class SceneDetails extends Vue {
           $time: Int!
           $rating: Int
           $favorite: Boolean
-          $bookmark: Boolean
+          $bookmark: Long
+          $labels: [String!]
         ) {
           createMarker(
             scene: $scene
@@ -653,6 +699,7 @@ export default class SceneDetails extends Vue {
             rating: $rating
             favorite: $favorite
             bookmark: $bookmark
+            labels: $labels
           ) {
             _id
             name
@@ -660,6 +707,10 @@ export default class SceneDetails extends Vue {
             rating
             favorite
             bookmark
+            labels {
+              _id
+              name
+            }
           }
         }
       `,
@@ -669,7 +720,10 @@ export default class SceneDetails extends Vue {
         time: Math.floor(this.$refs.player.currentProgress()),
         rating: this.markerRating,
         favorite: this.markerFavorite,
-        bookmark: this.markerBookmark
+        bookmark: this.markerBookmark ? Date.now() : null,
+        labels: this.selectedMarkerLabels
+          .map(i => this.allLabels[i])
+          .map(l => l._id)
       }
     }).then(res => {
       this.markers.unshift(res.data.createMarker);
@@ -1085,6 +1139,10 @@ export default class SceneDetails extends Vue {
               _id
               name
               time
+              labels {
+                _id
+                name
+              }
             }
           }
         }

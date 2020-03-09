@@ -113,14 +113,6 @@ export default class Actor {
     await database.remove(database.store.actors, { _id: actor._id });
   }
 
-  static async filterLabel(label: string) {
-    await database.update(
-      database.store.actors,
-      {},
-      { $pull: { labels: label } }
-    );
-  }
-
   static async setLabels(actor: Actor, labelIds: string[]) {
     const references = await CrossReference.getBySource(actor._id);
 
