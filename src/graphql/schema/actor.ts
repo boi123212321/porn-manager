@@ -9,17 +9,21 @@ export default gql`
     addedOn: Long!
     bornOn: Long
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     rating: Int
     customFields: Object!
 
     # Resolvers
+    age: Int
     availableFields: [CustomField!]!
     watches: [Long!]!
     labels: [Label!]!
     scenes: [Scene!]
     numScenes: Int!
+    avatar: Image
     thumbnail: Image
+    altThumbnail: Image
+    hero: Image
     images: [Image!]!
   }
 
@@ -38,9 +42,12 @@ export default gql`
     rating: Int
     labels: [String!]
     aliases: [String!]
+    avatar: String
     thumbnail: String
+    altThumbnail: String
+    hero: String
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     bornOn: Long
     customFields: Object
   }
@@ -50,5 +57,6 @@ export default gql`
     updateActors(ids: [String!]!, opts: ActorUpdateOpts!): [Actor!]!
     removeActors(ids: [String!]!): Boolean!
     runActorPlugins(ids: [String!]!): [Actor!]!
+    runAllActorPlugins: [Actor!]!
   }
 `;

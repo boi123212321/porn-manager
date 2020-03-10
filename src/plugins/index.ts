@@ -4,13 +4,13 @@ import axios from "axios";
 import cheerio from "cheerio";
 import debug from "debug";
 import ora from "ora";
-import { Dictionary } from "../types/utility";
+import { Dictionary, libraryPath } from "../types/utility";
 import * as logger from "../logger";
 import moment from "moment";
-import { mapAsync, filterAsync } from "../types/utility";
 import * as fs from "fs";
 import * as nodepath from "path";
 import ffmpeg from "fluent-ffmpeg";
+import jimp from "jimp";
 
 export async function runPluginsSerial(
   config: IConfig,
@@ -84,6 +84,9 @@ export async function runPlugin(
 
     try {
       const result = await func({
+        $pluginPath: path,
+        $cwd: process.cwd(),
+        $library: libraryPath(""),
         // TODO: cross plugin call?
         /* $plugin: async (name: string, args?: Dictionary<any>) => {
           logger.log(`Calling plugin ${name} from ${pluginName}`);
@@ -97,6 +100,7 @@ export async function runPlugin(
           moment: moment
         }, */
         // TODO: deprecate at some point, replace with ^
+        $jimp: jimp,
         $ffmpeg: ffmpeg,
         $fs: fs,
         $path: nodepath,
@@ -108,11 +112,11 @@ export async function runPlugin(
         $throw: (str: string) => {
           throw new Error(str);
         },
-        // TODO: deprecate at some point, or move into util object
-        $async: {
+        // TODO: remove
+        /* $async: {
           map: mapAsync,
           filter: filterAsync
-        },
+        }, */
         args: args || plugin.args || {},
         ...inject
       });

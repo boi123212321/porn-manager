@@ -23,6 +23,10 @@ export const movieSchema = new Schema({
     type: String,
     required: false
   },
+  spineCover: {
+    type: String,
+    required: false
+  },
   studio: {
     type: String,
     required: false
@@ -45,7 +49,7 @@ export const movieSchema = new Schema({
   },
   bookmark: {
     required: false,
-    type: Boolean
+    type: Number
   },
   favorite: {
     required: false,

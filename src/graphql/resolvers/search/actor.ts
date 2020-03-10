@@ -14,7 +14,7 @@ export async function getActors(_, { query }: { query: string | undefined }) {
 
     const filters = [] as ((doc: IActorSearchDoc) => boolean)[];
 
-    if (options.bookmark) filters.push(doc => doc.bookmark);
+    if (options.bookmark) filters.push(doc => !!doc.bookmark);
 
     if (options.favorite) filters.push(doc => doc.favorite);
 
@@ -48,6 +48,10 @@ export async function getActors(_, { query }: { query: string | undefined }) {
           if (sortDir == "asc")
             return (a, b) => (b.bornOn || 0) - (a.bornOn || 0);
           return (a, b) => (a.bornOn || 0) - (b.bornOn || 0);
+        case SortTarget.BOOKMARK:
+          if (sortDir == "asc")
+            return (a, b) => (a.bookmark || 0) - (b.bookmark || 0);
+          return (a, b) => (b.bookmark || 0) - (a.bookmark || 0);
         case SortTarget.NUM_SCENES:
           if (sortDir == "asc") return (a, b) => a.numScenes - b.numScenes;
           return (a, b) => b.numScenes - a.numScenes;

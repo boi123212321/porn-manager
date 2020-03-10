@@ -3,10 +3,11 @@ export default interface IActor {
   name: string;
   description: string | null;
   bornOn: number | null;
+  age: number | null;
   aliases: string[];
   rating: number | null;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
   labels: {
     _id: string;
     name: string;
@@ -14,6 +15,18 @@ export default interface IActor {
   thumbnail: {
     _id: string;
     color: string | null;
+  } | null;
+  altThumbnail: {
+    _id: string;
+    color?: string | null;
+  } | null;
+  hero?: {
+    _id: string;
+    color?: string | null;
+  } | null;
+  avatar?: {
+    _id: string;
+    color?: string | null;
   } | null;
   customFields: { _id: string; name: string; values?: string[]; type: string };
   availableFields: {

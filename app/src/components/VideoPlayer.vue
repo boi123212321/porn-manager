@@ -28,6 +28,9 @@
               <v-btn @click="togglePlay" icon>
                 <v-icon>{{ isPlaying ? 'mdi-pause' : 'mdi-play' }}</v-icon>
               </v-btn>
+              <v-btn @click="toggleMute" icon>
+                <v-icon>{{ isMuted ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
+              </v-btn>
               <span class="mx-2 caption">{{ formatTime(progress) }}</span>
               <v-hover v-slot:default="{ hover }">
                 <div
@@ -102,6 +105,7 @@ export default class VideoPlayer extends Vue {
   progress = 0;
   isPlaying = false;
   showPoster = true;
+  isMuted = false;
 
   formatTime(secs: number) {
     return moment()
@@ -226,6 +230,19 @@ export default class VideoPlayer extends Vue {
         this.play();
       } else {
         this.pause();
+      }
+    }
+  }
+
+  toggleMute() {
+    const vid = <HTMLVideoElement>document.getElementById("video");
+    if (vid) {
+      if (vid.muted) {
+        vid.muted = false;
+        this.isMuted = false;
+      } else {
+        vid.muted = true;
+        this.isMuted = true;
       }
     }
   }

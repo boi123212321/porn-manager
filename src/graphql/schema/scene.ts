@@ -15,7 +15,7 @@ export default gql`
 
   extend type Query {
     numScenes: Int!
-    getScenes(query: String, random: Boolean): [Scene!]!
+    getScenes(query: String, random: Int): [Scene!]!
     getSceneById(id: String!): Scene
     getScenesWithoutActors(num: Int): [Scene!]!
     getScenesWithoutLabels(num: Int): [Scene!]!
@@ -29,7 +29,7 @@ export default gql`
     addedOn: Long!
     releaseDate: Long
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     rating: Int
     path: String
     streamLinks: [String!]!
@@ -46,11 +46,12 @@ export default gql`
     labels: [Label!]!
     studio: Studio
     markers: [Marker!]!
+    movies: [Movie!]!
   }
 
   input SceneUpdateOpts {
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     actors: [String!]
     name: String
     description: String
@@ -77,5 +78,6 @@ export default gql`
     updateScenes(ids: [String!]!, opts: SceneUpdateOpts!): [Scene!]!
     removeScenes(ids: [String!]!, deleteImages: Boolean): Boolean!
     runScenePlugins(ids: [String!]!): [Scene!]!
+    runAllScenePlugins: [Scene!]!
   }
 `;

@@ -7,7 +7,11 @@ export default gql`
     time: Int!
     rating: Int
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
+
+    # Resolvers
+    labels: [Label!]!
+    thumbnail: Image
   }
 
   extend type Mutation {
@@ -17,7 +21,8 @@ export default gql`
       time: Int!
       rating: Int
       favorite: Boolean
-      bookmark: Boolean
+      bookmark: Long
+      labels: [String!]
     ): Marker!
     removeMarkers(ids: [String!]!): Boolean!
   }

@@ -38,7 +38,7 @@ export const actorSchema = new Schema({
   },
   bookmark: {
     required: false,
-    type: Boolean
+    type: Number
   },
   favorite: {
     required: false,

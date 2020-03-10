@@ -6,6 +6,7 @@ export default gql`
     name
     description
     bornOn
+    age
     aliases
     rating
     favorite
@@ -18,6 +19,9 @@ export default gql`
     thumbnail {
       _id
       color
+    }
+    altThumbnail {
+      _id
     }
     watches
     customFields

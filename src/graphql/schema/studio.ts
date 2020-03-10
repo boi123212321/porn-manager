@@ -13,7 +13,7 @@ export default gql`
     description: String
     addedOn: Long!
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     customFields: Object!
     aliases: [String!]
 
@@ -34,7 +34,7 @@ export default gql`
     description: String
     thumbnail: String
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     parent: String
     labels: [String!]
     aliases: [String!]

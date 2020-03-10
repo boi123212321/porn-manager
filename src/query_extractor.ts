@@ -9,7 +9,8 @@ export enum SortTarget {
   NUM_SCENES = "scenes",
   SIZE = "size",
   RESOLUTION = "resolution",
-  AGE = "age"
+  AGE = "age",
+  BOOKMARK = "bookmark"
 }
 
 interface IQueryOptions {
@@ -27,6 +28,8 @@ interface IQueryOptions {
   studios: string[];
   durationMin: number | null;
   durationMax: number | null;
+  skip: number | null;
+  take: number | null;
 }
 
 const parseWords = (str = "") =>
@@ -62,7 +65,9 @@ export default (query?: string) => {
     scenes: [],
     studios: [],
     durationMin: null,
-    durationMax: null
+    durationMax: null,
+    skip: null,
+    take: null
   };
 
   if (!query) return options;
@@ -73,6 +78,12 @@ export default (query?: string) => {
     const [operation, value] = part.split(":");
 
     switch (operation) {
+      case "skip":
+        options[operation] = parseInt(value);
+        break;
+      case "take":
+        options[operation] = parseInt(value);
+        break;
       case "page":
         options[operation] = parseInt(value);
         break;
@@ -117,7 +128,7 @@ export default (query?: string) => {
       case "sortDir":
         if (["asc", "desc"].includes(value))
           options[operation] = <"asc" | "desc">value;
-        else throw `Query error: Unsupported sort direct '${value}'`;
+        else throw `Query error: Unsupported sort direction '${value}'`;
         break;
     }
   }

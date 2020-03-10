@@ -19,7 +19,7 @@ import Actor from "../types/actor";
 import { onActorCreate } from "./actor";
 import { indices } from "../search/index";
 import { createActorSearchDoc } from "../search/actor";
-import { createImageSearchDoc } from "../search/image";
+import { indexImages } from "../search/image";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -45,7 +45,9 @@ export async function onSceneCreate(
       img.scene = scene._id;
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) {
+        await indexImages([img]);
+      }
       return img._id;
     },
     $createImage: async (url: string, name: string, thumbnail?: boolean) => {
@@ -60,7 +62,9 @@ export async function onSceneCreate(
       img.scene = scene._id;
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) {
+        await indexImages([img]);
+      }
       return img._id;
     }
   });

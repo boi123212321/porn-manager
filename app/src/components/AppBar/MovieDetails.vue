@@ -245,7 +245,7 @@ export default class MovieToolbar extends Vue {
       variables: {
         ids: [this.currentMovie._id],
         opts: {
-          bookmark: !this.currentMovie.bookmark
+          bookmark: this.currentMovie.bookmark ? null : Date.now()
         }
       }
     }).then(res => {

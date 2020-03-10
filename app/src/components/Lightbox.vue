@@ -85,20 +85,7 @@
         </div>
 
         <div>
-          <v-rating
-            half-increments
-            @input="rate"
-            class="pa-2 pb-0"
-            :value="currentImage.rating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-          ></v-rating>
-          <div
-            @click="rate(0)"
-            class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating</div>
+          <Rating @change="rate" class="pa-2 pb-0" :value="currentImage.rating" />
         </div>
         <div class="pa-2">
           <v-chip
@@ -170,7 +157,9 @@
     <v-dialog v-model="removeDialog" max-width="400px">
       <v-card>
         <v-card-title>Really delete '{{ currentImage.name }}'?</v-card-title>
-        <v-card-text>Actors and scenes featuring this image will stay in your collection.</v-card-text>
+        <v-card-text>
+          <v-alert type="error">This will absolutely annihilate the original source file on disk</v-alert>Actors and scenes featuring this image will stay in your collection.
+        </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text color="error" @click="$emit('delete', index); removeDialog = false">Delete</v-btn>
@@ -372,8 +361,6 @@ export default class Lightbox extends Vue {
   rate(rating: number) {
     if (!this.currentImage) return;
 
-    rating = rating * 2;
-
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ImageUpdateOpts!) {
@@ -441,7 +428,7 @@ export default class Lightbox extends Vue {
       variables: {
         ids: [this.currentImage._id],
         opts: {
-          bookmark: !this.currentImage.bookmark
+          bookmark: this.currentImage.bookmark ? null : Date.now()
         }
       }
     })

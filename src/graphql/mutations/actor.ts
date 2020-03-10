@@ -1,6 +1,7 @@
 import * as database from "../../database";
 import Actor from "../../types/actor";
 import Scene from "../../types/scene";
+import Image from "../../types/image";
 import { Dictionary } from "../../types/utility";
 import { stripStr } from "../../extractor";
 import * as logger from "../../logger";
@@ -8,7 +9,8 @@ import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
 import { createActorSearchDoc } from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
-import { createSceneSearchDoc } from "../../search/scene";
+import { updateSceneDoc } from "../../search/scene";
+import { updateImageDoc } from "../../search/image";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -16,33 +18,47 @@ type IActorUpdateOpts = Partial<{
   rating: number;
   labels: string[];
   aliases: string[];
+  avatar: string;
   thumbnail: string;
+  altThumbnail: string;
+  hero: string;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
   bornOn: number;
   customFields: Dictionary<string[] | boolean | string | null>;
 }>;
 
-export default {
-  async runActorPlugins(_, { ids }: { ids: string[] }) {
-    const changedActors = [] as Actor[];
-    for (const id of ids) {
-      let actor = await Actor.getById(id);
+async function runActorPlugins(ids: string[]) {
+  const changedActors = [] as Actor[];
+  for (const id of ids) {
+    let actor = await Actor.getById(id);
 
-      if (actor) {
-        logger.message(`Running plugin action event for '${actor.name}'...`);
+    if (actor) {
+      logger.message(`Running plugin action event for '${actor.name}'...`);
 
-        const labels = (await Actor.getLabels(actor)).map(l => l._id);
-        actor = await onActorCreate(actor, labels, "actorCustom");
+      const labels = (await Actor.getLabels(actor)).map(l => l._id);
+      actor = await onActorCreate(actor, labels, "actorCustom");
 
-        await Actor.setLabels(actor, labels);
-        await database.update(database.store.actors, { _id: actor._id }, actor);
-        indices.actors.update(actor._id, await createActorSearchDoc(actor));
+      await Actor.setLabels(actor, labels);
+      await database.update(database.store.actors, { _id: actor._id }, actor);
+      indices.actors.update(actor._id, await createActorSearchDoc(actor));
 
-        changedActors.push(actor);
-      }
+      changedActors.push(actor);
+    } else {
+      logger.warn(`Actor ${id} not found`);
     }
-    return changedActors;
+  }
+  return changedActors;
+}
+
+export default {
+  async runAllActorPlugins() {
+    const ids = (await Actor.getAll()).map(a => a._id);
+    return runActorPlugins(ids);
+  },
+
+  async runActorPlugins(_, { ids }: { ids: string[] }) {
+    return runActorPlugins(ids);
   },
 
   async addActor(_, args: Dictionary<any>) {
@@ -53,6 +69,15 @@ export default {
     if (args.labels) {
       actorLabels = args.labels;
     }
+
+    try {
+      actor = await onActorCreate(actor, actorLabels);
+    } catch (error) {
+      logger.error(error.message);
+    }
+
+    await Actor.setLabels(actor, actorLabels);
+    await database.insert(database.store.actors, actor);
 
     for (const scene of await Scene.getAll()) {
       const perms = stripStr(scene.path || scene.name);
@@ -70,19 +95,40 @@ export default {
           scene,
           (await Scene.getActors(scene)).map(l => l._id).concat(actor._id)
         );
-        indices.scenes.update(scene._id, await createSceneSearchDoc(scene));
+        try {
+          await updateSceneDoc(scene);
+        } catch (error) {
+          logger.error(error.message);
+        }
         logger.log(`Updated actors of ${scene._id}`);
       }
     }
 
-    try {
-      actor = await onActorCreate(actor, actorLabels);
-    } catch (error) {
-      logger.error(error.message);
+    for (const image of await Image.getAll()) {
+      const perms = stripStr(image.name);
+
+      if (
+        perms.includes(stripStr(actor.name)) ||
+        actor.aliases.some(alias => perms.includes(stripStr(alias)))
+      ) {
+        if (config.APPLY_ACTOR_LABELS === true) {
+          const imageLabels = (await Image.getLabels(image)).map(l => l._id);
+          await Image.setLabels(image, imageLabels.concat(actorLabels));
+          logger.log(`Applied actor labels of new actor to ${image._id}`);
+        }
+        await Image.setActors(
+          image,
+          (await Image.getActors(image)).map(l => l._id).concat(actor._id)
+        );
+        try {
+          await updateImageDoc(image);
+        } catch (error) {
+          logger.error(error.message);
+        }
+        logger.log(`Updated actors of ${image._id}`);
+      }
     }
 
-    await Actor.setLabels(actor, actorLabels);
-    await database.insert(database.store.actors, actor);
     indices.actors.add(await createActorSearchDoc(actor));
     return actor;
   },
@@ -103,7 +149,8 @@ export default {
         if (Array.isArray(opts.labels))
           await Actor.setLabels(actor, opts.labels);
 
-        if (typeof opts.bookmark == "boolean") actor.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          actor.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") actor.favorite = opts.favorite;
 
@@ -112,7 +159,14 @@ export default {
         if (typeof opts.description == "string")
           actor.description = opts.description.trim();
 
+        if (typeof opts.avatar == "string") actor.avatar = opts.avatar;
+
         if (typeof opts.thumbnail == "string") actor.thumbnail = opts.thumbnail;
+
+        if (typeof opts.altThumbnail == "string")
+          actor.altThumbnail = opts.altThumbnail;
+
+        if (typeof opts.hero == "string") actor.hero = opts.hero;
 
         if (typeof opts.rating == "number") actor.rating = opts.rating;
 

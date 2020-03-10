@@ -57,15 +57,7 @@
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
     <v-card-subtitle class="pt-0 pb-0">{{ value.scenes.length }} scenes</v-card-subtitle>
-    <v-rating
-      half-increments
-      class="ml-3 mb-2"
-      :value="value.rating / 2"
-      background-color="grey"
-      color="amber"
-      dense
-      readonly
-    ></v-rating>
+    <Rating class="ml-3 mb-2" :value="value.rating" :readonly="true" />
     <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         label
@@ -168,7 +160,7 @@ export default class MovieCard extends Vue {
       variables: {
         ids: [this.value._id],
         opts: {
-          bookmark: !this.value.bookmark
+          bookmark: this.value.bookmark ? null : Date.now()
         }
       }
     }).then(res => {

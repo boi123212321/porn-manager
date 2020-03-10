@@ -8,13 +8,16 @@ export default interface IMovie {
   releaseDate: number | null;
   rating: number | null;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
 
   frontCover: {
     _id: string;
     color: string | null;
   } | null;
   backCover: {
+    _id: string;
+  } | null;
+  spineCover: {
     _id: string;
   } | null;
   studio: any;

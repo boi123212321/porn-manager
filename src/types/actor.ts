@@ -5,6 +5,7 @@ import Scene from "./scene";
 import { mapAsync } from "./utility";
 import CrossReference from "./cross_references";
 import * as logger from "../logger";
+import moment = require("moment");
 
 export default class Actor {
   _id: string;
@@ -13,13 +14,21 @@ export default class Actor {
   addedOn = +new Date();
   bornOn: number | null = null;
   thumbnail: string | null = null;
+  altThumbnail: string | null = null;
+  hero?: string | null = null;
+  avatar?: string | null = null;
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: number | null = null;
   rating: number = 0;
   customFields: any = {};
   labels?: string[]; // backwards compatibility
   studio?: string | null; // backwards compatibility
   description?: string | null = null;
+
+  static getAge(actor: Actor) {
+    if (actor.bornOn) return moment().diff(actor.bornOn, "years");
+    return null;
+  }
 
   static async filterCustomField(fieldId: string) {
     await database.update(
@@ -36,6 +45,16 @@ export default class Actor {
       const actorId = actor._id.startsWith("ac_")
         ? actor._id
         : `ac_${actor._id}`;
+
+      if (typeof actor.bookmark == "boolean") {
+        logger.log(`Setting bookmark to timestamp...`);
+        const time = actor.bookmark ? actor.addedOn : null;
+        await database.update(
+          database.store.actors,
+          { _id: actorId },
+          { $set: { bookmark: time } }
+        );
+      }
 
       if (actor.labels && actor.labels.length) {
         for (const label of actor.labels) {
@@ -87,20 +106,12 @@ export default class Actor {
     await database.update(
       database.store.actors,
       { thumbnail },
-      { $set: { thumbnail: null } }
+      { $set: { thumbnail: null, altThumbnail: null, hero: null } }
     );
   }
 
   static async remove(actor: Actor) {
     await database.remove(database.store.actors, { _id: actor._id });
-  }
-
-  static async filterLabel(label: string) {
-    await database.update(
-      database.store.actors,
-      {},
-      { $pull: { labels: label } }
-    );
   }
 
   static async setLabels(actor: Actor, labelIds: string[]) {

@@ -33,7 +33,7 @@ class MovieModule extends VuexModule {
   }
 
   @Mutation
-  setBookmark(bool: boolean) {
+  setBookmark(bool: number | null) {
     if (this.current) this.current.bookmark = bool;
   }
 
@@ -51,6 +51,14 @@ class MovieModule extends VuexModule {
     if (this.current) {
       if (!this.current.backCover) this.current.backCover = { _id: id };
       else this.current.backCover._id = id;
+    }
+  }
+
+  @Mutation
+  setSpineCover(id: string) {
+    if (this.current) {
+      if (!this.current.spineCover) this.current.spineCover = { _id: id };
+      else this.current.spineCover._id = id;
     }
   }
 

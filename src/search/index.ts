@@ -1,5 +1,3 @@
-import { imageIndex } from "./image";
-import { sceneIndex } from "./scene";
 import { actorIndex } from "./actor";
 import { studioIndex } from "./studio";
 import { movieIndex } from "./movie";
@@ -10,9 +8,17 @@ import { buildActorIndex } from "./actor";
 import { buildStudioIndex } from "./studio";
 import { buildMovieIndex } from "./movie";
 
+export interface ISearchResults {
+  num_hits: number;
+  items: string[];
+  time: {
+    sec: number;
+    milli: number;
+    micro: number;
+  };
+}
+
 export const indices = {
-  images: imageIndex,
-  scenes: sceneIndex,
   actors: actorIndex,
   studios: studioIndex,
   movies: movieIndex

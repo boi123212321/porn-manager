@@ -9,7 +9,7 @@ import Image from "../types/image";
 import * as database from "../database/index";
 import * as logger from "../logger";
 import { indices } from "../search/index";
-import { createImageSearchDoc } from "../search/image";
+import { createImageSearchDoc, indexImages } from "../search/image";
 import Label from "../types/label";
 
 // This function has side effects
@@ -34,7 +34,9 @@ export async function onActorCreate(
       await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) {
+        await indexImages([img]);
+      }
       return img._id;
     },
     $createImage: async (url: string, name: string, thumbnail?: boolean) => {
@@ -49,7 +51,9 @@ export async function onActorCreate(
       await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
       await database.insert(database.store.images, img);
-      if (!thumbnail) indices.images.add(await createImageSearchDoc(img));
+      if (!thumbnail) {
+        await indexImages([img]);
+      }
       return img._id;
     }
   });

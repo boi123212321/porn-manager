@@ -1,39 +1,52 @@
 <template>
   <v-card :dark="!!cardColor || $vuetify.theme.dark" :color="cardColor" v-if="value" tile>
-    <a :href="`#/actor/${value._id}`">
-      <v-img
-        :cover="fillThumbnail"
-        :contain="!fillThumbnail"
-        :aspect-ratio="aspectRatio"
-        class="hover"
-        v-ripple
-        eager
-        :src="thumbnail"
-      >
-        <div class="corner-actions">
-          <v-btn
-            light
-            class="elevation-2 mr-1"
-            @click.stop.prevent="favorite"
-            icon
-            style="background: #fafafa;"
-          >
-            <v-icon
-              :color="value.favorite ? 'red' : undefined"
-            >{{ value.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
-          </v-btn>
-          <v-btn
-            light
-            class="elevation-2"
-            @click.stop.prevent="bookmark"
-            icon
-            style="background: #fafafa;"
-          >
-            <v-icon>{{ value.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
-          </v-btn>
-        </div>
-      </v-img>
-    </a>
+    <v-hover v-slot:default="{ hover }">
+      <a :href="`#/actor/${value._id}`">
+        <v-img
+          :cover="fillThumbnail"
+          :contain="!fillThumbnail"
+          :aspect-ratio="aspectRatio"
+          style="cursor: pointer"
+          v-ripple
+          eager
+          :src="thumbnail"
+        >
+          <v-fade-transition>
+            <v-img
+              :cover="fillThumbnail"
+              :contain="!fillThumbnail"
+              eager
+              :aspect-ratio="aspectRatio"
+              :src="altThumbnail"
+              v-if="altThumbnail && hover"
+            ></v-img>
+          </v-fade-transition>
+
+          <div class="corner-actions">
+            <v-btn
+              light
+              class="elevation-2 mr-1"
+              @click.stop.prevent="favorite"
+              icon
+              style="background: #fafafa;"
+            >
+              <v-icon
+                :color="value.favorite ? 'red' : undefined"
+              >{{ value.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
+            </v-btn>
+            <v-btn
+              light
+              class="elevation-2"
+              @click.stop.prevent="bookmark"
+              icon
+              style="background: #fafafa;"
+            >
+              <v-icon>{{ value.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
+            </v-btn>
+          </div>
+        </v-img>
+      </a>
+    </v-hover>
 
     <v-card-title>
       <span
@@ -41,21 +54,13 @@
         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
       >
         {{ value.name }}
-        <span class="subtitle-1 med--text" v-if="value.bornOn">({{ age }})</span>
+        <span class="subtitle-1 med--text" v-if="value.bornOn">({{ value.age }})</span>
       </span>
     </v-card-title>
     <v-card-subtitle
       class="pb-0"
     >{{ value.numScenes }} {{ value.numScenes == 1 ? 'scene' : 'scenes' }}</v-card-subtitle>
-    <v-rating
-      half-increments
-      @input="rate"
-      class="ml-3 mb-2"
-      :value="value.rating / 2"
-      background-color="grey"
-      color="amber"
-      dense
-    ></v-rating>
+    <Rating @change="rate" class="ml-3 mb-2" :value="value.rating" />
     <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         class="mr-1 mb-1"
@@ -94,18 +99,12 @@ export default class ActorCard extends Vue {
     return null;
   }
 
-  get age() {
-    if (this.value.bornOn) {
-      return moment().diff(this.value.bornOn, "years");
-    }
-  }
-
   get aspectRatio() {
     return contextModule.actorAspectRatio;
   }
 
   rate($event) {
-    const rating = $event * 2;
+    const rating = $event;
 
     ApolloClient.mutate({
       mutation: gql`
@@ -162,7 +161,7 @@ export default class ActorCard extends Vue {
       variables: {
         ids: [this.value._id],
         opts: {
-          bookmark: !this.value.bookmark
+          bookmark: this.value.bookmark ? null : Date.now()
         }
       }
     }).then(res => {
@@ -182,6 +181,14 @@ export default class ActorCard extends Vue {
         this.value.thumbnail._id
       }?password=${localStorage.getItem("password")}`;
     return `${serverBase}/broken`;
+  }
+
+  get altThumbnail() {
+    if (this.value.altThumbnail)
+      return `${serverBase}/image/${
+        this.value.altThumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    return null;
   }
 }
 </script>

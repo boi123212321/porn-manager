@@ -71,15 +71,7 @@
       With
       <span v-html="actorLinks"></span>
     </v-card-subtitle>
-    <v-rating
-      half-increments
-      @input="rate"
-      class="ml-3 mb-2"
-      :value="value.rating / 2"
-      background-color="grey"
-      color="amber"
-      dense
-    ></v-rating>
+    <Rating @change="rate" class="ml-3 mb-2" :value="value.rating" />
     <div class="pa-2" v-if="this.value.labels.length && showLabels">
       <v-chip
         label
@@ -162,6 +154,8 @@ export default class SceneCard extends Mixins(SceneMixin) {
   }
 
   mouseleave() {
+    // @ts-ignore
+    this.$refs.video.setAttribute("src", "");
     if (this.playInterval) {
       // console.log("stopping video");
       clearInterval(this.playInterval);
@@ -202,6 +196,7 @@ export default class SceneCard extends Mixins(SceneMixin) {
 .video-insert {
   position: absolute;
   background-size: cover;
+  width: 100%;
   height: 100%;
   overflow: hidden;
   object-fit: cover;

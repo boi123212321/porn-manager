@@ -40,17 +40,7 @@
         <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
         <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
 
-        <v-rating
-          half-increments
-          @input="ratingFilter = $event * 2"
-          :value="ratingFilter / 2"
-          class="pb-0 pa-2"
-          background-color="grey"
-          color="amber"
-          dense
-          hide-details
-        ></v-rating>
-        <div class="pl-3 mt-1 med--text caption hover" @click="ratingFilter = 0">Reset rating filter</div>
+        <Rating @input="ratingFilter = $event" :value="ratingFilter" class="pb-0 pa-2" />
       </v-container>
     </v-navigation-drawer>
 
@@ -273,6 +263,10 @@ export default class MovieList extends mixins(DrawerMixin) {
     {
       text: "Duration",
       value: "duration"
+    },
+    {
+      text: "Bookmarked",
+      value: "bookmark"
     }
     /* TODO: amount of scenes */
   ];
@@ -374,26 +368,6 @@ export default class MovieList extends mixins(DrawerMixin) {
       });
   }
 
-  favorite(id: any, favorite: boolean) {
-    const index = this.movies.findIndex(sc => sc._id == id);
-
-    if (index > -1) {
-      const movie = this.movies[index];
-      movie.favorite = favorite;
-      Vue.set(this.movies, index, movie);
-    }
-  }
-
-  bookmark(id: any, bookmark: boolean) {
-    const index = this.movies.findIndex(sc => sc._id == id);
-
-    if (index > -1) {
-      const movie = this.movies[index];
-      movie.bookmark = bookmark;
-      Vue.set(this.movies, index, movie);
-    }
-  }
-
   movieLabels(movie: any) {
     return movie.labels.map(l => l.name).sort();
   }
@@ -468,15 +442,19 @@ export default class MovieList extends mixins(DrawerMixin) {
   }
 
   infiniteHandler($state) {
-    this.fetchPage().then(items => {
-      if (items.length) {
-        this.page++;
-        this.movies.push(...items);
-        $state.loaded();
-      } else {
-        $state.complete();
-      }
-    });
+    this.fetchPage()
+      .then(items => {
+        if (items.length) {
+          this.page++;
+          this.movies.push(...items);
+          $state.loaded();
+        } else {
+          $state.complete();
+        }
+      })
+      .catch(err => {
+        $state.error();
+      });
   }
 
   async fetchPage() {

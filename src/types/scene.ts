@@ -16,6 +16,8 @@ import Jimp from "jimp";
 import mergeImg from "merge-img";
 import Marker from "./marker";
 import Image from "./image";
+import Movie from "./movie";
+import { singleScreenshot } from "../ffmpeg/screenshot";
 
 export type ThumbnailFile = {
   name: string;
@@ -53,7 +55,7 @@ export default class Scene {
   thumbnail: string | null = null;
   preview: string | null = null;
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: number | null = null;
   rating: number = 0;
   customFields: any = {};
   labels?: string[]; // backwards compatibility
@@ -71,6 +73,16 @@ export default class Scene {
       const sceneId = scene._id.startsWith("sc_")
         ? scene._id
         : `sc_${scene._id}`;
+
+      if (typeof scene.bookmark == "boolean") {
+        logger.log(`Setting bookmark to timestamp...`);
+        const time = scene.bookmark ? scene.addedOn : null;
+        await database.update(
+          database.store.scenes,
+          { _id: sceneId },
+          { $set: { bookmark: time } }
+        );
+      }
 
       if (scene.preview === undefined) {
         logger.log(`Undefined scene preview, setting to null...`);
@@ -244,6 +256,16 @@ export default class Scene {
         r => Marker.getById(r.to)
       )
     ).filter(Boolean) as Marker[];
+  }
+
+  static async getMovies(scene: Scene) {
+    const references = await CrossReference.getByDest(scene._id);
+    return (
+      await mapAsync(
+        references.filter(r => r.from.startsWith("mo_")),
+        r => Movie.getById(r.from)
+      )
+    ).filter(Boolean) as Movie[];
   }
 
   static async getActors(scene: Scene) {
@@ -457,7 +479,8 @@ export default class Scene {
                 folder,
                 count: 1,
                 filename: `${scene._id} (thumbnail).jpg`,
-                timestamps: ["50%"]
+                timestamps: ["50%"],
+                size: "540x?"
               });
           });
         })();
@@ -496,46 +519,39 @@ export default class Scene {
   }
 
   static async screenshot(scene: Scene, sec: number): Promise<Image | null> {
-    return new Promise(async (resolve, reject) => {
-      if (!scene.path) {
-        logger.log("No scene path.");
-        return resolve(null);
+    if (!scene.path) {
+      logger.log("No scene path.");
+      return null;
+    }
+
+    const image = new Image(`${scene.name} (thumbnail)`);
+    image.path = path.join(libraryPath("thumbnails/"), image._id) + ".jpg";
+    image.scene = scene._id;
+
+    logger.log("Generating screenshot for scene...");
+
+    await singleScreenshot(scene.path, image.path, sec);
+
+    logger.log("Screenshot done.");
+    await database.insert(database.store.images, image);
+
+    const actors = (await Scene.getActors(scene)).map(l => l._id);
+    await Image.setActors(image, actors);
+
+    const labels = (await Scene.getLabels(scene)).map(l => l._id);
+    await Image.setLabels(image, labels);
+
+    await database.update(
+      database.store.scenes,
+      { _id: scene._id },
+      {
+        $set: {
+          thumbnail: image._id
+        }
       }
+    );
 
-      const image = new Image(`${scene.name} (thumbnail)`);
-      image.path = path.join(libraryPath("thumbnails/"), image._id) + ".jpg";
-      image.scene = scene._id;
-
-      logger.log("Generating screenshot for scene...");
-
-      ffmpeg(scene.path)
-        .seekInput(sec)
-        .output(image.path)
-        .outputOptions("-frames", "1")
-        .on("end", async () => {
-          logger.log("Screenshot done.");
-          await database.insert(database.store.images, image);
-
-          const actors = (await Scene.getActors(scene)).map(l => l._id);
-          await Image.setActors(image, actors);
-
-          const labels = (await Scene.getLabels(scene)).map(l => l._id);
-          await Image.setLabels(image, labels);
-
-          await database.update(
-            database.store.scenes,
-            { _id: scene._id },
-            {
-              $set: {
-                thumbnail: image._id
-              }
-            }
-          );
-
-          resolve(image);
-        })
-        .run();
-    });
+    return image;
   }
 
   static async generateThumbnails(scene: Scene): Promise<ThumbnailFile[]> {
@@ -613,7 +629,8 @@ export default class Scene {
                   "{{index}}",
                   index.toString().padStart(3, "0")
                 ),
-                folder: options.thumbnailPath
+                folder: options.thumbnailPath,
+                size: "540x?"
               });
           });
         });

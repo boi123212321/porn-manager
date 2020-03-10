@@ -8,7 +8,7 @@ export default interface IScene {
   description: string | null;
   rating: number | null;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
   actors: IActor[];
   studio: any;
   labels: {

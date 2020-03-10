@@ -9,7 +9,7 @@ export interface IImportedScene {
   labels?: string[] | null;
   customFields?: Dictionary<string> | null;
   favorite?: boolean | null;
-  bookmark?: boolean | null;
+  bookmark?: number | null;
   rating?: number | null;
   description?: string | null;
   thumbnail?: string | null;
@@ -22,11 +22,12 @@ export interface IImportedMovie {
   releaseDate?: number | null;
   scenes?: string[] | null;
   favorite?: boolean | null;
-  bookmark?: boolean | null;
+  bookmark?: number | null;
   rating?: number | null;
   customFields?: Dictionary<string> | null;
   frontCover?: string | null;
   backCover?: string | null;
+  spineCover?: string | null;
   studio?: string | null;
 }
 
@@ -38,7 +39,7 @@ export interface IImportedActor {
   labels?: string[];
   customFields?: Dictionary<string>;
   favorite?: boolean;
-  bookmark?: boolean;
+  bookmark?: number | null;
   rating?: number | null;
   thumbnail?: string | null;
 }
@@ -55,7 +56,7 @@ export interface IImportedStudio {
   thumbnail?: string | null;
   labels?: string[];
   favorite?: boolean;
-  bookmark?: boolean;
+  bookmark?: number | null;
   rating?: number | null;
 }
 

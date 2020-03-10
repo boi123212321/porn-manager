@@ -14,13 +14,14 @@ export default gql`
     addedOn: Long!
     releaseDate: Long
     favorite: Boolean!
-    bookmark: Boolean!
+    bookmark: Long
     customFields: Object!
 
     # Resolvers
     rating: Int # Inferred from scene ratings
     frontCover: Image
     backCover: Image
+    spineCover: Image
     scenes: [Scene!]!
     actors: [Actor!]!
     labels: [Label!]! # Inferred from scene labels
@@ -35,8 +36,9 @@ export default gql`
     releaseDate: Long
     frontCover: String
     backCover: String
+    spineCover: String
     favorite: Boolean
-    bookmark: Boolean
+    bookmark: Long
     rating: Int
     scenes: [String!]
     studio: String

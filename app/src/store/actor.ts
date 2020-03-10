@@ -30,7 +30,7 @@ class ActorModule extends VuexModule {
   }
 
   @Mutation
-  setBookmark(bool: boolean) {
+  setBookmark(bool: number | null) {
     if (this.current) this.current.bookmark = bool;
   }
 
@@ -50,6 +50,31 @@ class ActorModule extends VuexModule {
       if (!this.current.thumbnail)
         this.current.thumbnail = { _id: id, color: null };
       this.current.thumbnail._id = id;
+    }
+  }
+
+  @Mutation
+  setAltThumbnail(id: string) {
+    if (this.current) {
+      if (!this.current.altThumbnail)
+        this.current.altThumbnail = { _id: id, color: null };
+      this.current.altThumbnail._id = id;
+    }
+  }
+
+  @Mutation
+  setAvatar(id: string) {
+    if (this.current) {
+      if (!this.current.avatar) this.current.avatar = { _id: id, color: null };
+      this.current.avatar._id = id;
+    }
+  }
+
+  @Mutation
+  setHero(id: string) {
+    if (this.current) {
+      if (!this.current.hero) this.current.hero = { _id: id, color: null };
+      this.current.hero._id = id;
     }
   }
 

@@ -12,8 +12,9 @@ type IMovieUpdateOpts = Partial<{
   releaseDate: number;
   frontCover: string;
   backCover: string;
+  spineCover: string;
   favorite: boolean;
-  bookmark: boolean;
+  bookmark: number | null;
   rating: number;
   scenes: string[];
   studio: string | null;
@@ -29,7 +30,7 @@ export default {
     }
 
     try {
-      movie = await onMovieCreate(movie, []);
+      movie = await onMovieCreate(movie);
     } catch (error) {
       logger.log(error);
       logger.error(error.message);
@@ -74,17 +75,21 @@ export default {
         if (typeof opts.description == "string")
           movie.description = opts.description.trim();
 
-        if (typeof opts.backCover == "string") movie.backCover = opts.backCover;
-
         if (opts.studio !== undefined) movie.studio = opts.studio;
 
         if (typeof opts.frontCover == "string")
           movie.frontCover = opts.frontCover;
 
+        if (typeof opts.backCover == "string") movie.backCover = opts.backCover;
+
+        if (typeof opts.spineCover == "string")
+          movie.spineCover = opts.spineCover;
+
         if (Array.isArray(opts.scenes))
           await Movie.setScenes(movie, opts.scenes);
 
-        if (typeof opts.bookmark == "boolean") movie.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          movie.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") movie.favorite = opts.favorite;
 

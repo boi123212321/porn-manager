@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="{{ frontCover }}" type="image/x-icon" />
+    <title>{{ movieName }} in 3D!</title>
+    <script type="text/javascript" src="/assets/three.min.js"></script>
+    <script type="text/javascript" src="/assets/OrbitControls.js"></script>
+    <style>
+      * {
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+      .disabled {
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body style="margin: 0; cursor:grab">
+    <div
+      style="padding: 10px; color: white; width: 100%; position: fixed; bottom: 0px"
+    >
+      <span class="disabled" id="auto-rotate" style="cursor: pointer">
+        Toggle auto-rotate
+      </span>
+    </div>
+    <div
+      style="pointer-events: none; padding-top: 10px; color: white; width: 100%; position: fixed; text-align: center"
+    >
+      <div style="font-weight: bold; font-size: 24px">
+        {{ movieName }}
+      </div>
+      <div id="studio-name" style="opacity: 0.6; font-size: 14px"></div>
+    </div>
+    <script>
+      function createBoxWithRoundedEdges(
+        width,
+        height,
+        depth,
+        radius0,
+        smoothness
+      ) {
+        let shape = new THREE.Shape();
+        let eps = 0.00001;
+        let radius = radius0 - eps;
+        shape.absarc(eps, eps, eps, -Math.PI / 2, -Math.PI, true);
+        shape.absarc(eps, height - radius * 2, eps, Math.PI, Math.PI / 2, true);
+        shape.absarc(
+          width - radius * 2,
+          height - radius * 2,
+          eps,
+          Math.PI / 2,
+          0,
+          true
+        );
+        shape.absarc(width - radius * 2, eps, eps, 0, -Math.PI / 2, true);
+        let geometry = new THREE.ExtrudeBufferGeometry(shape, {
+          depth: depth - radius0 * 2,
+          bevelEnabled: true,
+          bevelSegments: smoothness * 2,
+          steps: 1,
+          bevelSize: radius,
+          bevelThickness: radius0,
+          curveSegments: smoothness
+        });
+
+        geometry.center();
+
+        return geometry;
+      }
+    </script>
+    <script>
+      let scene, camera, renderer;
+      THREE.crossOrigin = "";
+
+      const dvdWidth = 13.5; // in cm
+      const dvdHeight = 19.0; // in cm
+      const dvdDepth = 1.4; // in cm
+      const scaleFactor = 0.4;
+      const coverPadding = 0.2; // distance to edges of box
+      const coverMargin = 0.01; // to resolve Z fighting
+      const roundness = 0.125; // Roundness of box
+      const bumpiness = 0.125;
+      const shininess = 250; // Shiny
+
+      const light = "{{ light }}" == "true";
+
+      const boxColor = light ? "#fbfbfb" : "#040404";
+      const spineTextColor = light ? "#040404" : "#fbfbfb";
+
+      const movieName = "{{ movieName }}";
+      const studioName = "{{ studioName }}";
+      const frontCover = "{{ frontCover }}".replace("&#x3D;", "=");
+      const backCover = "{{ backCover }}".replace("&#x3D;", "=");
+      const spineCover = "{{ spineCover }}".replace("&#x3D;", "=");
+      const color = "{{ color }}";
+
+      if (studioName)
+        document.getElementById("studio-name").textContent = "by " + studioName;
+
+      // Sets up the scene.
+      function init() {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        scene = new THREE.Scene();
+        let WIDTH = window.innerWidth,
+          HEIGHT = window.innerHeight;
+
+        const loader = new THREE.TextureLoader();
+
+        const boxWidth = dvdWidth * scaleFactor;
+        const boxHeight = dvdHeight * scaleFactor;
+        const boxDepth = dvdDepth * scaleFactor;
+
+        const frontTex = loader.load(frontCover);
+        const backTex = loader.load(backCover);
+        const bumpMap = loader.load("/assets/bump.jpg");
+
+        frontTex.minFilter = THREE.LinearFilter;
+        backTex.minFilter = THREE.LinearFilter;
+
+        (function createFront() {
+          let front = new THREE.Mesh(
+            new THREE.PlaneGeometry(
+              boxWidth - coverPadding,
+              boxHeight - coverPadding
+            ),
+            new THREE.MeshPhongMaterial({
+              map: frontTex,
+              shininess,
+              bumpMap: bumpMap,
+              bumpScale: bumpiness
+            })
+          );
+          front.position.set(0, 0, boxDepth / 2 + coverMargin);
+          scene.add(front);
+        })();
+
+        (function createBack() {
+          let back = new THREE.Mesh(
+            new THREE.PlaneGeometry(
+              boxWidth - coverPadding,
+              boxHeight - coverPadding
+            ),
+            new THREE.MeshPhongMaterial({
+              map: backTex,
+              shininess,
+              bumpMap: bumpMap,
+              bumpScale: bumpiness
+            })
+          );
+          back.rotation.x = Math.PI;
+          back.rotation.z = Math.PI;
+          back.position.set(0, 0, -(boxDepth / 2 + coverMargin));
+          scene.add(back);
+        })();
+
+        if (!spineCover) {
+          (function createFakeSpine() {
+            const spineText = movieName;
+            var bitmap = document.createElement("canvas");
+            bitmap.style.backgroundColor = boxColor;
+            var ctx = bitmap.getContext("2d");
+            bitmap.width = 1000;
+            bitmap.height = 50;
+            ctx.font = "900 32px Arial";
+
+            ctx.fillStyle = boxColor;
+            ctx.fillRect(0, 0, bitmap.width, bitmap.height);
+
+            if (studioName) {
+              ctx.fillStyle = spineTextColor;
+              ctx.fillText(studioName, 10, 40);
+              ctx.strokeStyle = boxColor;
+              ctx.strokeText(studioName, 10, 40);
+            }
+
+            ctx.textAlign = "right";
+            ctx.font = "bold 24px Arial";
+
+            ctx.fillStyle = spineTextColor;
+            ctx.fillText(spineText, 990, 35);
+            ctx.strokeStyle = boxColor;
+            ctx.strokeText(spineText, 990, 35);
+
+            var spineTex = new THREE.Texture(bitmap);
+            spineTex.needsUpdate = true;
+
+            let spine = new THREE.Mesh(
+              new THREE.PlaneGeometry(
+                boxHeight - coverPadding,
+                boxDepth - coverPadding
+              ),
+              new THREE.MeshPhongMaterial({
+                map: spineTex,
+                shininess,
+                bumpMap: bumpMap,
+                bumpScale: bumpiness
+              })
+            );
+            spine.rotation.z = Math.PI / 2;
+            spine.rotation.y = Math.PI / 2 + Math.PI;
+            spine.position.set(-boxWidth / 2 - coverMargin, 0, 0);
+            scene.add(spine);
+          })();
+        } else {
+          const spineTex = loader.load(spineCover);
+          let spine = new THREE.Mesh(
+            new THREE.PlaneGeometry(
+              boxDepth - coverPadding / 2,
+              boxHeight - coverPadding
+            ),
+            new THREE.MeshPhongMaterial({
+              map: spineTex,
+              shininess,
+              bumpMap: bumpMap,
+              bumpScale: bumpiness
+            })
+          );
+          // spine.rotation.z = Math.PI / 2;
+          spine.rotation.y = Math.PI / 2 + Math.PI;
+          spine.position.set(-boxWidth / 2 - coverMargin, 0, 0);
+          scene.add(spine);
+        }
+        (function createBox() {
+          const geometry = createBoxWithRoundedEdges(
+            boxWidth,
+            boxHeight,
+            boxDepth,
+            roundness,
+            16
+          );
+
+          mesh = new THREE.Mesh(
+            geometry,
+            new THREE.MeshPhongMaterial({
+              color: boxColor,
+              shininess
+            })
+          );
+          scene.add(mesh);
+        })();
+
+        renderer.setSize(WIDTH, HEIGHT);
+        document.body.appendChild(renderer.domElement);
+
+        camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
+        camera.position.set(-6, 3, 12);
+        scene.add(camera);
+
+        window.addEventListener("resize", function() {
+          let WIDTH = window.innerWidth,
+            HEIGHT = window.innerHeight;
+          renderer.setSize(WIDTH, HEIGHT);
+          camera.aspect = WIDTH / HEIGHT;
+          camera.updateProjectionMatrix();
+        });
+
+        renderer.setClearColor(0x302530, 1);
+
+        {
+          let light = new THREE.PointLight(0x666666);
+          light.position.set(-9, 0, 9);
+          scene.add(light);
+        }
+
+        {
+          let light = new THREE.PointLight(0x666666);
+          light.position.set(9, 0, -9);
+          scene.add(light);
+        }
+
+        {
+          let light = new THREE.PointLight(0x444444);
+          light.position.set(9, 0, 9);
+          scene.add(light);
+        }
+
+        {
+          let light = new THREE.PointLight(0x444444);
+          light.position.set(-9, 0, -9);
+          scene.add(light);
+        }
+
+        let ambience = new THREE.AmbientLight(0x777777); // soft white light
+        scene.add(ambience);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.1;
+        controls.maxDistance = 50;
+        controls.autoRotateSpeed = 3;
+
+        document.getElementById("auto-rotate").addEventListener("click", ev => {
+          controls.autoRotate = !controls.autoRotate;
+          ev.target.classList.toggle("disabled");
+        });
+      }
+
+      // Renders the scene and updates the render as needed.
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+        controls.update();
+      }
+
+      init();
+      animate();
+    </script>
+  </body>
+</html>

@@ -13,8 +13,20 @@ export default {
   async labels(actor: Actor) {
     return await Actor.getLabels(actor);
   },
+  async avatar(actor: Actor) {
+    if (actor.avatar) return await Image.getById(actor.avatar);
+    return null;
+  },
   async thumbnail(actor: Actor) {
     if (actor.thumbnail) return await Image.getById(actor.thumbnail);
+    return null;
+  },
+  async altThumbnail(actor: Actor) {
+    if (actor.altThumbnail) return await Image.getById(actor.altThumbnail);
+    return null;
+  },
+  async hero(actor: Actor) {
+    if (actor.hero) return await Image.getById(actor.hero);
     return null;
   },
   async watches(actor: Actor) {
@@ -28,5 +40,8 @@ export default {
     return fields.filter(field =>
       field.target.includes(CustomFieldTarget.ACTORS)
     );
+  },
+  age(actor: Actor) {
+    return Actor.getAge(actor);
   }
 };

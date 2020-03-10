@@ -33,8 +33,8 @@ library/*
 bin/
 
 configg\.json
-ffmpeg
-ffprobe
+/ffmpeg
+/ffprobe
 app/dist/
 release/
 releases/
@@ -46,3 +46,9 @@ imports/
 config\.yaml
 
 twigs
+<<<<<<< Updated upstream
+twigs.exe
+=======
+
+>>>>>>> Stashed changes
+images\.json

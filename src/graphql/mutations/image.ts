@@ -13,8 +13,7 @@ import Jimp from "jimp";
 import { statAsync, unlinkAsync } from "../../fs/async";
 import { getConfig } from "../../config";
 import Studio from "../../types/studio";
-import { indices } from "../../search/index";
-import { createImageSearchDoc } from "../../search/image";
+import { removeImageDoc, indexImages } from "../../search/image";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -109,22 +108,33 @@ export default {
 
       if (args.crop) {
         logger.log(`Cropping image...`);
-        await _image
-          .crop(
-            args.crop.left,
-            args.crop.top,
-            args.crop.width,
-            args.crop.height
-          )
-          .writeAsync(sourcePath);
-
+        _image.crop(
+          args.crop.left,
+          args.crop.top,
+          args.crop.width,
+          args.crop.height
+        );
         image.meta.dimensions.width = args.crop.width;
         image.meta.dimensions.height = args.crop.height;
       } else {
         image.meta.dimensions.width = _image.bitmap.width;
         image.meta.dimensions.height = _image.bitmap.height;
-        await _image.writeAsync(sourcePath);
       }
+
+      if (args.compress === true) {
+        logger.log("Resizing image to thumbnail size");
+        const MAX_SIZE = 400;
+        if (
+          _image.bitmap.width > _image.bitmap.height &&
+          _image.bitmap.width > 400
+        ) {
+          _image.resize(MAX_SIZE, Jimp.AUTO);
+        } else if (_image.bitmap.height > 400) {
+          _image.resize(Jimp.AUTO, MAX_SIZE);
+        }
+      }
+
+      await _image.writeAsync(sourcePath);
 
       image.hash = _image.hash();
 
@@ -190,7 +200,7 @@ export default {
     // Done
 
     await database.insert(database.store.images, image);
-    indices.images.add(await createImageSearchDoc(image));
+    await indexImages([image]);
     await unlinkAsync(outPath);
     logger.success(`Image '${imageName}' done.`);
     return image;
@@ -227,7 +237,8 @@ export default {
             await Image.setLabels(image, opts.labels);
         }
 
-        if (typeof opts.bookmark == "boolean") image.bookmark = opts.bookmark;
+        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+          image.bookmark = opts.bookmark;
 
         if (typeof opts.favorite == "boolean") image.favorite = opts.favorite;
 
@@ -256,7 +267,8 @@ export default {
 
         await database.update(database.store.images, { _id: image._id }, image);
         updatedImages.push(image);
-        indices.images.update(image._id, await createImageSearchDoc(image));
+        // indices.images.update(image._id, await createImageSearchDoc(image));
+        // TODO: update image
       } else {
         throw new Error(`Image ${id} not found`);
       }
@@ -271,7 +283,7 @@ export default {
 
       if (image) {
         await Image.remove(image);
-        indices.images.remove(image._id);
+        await removeImageDoc(image._id);
         await Actor.filterImage(image._id);
         await Scene.filterImage(image._id);
         await Label.filterImage(image._id);

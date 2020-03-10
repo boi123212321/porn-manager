@@ -10,7 +10,7 @@ export interface IStudioSearchDoc {
   addedOn: number;
   name: string;
   labels: { _id: string; name: string; aliases: string[] }[];
-  bookmark: boolean;
+  bookmark: number | null;
   favorite: boolean;
   // rating: number;
   numScenes: number;

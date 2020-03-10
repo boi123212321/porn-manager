@@ -8,11 +8,13 @@ import "@mdi/font/css/materialdesignicons.css";
 import VueTheMask from "vue-the-mask";
 import BindTitle from "./components/BindTitle.vue";
 import DateInput from "./components/DateInput.vue";
+import Rating from "./components/Rating.vue";
 
 Vue.use(VueTheMask);
 
 Vue.component("BindTitle", BindTitle);
 Vue.component("DateInput", DateInput);
+Vue.component("Rating", Rating);
 
 Vue.config.productionTip = false;
 

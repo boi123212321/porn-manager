@@ -53,15 +53,7 @@
           :key="label"
         >{{ label }}</v-chip>
       </div>
-      <v-rating
-        half-increments
-        @input="rate"
-        class="ml-3 mb-2"
-        :value="value.rating / 2"
-        background-color="grey"
-        color="amber"
-        dense
-      ></v-rating>
+      <Rating @change="rate" class="ml-3 mb-2" :value="value.rating" />
     </div>
   </div>
 </template>

@@ -65,7 +65,9 @@
               <v-icon>mdi-calendar</v-icon>
               <v-subheader>Release Date</v-subheader>
             </div>
-            <div class="med--text pa-2">{{ new Date(currentScene.releaseDate).toDateString() }}</div>
+            <div
+              class="med--text pa-2"
+            >{{ new Date(currentScene.releaseDate).toLocaleDateString() }}</div>
           </div>
 
           <div v-if="currentScene.description">
@@ -83,20 +85,7 @@
             <v-icon>mdi-star</v-icon>
             <v-subheader>Rating</v-subheader>
           </div>
-          <v-rating
-            half-increments
-            @input="rate"
-            class="px-2"
-            :value="currentScene.rating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-          ></v-rating>
-          <div
-            @click="rate(0)"
-            class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating</div>
+          <Rating @change="rate" class="px-2" :value="currentScene.rating" />
           <div class="d-flex align-center">
             <v-icon>mdi-label</v-icon>
             <v-subheader>Labels</v-subheader>
@@ -265,7 +254,7 @@
         <v-container fluid>
           <v-row>
             <v-col
-              class="pa-1"
+              class="pa-0"
               v-for="(image, index) in images"
               :key="image._id"
               cols="6"
@@ -338,6 +327,40 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="editLabels" text color="primary" class="text-none">Edit</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog scrollable v-model="markerLabelSelectorDialog" max-width="400px">
+      <v-card v-if="currentScene">
+        <v-card-title>Select marker labels</v-card-title>
+
+        <v-text-field
+          clearable
+          color="primary"
+          hide-details
+          class="px-5 mb-2"
+          label="Find labels..."
+          v-model="markerLabelSearchQuery"
+        />
+
+        <v-card-text style="max-height: 400px">
+          <LabelSelector
+            :searchQuery="markerLabelSearchQuery"
+            :items="allLabels"
+            v-model="selectedMarkerLabels"
+          />
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="markerLabelSelectorDialog = false"
+            text
+            color="primary"
+            class="text-none"
+          >OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -420,20 +443,15 @@
             color="primary"
             v-model="markerName"
           ></v-combobox>
-          <v-rating
-            half-increments
-            @input="markerRating = $event * 2"
-            class="px-2"
-            :value="markerRating / 2"
-            background-color="grey"
-            color="amber"
-            dense
-            hide-details
-          ></v-rating>
-          <div
-            @click="markerRating = null"
-            class="d-inline-block pl-3 mt-1 med--text caption hover"
-          >Reset rating</div>
+
+          <v-btn
+            @click="markerLabelSelectorDialog = true"
+            text
+            color="primary"
+            class="text-none mb-2"
+          >{{ selectedMarkerLabels.length ? `Selected ${selectedMarkerLabels.length} ${selectedMarkerLabels.length == 1 ? 'label' : 'labels'}` : 'Select labels' }}</v-btn>
+
+          <Rating @input="markerRating = $event" class="px-2" :value="markerRating" />
           <v-checkbox hide-details color="primary" v-model="markerFavorite" label="Favorite?"></v-checkbox>
           <v-checkbox hide-details color="primary" v-model="markerBookmark" label="Bookmark?"></v-checkbox>
         </v-card-text>
@@ -545,6 +563,9 @@ export default class SceneDetails extends Vue {
   markerFavorite = false;
   markerBookmark = false;
   markerDialog = false;
+  markerLabelSelectorDialog = false;
+  selectedMarkerLabels = [] as number[];
+  markerLabelSearchQuery = "";
 
   autoPaused = false;
   manuallyStarted = false;
@@ -670,7 +691,8 @@ export default class SceneDetails extends Vue {
           $time: Int!
           $rating: Int
           $favorite: Boolean
-          $bookmark: Boolean
+          $bookmark: Long
+          $labels: [String!]
         ) {
           createMarker(
             scene: $scene
@@ -679,6 +701,7 @@ export default class SceneDetails extends Vue {
             rating: $rating
             favorite: $favorite
             bookmark: $bookmark
+            labels: $labels
           ) {
             _id
             name
@@ -686,6 +709,10 @@ export default class SceneDetails extends Vue {
             rating
             favorite
             bookmark
+            labels {
+              _id
+              name
+            }
           }
         }
       `,
@@ -695,7 +722,10 @@ export default class SceneDetails extends Vue {
         time: Math.floor(this.$refs.player.currentProgress()),
         rating: this.markerRating,
         favorite: this.markerFavorite,
-        bookmark: this.markerBookmark
+        bookmark: this.markerBookmark ? Date.now() : null,
+        labels: this.selectedMarkerLabels
+          .map(i => this.allLabels[i])
+          .map(l => l._id)
       }
     }).then(res => {
       this.markers.unshift(res.data.createMarker);
@@ -791,6 +821,7 @@ export default class SceneDetails extends Vue {
           $actors: [String!]
           $labels: [String!]
           $scene: String
+          $compress: Boolean
         ) {
           uploadImage(
             file: $file
@@ -799,6 +830,7 @@ export default class SceneDetails extends Vue {
             actors: $actors
             labels: $labels
             scene: $scene
+            compress: $compress
           ) {
             ...ImageFragment
             actors {
@@ -824,7 +856,8 @@ export default class SceneDetails extends Vue {
           height: this.crop.height
         },
         actors: this.currentScene.actors.map(a => a._id),
-        labels: this.currentScene.labels.map(a => a._id)
+        labels: this.currentScene.labels.map(a => a._id),
+        compress: true
       }
     })
       .then(res => {
@@ -1046,7 +1079,7 @@ export default class SceneDetails extends Vue {
   rate($event) {
     if (!this.currentScene) return;
 
-    const rating = $event * 2;
+    const rating = $event;
 
     ApolloClient.mutate({
       mutation: gql`
@@ -1108,6 +1141,10 @@ export default class SceneDetails extends Vue {
               _id
               name
               time
+              labels {
+                _id
+                name
+              }
             }
           }
         }

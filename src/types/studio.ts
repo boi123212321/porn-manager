@@ -15,7 +15,7 @@ export default class Studio {
   thumbnail: string | null = null;
   addedOn: number = +new Date();
   favorite: boolean = false;
-  bookmark: boolean = false;
+  bookmark: number | null = null;
   parent: string | null = null;
   labels?: string[]; // backwards compatibility
   aliases?: string[];
@@ -27,6 +27,16 @@ export default class Studio {
       const studioId = studio._id.startsWith("st_")
         ? studio._id
         : `st_${studio._id}`;
+
+      if (typeof studio.bookmark == "boolean") {
+        logger.log(`Setting bookmark to timestamp...`);
+        const time = studio.bookmark ? studio.addedOn : null;
+        await database.update(
+          database.store.studios,
+          { _id: studioId },
+          { $set: { bookmark: time } }
+        );
+      }
 
       if (studio.labels && studio.labels.length) {
         for (const label of studio.labels) {
