@@ -7,6 +7,7 @@ import { buildSceneIndex } from "./scene";
 import { buildActorIndex } from "./actor";
 import { buildStudioIndex } from "./studio";
 import { buildMovieIndex } from "./movie";
+import Axios from "axios";
 
 export interface ISearchResults {
   num_hits: number;
@@ -30,4 +31,13 @@ export async function buildIndices() {
   await buildSceneIndex();
   await buildStudioIndex();
   await buildMovieIndex();
+}
+
+export async function twigsVersion() {
+  try {
+    const res = await Axios.get(`http://localhost:8000/`);
+    return res.data.version as string;
+  } catch (error) {
+    return false;
+  }
 }

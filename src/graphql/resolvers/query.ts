@@ -13,8 +13,13 @@ import { getScenes } from "./search/scene";
 import { getActors } from "./search/actor";
 import { getStudios } from "./search/studio";
 import { getMovies } from "./search/movie";
+import { twigsVersion } from "../../search/index";
 
 export default {
+  async twigsVersion() {
+    return twigsVersion();
+  },
+
   async getScenesWithoutStudios(_, { num }: { num: number }) {
     const numStudios = await database.count(database.store.studios, {});
 

@@ -21,7 +21,7 @@ import { mountApolloServer } from "./apollo";
 import { buildIndices } from "./search";
 import { checkImportFolders } from "./import/index";
 import cors from "./middlewares/cors";
-import { spawnTwigs, ensureTwigsExists } from "./twigs";
+import { spawnTwigs } from "./twigs";
 import { httpLog } from "./logger";
 import { renderHandlebars } from "./render";
 import { dvdRenderer } from "./dvd_renderer";
@@ -159,7 +159,6 @@ export default async () => {
   setupMessage = "Checking imports...";
   await checkImportFolders();
 
-  await ensureTwigsExists();
   await spawnTwigs();
 
   setupMessage = "Creating search indices...";

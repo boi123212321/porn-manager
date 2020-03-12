@@ -8,6 +8,7 @@ import ffmpeg from "fluent-ffmpeg";
 import { validatePlugins, checkUnusedPlugins } from "./plugins/validate";
 import { printMaxMemory } from "./mem";
 import { validateFFMPEGPaths } from "./config/validate";
+import { ensureTwigsExists } from "./twigs";
 const sha = require("js-sha512").sha512;
 
 export async function onConfigLoad(config: IConfig) {
@@ -59,6 +60,8 @@ printMaxMemory();
       ).password;
     } while (sha(password) != config.PASSWORD);
   }
+
+  await ensureTwigsExists();
 
   startServer();
 })();

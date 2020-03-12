@@ -7,6 +7,7 @@ export default gql`
 
   type Query {
     getQueueInfo: QueueInfo!
+    twigsVersion: String
   }
 
   type Mutation {
