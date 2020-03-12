@@ -1145,6 +1145,9 @@ export default class SceneDetails extends Vue {
                 _id
                 name
               }
+              thumbnail {
+                _id
+              }
             }
           }
         }

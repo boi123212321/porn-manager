@@ -114,6 +114,8 @@ export default class App extends Vue {
 
   get appbarColor() {
     let color;
+    if (this.currentActor && this.currentActor.hero)
+      return this.currentActor.hero.color;
     if (this.currentActor && this.currentActor.thumbnail)
       return this.currentActor.thumbnail.color;
     if (this.currentScene && this.currentScene.thumbnail)

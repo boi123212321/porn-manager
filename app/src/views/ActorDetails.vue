@@ -155,6 +155,34 @@
                   v-if="currentActor.description"
                 >{{ currentActor.description }}</div>
               </div>
+              <div v-if="collabs.length">
+                <v-btn icon @click="showCollabs=!showCollabs">
+                  <v-icon>{{ showCollabs ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                </v-btn>
+
+                <span class="font-weight-black subtitle-1">{{ firstName(currentActor.name) }}</span> has appeared alongside:
+              </div>
+              <v-expand-transition>
+                <v-row v-if="showCollabs">
+                  <v-col
+                    v-for="actor in collabs"
+                    :key="actor._id"
+                    cols="6"
+                    sm="4"
+                    md="2"
+                    lg="2"
+                    xl="1"
+                    class="text-center"
+                  >
+                    <router-link :to="`/actor/${actor._id}`">
+                      <v-avatar style="border: 2px solid white" v-ripple size="100">
+                        <v-img :src="collabAvatar(actor)"></v-img>
+                      </v-avatar>
+                    </router-link>
+                    <div class="mt-2 body-2 font-weight-bold">{{ actor.name }}</div>
+                  </v-col>
+                </v-row>
+              </v-expand-transition>
             </div>
             <v-tabs
               v-model="activeTab"
@@ -165,6 +193,7 @@
             >
               <v-tab>Metadata</v-tab>
               <v-tab>Scenes</v-tab>
+              <v-tab>Movies</v-tab>
               <v-tab>Images</v-tab>
             </v-tabs>
             <div class="pa-2" v-if="activeTab == 0">
@@ -227,6 +256,22 @@
               </v-row>
             </div>
             <div class="pa-2" v-if="activeTab == 2">
+              <v-row>
+                <v-col
+                  class="pa-1"
+                  v-for="(movie, i) in movies"
+                  :key="movie._id"
+                  cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
+                  xl="2"
+                >
+                  <movie-card v-model="movies[i]" style="height: 100%" />
+                </v-col>
+              </v-row>
+            </div>
+            <div class="pa-2" v-if="activeTab == 3">
               <div v-if="images.length">
                 <div class="d-flex align-center">
                   <v-spacer></v-spacer>
@@ -503,17 +548,20 @@ import gql from "graphql-tag";
 import sceneFragment from "../fragments/scene";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
+import movieFragment from "../fragments/movie";
 import studioFragment from "../fragments/studio";
 import { actorModule } from "../store/actor";
 import SceneCard from "../components/SceneCard.vue";
 import moment from "moment";
 import LabelSelector from "../components/LabelSelector.vue";
 import Lightbox from "../components/Lightbox.vue";
+import MovieCard from "../components/MovieCard.vue";
 import ImageCard from "../components/ImageCard.vue";
 import InfiniteLoading from "vue-infinite-loading";
 import { Cropper } from "vue-advanced-cropper";
 import ImageUploader from "../components/ImageUploader.vue";
 import IScene from "../types/scene";
+import IMovie from "../types/movie";
 import IImage from "../types/image";
 import ILabel from "../types/label";
 import { contextModule } from "../store/context";
@@ -530,6 +578,17 @@ interface ICropResult {
   coordinates: ICropCoordinates;
 }
 
+type AttachedImage = {
+  _id: string;
+} | null;
+
+interface ICollabActor {
+  _id: string;
+  name: string;
+  thumbnail: AttachedImage;
+  avatar: AttachedImage;
+}
+
 @Component({
   components: {
     SceneCard,
@@ -539,7 +598,8 @@ interface ICropResult {
     InfiniteLoading,
     Cropper,
     ImageUploader,
-    CustomFieldSelector
+    CustomFieldSelector,
+    MovieCard
   },
   beforeRouteLeave(_to, _from, next) {
     actorModule.setCurrent(null);
@@ -548,7 +608,10 @@ interface ICropResult {
 })
 export default class ActorDetails extends Vue {
   scenes = [] as IScene[];
+  movies = [] as IMovie[];
   images = [] as IImage[];
+  collabs = [] as ICollabActor[];
+  showCollabs = true;
   lightboxIndex = null as number | null;
 
   activeTab = 0;
@@ -598,6 +661,25 @@ export default class ActorDetails extends Vue {
   pluginLoader = false;
 
   labelSearchQuery = "";
+
+  firstName(name: string) {
+    const tokens = name.split(" ");
+    if (tokens.length <= 3) return tokens[0];
+  }
+
+  collabAvatar(actor: ICollabActor) {
+    if (actor.avatar) {
+      return `${serverBase}/image/${
+        actor.avatar._id
+      }?password=${localStorage.getItem("password")}`;
+    }
+    if (actor.thumbnail) {
+      return `${serverBase}/image/${
+        actor.thumbnail._id
+      }?password=${localStorage.getItem("password")}`;
+    }
+    return `${serverBase}/broken`;
+  }
 
   get avatar() {
     if (!this.currentActor) return null;
@@ -792,6 +874,8 @@ export default class ActorDetails extends Vue {
     if (!this.currentActor) return;
 
     this.avatarLoader = true;
+
+    console.log("Uploading avatar...");
 
     ApolloClient.mutate({
       mutation: gql`
@@ -1137,6 +1221,8 @@ export default class ActorDetails extends Vue {
   setAsAvatar(id: string) {
     if (!this.currentActor) return;
 
+    console.log("Set image as avatar...");
+
     ApolloClient.mutate({
       mutation: gql`
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
@@ -1155,7 +1241,7 @@ export default class ActorDetails extends Vue {
       }
     })
       .then(res => {
-        actorModule.setHero(id);
+        actorModule.setAvatar(id);
       })
       .catch(err => {
         console.error(err);
@@ -1171,6 +1257,7 @@ export default class ActorDetails extends Vue {
           updateActors(ids: $ids, opts: $opts) {
             hero {
               _id
+              color
             }
           }
         }
@@ -1369,8 +1456,37 @@ export default class ActorDetails extends Vue {
     actorModule.setCurrent(null);
     this.images = [];
     this.scenes = [];
+    this.movies = [];
+    this.collabs = [];
     this.selectedLabels = [];
     this.onLoad();
+    this.loadCollabs();
+  }
+
+  loadCollabs() {
+    ApolloClient.query({
+      query: gql`
+        query($id: String!) {
+          getActorById(id: $id) {
+            collabs {
+              _id
+              name
+              thumbnail {
+                _id
+              }
+              avatar {
+                _id
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        id: (<any>this).$route.params.id
+      }
+    }).then(res => {
+      this.collabs = res.data.getActorById.collabs;
+    });
   }
 
   onLoad() {
@@ -1381,13 +1497,25 @@ export default class ActorDetails extends Vue {
             ...ActorFragment
             hero {
               _id
+              color
             }
             avatar {
               _id
             }
+            movies {
+              ...MovieFragment
+              actors {
+                ...ActorFragment
+              }
+              scenes {
+                ...SceneFragment
+              }
+            }
           }
         }
+        ${sceneFragment}
         ${actorFragment}
+        ${movieFragment}
       `,
       variables: {
         id: (<any>this).$route.params.id
@@ -1395,11 +1523,13 @@ export default class ActorDetails extends Vue {
     }).then(res => {
       actorModule.setCurrent(res.data.getActorById);
       this.editCustomFields = res.data.getActorById.customFields;
+      this.movies = res.data.getActorById.movies;
     });
   }
 
   beforeMount() {
     this.onLoad();
+    this.loadCollabs();
   }
 
   mounted() {
