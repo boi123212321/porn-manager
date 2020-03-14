@@ -199,7 +199,7 @@
         <v-col cols="12" sm="6">
           <h1 class="font-weight-light text-center">Starring</h1>
 
-          <ActorGrid :cols="6" :sm="6" :md="4" :lg="4" :xl="3" :value="actors" />
+          <ActorGrid :cols="6" :sm="6" :md="4" :lg="4" :xl="3" :value="actors" :sceneDate="currentScene.releaseDate"/>
 
           <!-- <v-row>
             <v-col
