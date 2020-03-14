@@ -11,7 +11,7 @@
                   class="text-none black--text primary"
                   depressed
                 >{{ actor.name }}</v-btn>
-                <div v-if="sceneDate && actor.bornOn" class="py-2 text-center">
+                <div v-if="sceneDate && actor.bornOn" class="mt-2 text-center">
                   <p>{{ calculateAge(actor) }}<span class="caption"> y/o in this scene</span></p>
                 </div>
               </v-overlay>
