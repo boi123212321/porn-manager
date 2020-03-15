@@ -148,8 +148,7 @@ export default {
     for (element of elements){
         labels = labels.concat(await table.getLabels(element));
     }
-    labels = labels.filter(Boolean);
-    labels = labels.filter((value, index, array) => !array.filter((v, i) => JSON.stringify(value) == JSON.stringify(v) && i < index).length);
+    labels = labels.filter(Boolean).filter((value, index, array) => !array.filter((v, i) => JSON.stringify(value) == JSON.stringify(v) && i < index).length);
 
     return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
