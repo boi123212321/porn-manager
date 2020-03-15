@@ -124,14 +124,32 @@ export default {
     return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
   async getAreaLabels(_, { idfront }: { idfront: string }) {
-    const references = await CrossReference.getAll()
-    var labels = (
-      await mapAsync(
-        references.filter(r => r.to.startsWith("la_")).filter(r => r.from.startsWith(idfront)),
-        r => Label.getById(r.to)
-      )
-    ).filter(Boolean) as Label[];
-    return labels.sort((a, b) => a.name.localeCompare(b.name));
+    switch (idfront) {
+      case "ac_":
+        var table = Actor;
+        break;
+      case "im_":
+        var table = Image;
+        break;
+      case "mo_":
+        var table = Movie;
+        break;
+      case "sc_":
+        var table = Scene;
+        break;
+      case "st_":
+        var table = Studio;
+        break;
+    }
+    
+    const elements = await table.getAll();
+    var element;
+    var labels = [];
+    for (element of elements){
+        labels = labels.concat(await table.getLabels(element));
+    }
+    labels = labels.filter(Boolean) as Label[]
+    return [ ...new Set(labels)].sort((a, b) => a.name.localeCompare(b.name));
   },
   async numScenes() {
     return await database.count(database.store.scenes, {});
