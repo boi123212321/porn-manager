@@ -131,8 +131,14 @@ export default async () => {
     const ffmpegPath = path.basename(ffmpegURL);
     const ffprobePath = path.basename(ffprobeURL);
 
-    await downloadFile(ffmpegURL, ffmpegPath);
-    await downloadFile(ffprobeURL, ffprobePath);
+    try {
+      await downloadFile(ffmpegURL, ffmpegPath);
+      await downloadFile(ffprobeURL, ffprobePath);
+    } catch (error) {
+      logger.log(error);
+      logger.error(error.message);
+      process.exit(1);
+    }
 
     try {
       logger.log("CHMOD binaries...");
