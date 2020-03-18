@@ -62,13 +62,16 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
   )
     movie.backCover = pluginResult.backCover;
 
-    if (
-      typeof pluginResult.spineCover == "string" &&
-      pluginResult.spineCover.startsWith("im_")
-    )
-      movie.spineCover = pluginResult.spineCover;
+  if (
+    typeof pluginResult.spineCover == "string" &&
+    pluginResult.spineCover.startsWith("im_")
+  )
+    movie.spineCover = pluginResult.spineCover;
 
   if (typeof pluginResult.name === "string") movie.name = pluginResult.name;
+
+  if (typeof pluginResult.description === "string")
+    movie.description = pluginResult.description;
 
   if (typeof pluginResult.releaseDate === "number")
     movie.releaseDate = new Date(pluginResult.releaseDate).valueOf();
