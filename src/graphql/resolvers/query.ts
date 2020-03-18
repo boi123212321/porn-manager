@@ -2,8 +2,7 @@ import Actor from "../../types/actor";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
 import Movie from "../../types/movie";
-import { Dictionary, mapAsync } from "../../types/utility";
-import ProcessingQueue from "../../queue/index";
+import { mapAsync } from "../../types/utility";
 import Studio from "../../types/studio";
 import Image from "../../types/image";
 import * as database from "../../database/index";
@@ -15,6 +14,7 @@ import { getStudios } from "./search/studio";
 import { getMovies } from "./search/movie";
 import { twigsVersion } from "../../search/index";
 import { indexing } from "../../server";
+import { getLength } from "../../queue/processing";
 
 export default {
   async twigs() {
@@ -88,7 +88,7 @@ export default {
 
   async getQueueInfo() {
     return {
-      length: await ProcessingQueue.getLength()
+      length: await getLength()
     };
   },
 

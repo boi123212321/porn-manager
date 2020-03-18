@@ -5,13 +5,11 @@ import Scene from "./types/scene";
 import * as path from "path";
 import { checkPassword, passwordHandler } from "./password";
 import { getConfig, watchConfig } from "./config/index";
-import ProcessingQueue from "./queue/index";
 import {
   checkVideoFolders,
   checkImageFolders,
   checkPreviews
 } from "./queue/check";
-import * as database from "./database/index";
 import { checkSceneSources, checkImageSources } from "./integrity";
 import { loadStores } from "./database/index";
 import { existsAsync } from "./fs/async";
@@ -25,6 +23,8 @@ import { spawnTwigs } from "./twigs";
 import { httpLog } from "./logger";
 import { renderHandlebars } from "./render";
 import { dvdRenderer } from "./dvd_renderer";
+import { getLength } from "./queue/processing";
+import queueRouter from "./queue_router";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
@@ -40,13 +40,13 @@ async function scanFolders() {
   await checkVideoFolders();
   checkImageFolders();
 
-  logger.log(`Processing ${await ProcessingQueue.getLength()} videos...`);
-
-  ProcessingQueue.processLoop();
+  // ProcessingQueue.processLoop();
+  // TODO: start worker
 }
 
 export default async () => {
   const app = express();
+  app.use(express.json());
   app.use(cors);
 
   app.use(httpLog);
@@ -147,6 +147,8 @@ export default async () => {
     }
   );
 
+  app.use("/queue", queueRouter);
+
   app.get("/force-scan", (req, res) => {
     scanFolders();
     res.json("Started scan.");
@@ -159,7 +161,6 @@ export default async () => {
 
   setupMessage = "Loading database...";
   await loadStores();
-  ProcessingQueue.setStore(database.store.queue);
 
   setupMessage = "Checking imports...";
   await checkImportFolders();
@@ -177,7 +178,7 @@ export default async () => {
 
   checkSceneSources();
   checkImageSources();
-  checkPreviews();
+  // checkPreviews();
 
   serverReady = true;
 
@@ -190,6 +191,7 @@ export default async () => {
     logger.warn(
       "Scanning folders is currently disabled. Enable in config.json & restart."
     );
-    ProcessingQueue.processLoop();
+    // ProcessingQueue.processLoop();
+    // TODO: start worker
   }
 };

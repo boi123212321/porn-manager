@@ -24,7 +24,7 @@ let store = {} as {
   labels: DataStore;
   movies: DataStore;
   studios: DataStore;
-  queue: DataStore;
+  processing: DataStore;
   markers: DataStore;
   customFields: DataStore;
 };
@@ -86,7 +86,7 @@ export async function loadStores() {
     labels: await loadStore(libraryPath("labels.db")),
     movies: await loadStore(libraryPath("movies.db")),
     studios: await loadStore(libraryPath("studios.db")),
-    queue: await loadStore(libraryPath("queue.db")),
+    processing: await loadStore(libraryPath("processing.db")),
     markers: await loadStore(libraryPath("markers.db")),
     customFields: await loadStore(libraryPath("custom_fields.db"))
   };

@@ -79,7 +79,8 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length) movie.customFields[fields[0]] = pluginResult[key];
+      if (fields.length)
+        movie.customFields[fields[0]] = pluginResult.custom[key];
     }
   }
 

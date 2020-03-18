@@ -126,6 +126,7 @@ export async function createSceneSearchDoc(
     duration: scene.meta.duration,
     release_date: scene.releaseDate,
     studio: scene.studio,
+    // @ts-ignore
     resolution: scene.meta.dimensions.height,
     size: scene.meta.size,
     studio_name: scene.studio
