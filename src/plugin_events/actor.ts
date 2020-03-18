@@ -81,7 +81,8 @@ export async function onActorCreate(
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length) actor.customFields[fields[0]] = pluginResult[key];
+      if (fields.length)
+        actor.customFields[fields[0]] = pluginResult.custom[key];
     }
   }
 
