@@ -59,9 +59,8 @@ function loadStore(path: string): Promise<DataStore> {
 
 export async function loadStores() {
   try {
-    mkdirp.sync(libraryPath("scenes/"));
     mkdirp.sync(libraryPath("images/"));
-    mkdirp.sync(libraryPath("thumbnails/"));
+    mkdirp.sync(libraryPath("thumbnails/")); // generated screenshots
     mkdirp.sync(libraryPath("previews/"));
   } catch (err) {}
 
