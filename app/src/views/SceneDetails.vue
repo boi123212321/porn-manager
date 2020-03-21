@@ -241,9 +241,7 @@
         <v-col cols="12" sm="6" class="d-flex">
           <v-divider v-if="$vuetify.breakpoint.smAndUp" class="mr-2 d-inline-block" vertical />
           <div v-if="movies.length" style="width: 100%">
-            <h1
-              class="font-weight-light text-center"
-            >Part of {{ movies.length == 1 ? 'movie' : 'movies' }}</h1>
+            <h1 class="font-weight-light text-center">Featured in</h1>
             <v-row class="pa-2">
               <v-col
                 class="pa-1"
