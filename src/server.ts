@@ -32,7 +32,6 @@ logger.message(
 );
 
 let serverReady = false;
-export let indexing = false;
 let setupMessage = "Setting up...";
 
 async function tryStartProcessing() {
@@ -47,7 +46,8 @@ async function tryStartProcessing() {
         detached: false,
         stdio: "inherit"
       }
-    ).on("exit", () => {
+    ).on("exit", code => {
+      logger.log("Processing process exited with code " + code);
       setProcessingStatus(false);
     });
   }
@@ -186,22 +186,17 @@ export default async () => {
   setupMessage = "Checking imports...";
   await checkImportFolders();
 
+  setupMessage = "Starting search engine...";
   await spawnTwigs();
 
-  indexing = true;
-  buildIndices()
-    .then(() => {
-      indexing = false;
-    })
-    .catch(err => {
-      logger.error(err);
-    });
+  setupMessage = "Building search indices...";
+  await buildIndices();
+
+  serverReady = true;
 
   checkSceneSources();
   checkImageSources();
   // checkPreviews();
-
-  serverReady = true;
 
   watchConfig();
 

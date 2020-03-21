@@ -13,14 +13,12 @@ import { getActors } from "./search/actor";
 import { getStudios } from "./search/studio";
 import { getMovies } from "./search/movie";
 import { twigsVersion } from "../../search/index";
-import { indexing } from "../../server";
 import { getLength, isProcessing } from "../../queue/processing";
 
 export default {
   async twigs() {
     return {
-      version: await twigsVersion(),
-      indexing
+      version: await twigsVersion()
     };
   },
 
