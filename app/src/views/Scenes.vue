@@ -250,7 +250,11 @@ export default class SceneList extends mixins(DrawerMixin) {
   fetchLoader = false;
   fetchingRandom = false;
 
-  selectedActors = [] as IActor[];
+  selectedActors = (() => {
+    const fromLocalStorage = localStorage.getItem("pm_sceneActors");
+    if (fromLocalStorage) return JSON.parse(fromLocalStorage);
+    return [];
+  })() as IActor[];
 
   get selectedActorIds() {
     return this.selectedActors.map(ac => ac._id);
@@ -575,6 +579,8 @@ export default class SceneList extends mixins(DrawerMixin) {
     if (this.resetTimeout) {
       clearTimeout(this.resetTimeout);
     }
+
+    localStorage.setItem("pm_sceneActors", JSON.stringify(this.selectedActors));
 
     this.waiting = true;
     this.page = 0;
