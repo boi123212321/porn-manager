@@ -8,7 +8,7 @@
               <div
                 @mouseenter="mouseenter"
                 @mouseleave="mouseleave"
-                v-if="hover"
+                v-if="false && hover"
                 style="position: absolute: top: 0; left: 0; width: 100%; height: 100%"
               >
                 <div style="width: 100%; height: 100%; position: relative">
@@ -136,8 +136,6 @@ export default class SceneCard extends Mixins(SceneMixin) {
   }
 
   mouseenter() {
-    // console.log("playing video");
-
     if (this.playInterval) clearInterval(this.playInterval);
 
     this.playIndex = 60;
@@ -154,12 +152,21 @@ export default class SceneCard extends Mixins(SceneMixin) {
   }
 
   mouseleave() {
-    // @ts-ignore
-    this.$refs.video.setAttribute("src", "");
+    try {
+      // @ts-ignore
+      this.$refs.video.setAttribute("src", "");
+    } catch (error) {}
     if (this.playInterval) {
       // console.log("stopping video");
       clearInterval(this.playInterval);
     }
+  }
+
+  beforeDestroy() {
+    try {
+      // @ts-ignore
+      this.$refs.video.setAttribute("src", "");
+    } catch (error) {}
   }
 
   destroyed() {
