@@ -180,24 +180,27 @@ export default class SceneCard extends Mixins(SceneMixin) {
 
 <style lang="scss" scoped>
 .duration-stamp {
-  padding: 4px;
-  border-radius: 4px;
-  background: #000000a0;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  border-radius: 2px;
+  background: #000000c0;
   position: absolute;
-  bottom: 5px;
-  right: 5px;
+  bottom: 2px;
+  right: 2px;
 }
 
 .corner-slot {
   position: absolute;
-  right: 5px;
-  top: 5px;
+  right: 2px;
+  top: 2px;
 }
 
 .corner-actions {
   position: absolute;
-  bottom: 5px;
-  left: 5px;
+  bottom: 2px;
+  left: 2px;
 }
 
 .video-insert {
