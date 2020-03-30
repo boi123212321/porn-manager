@@ -40,15 +40,11 @@ async function tryStartProcessing() {
   if ((await getLength()) > 0 && !isProcessing()) {
     logger.message("Starting processing worker...");
     setProcessingStatus(true);
-    spawn(
-      process.argv[0],
-      [process.argv[1], "--process-queue"].filter(Boolean),
-      {
-        cwd: process.cwd(),
-        detached: false,
-        stdio: "inherit"
-      }
-    ).on("exit", code => {
+    spawn(process.argv[0], process.argv.slice(1).concat(["--process-queue"]), {
+      cwd: process.cwd(),
+      detached: false,
+      stdio: "inherit"
+    }).on("exit", code => {
       logger.log("Processing process exited with code " + code);
       setProcessingStatus(false);
     });
