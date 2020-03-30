@@ -10,6 +10,7 @@ import { extractLabels, extractActors, extractScenes } from "../extractor";
 import Jimp from "jimp";
 import ora = require("ora");
 import { indexImages } from "../search/image";
+import { imageCollection, sceneCollection } from "../database";
 
 const fileIsExcluded = (exclude: string[], file: string) =>
   exclude.some(regStr => new RegExp(regStr, "i").test(file.toLowerCase()));
@@ -102,7 +103,8 @@ async function processImage(
     logger.log(`Found ${extractedLabels.length} labels in image path.`);
     await Image.setLabels(image, [...new Set(extractedLabels)]);
 
-    await database.insert(database.store.images, image);
+    // await database.insert(database.store.images, image);
+    await imageCollection.upsert(image._id, image);
     await indexImages([image]);
     logger.success(`Image '${imageName}' done.`);
   } catch (error) {
@@ -162,9 +164,7 @@ export async function checkPreviews() {
     return;
   }
 
-  const scenes = (await database.find(database.store.scenes, {
-    preview: null
-  })) as Scene[];
+  const scenes = await sceneCollection.query("preview-index", null);
 
   logger.log(`Generating previews for ${scenes.length} scenes...`);
 
@@ -182,20 +182,12 @@ export async function checkPreviews() {
           image.scene = scene._id;
           image.meta.size = stats.size;
 
-          await database.insert(database.store.images, image);
+          await imageCollection.upsert(image._id, image);
+          // await database.insert(database.store.images, image);
           await indexImages([image]);
 
-          await database.update(
-            database.store.scenes,
-            {
-              _id: scene._id
-            },
-            {
-              $set: {
-                preview: image._id
-              }
-            }
-          );
+          scene.thumbnail = image._id;
+          await sceneCollection.upsert(scene._id, scene);
 
           loader.succeed("Generated preview for " + scene._id);
         } else {

@@ -1472,6 +1472,35 @@ export default class ActorDetails extends Vue {
     this.scenePage = 0;
     this.onLoad();
     this.loadCollabs();
+    this.loadMovies();
+  }
+
+  loadMovies() {
+    ApolloClient.query({
+      query: gql`
+        query($id: String!) {
+          getActorById(id: $id) {
+            movies {
+              ...MovieFragment
+              actors {
+                ...ActorFragment
+              }
+              scenes {
+                ...SceneFragment
+              }
+            }
+          }
+        }
+        ${sceneFragment}
+        ${actorFragment}
+        ${movieFragment}
+      `,
+      variables: {
+        id: (<any>this).$route.params.id
+      }
+    }).then(res => {
+      this.movies = res.data.getActorById.movies;
+    });
   }
 
   loadCollabs() {
@@ -1506,6 +1535,19 @@ export default class ActorDetails extends Vue {
         query($id: String!) {
           getActorById(id: $id) {
             ...ActorFragment
+            numScenes
+            labels {
+              _id
+              name
+            }
+            thumbnail {
+              _id
+              color
+            }
+            altThumbnail {
+              _id
+            }
+            watches
             hero {
               _id
               color
@@ -1513,20 +1555,9 @@ export default class ActorDetails extends Vue {
             avatar {
               _id
             }
-            movies {
-              ...MovieFragment
-              actors {
-                ...ActorFragment
-              }
-              scenes {
-                ...SceneFragment
-              }
-            }
           }
         }
-        ${sceneFragment}
         ${actorFragment}
-        ${movieFragment}
       `,
       variables: {
         id: (<any>this).$route.params.id
@@ -1534,13 +1565,13 @@ export default class ActorDetails extends Vue {
     }).then(res => {
       actorModule.setCurrent(res.data.getActorById);
       this.editCustomFields = res.data.getActorById.customFields;
-      this.movies = res.data.getActorById.movies;
     });
   }
 
   beforeMount() {
     this.onLoad();
     this.loadCollabs();
+    this.loadMovies();
   }
 
   mounted() {

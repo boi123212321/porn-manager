@@ -31,7 +31,9 @@ export default {
     return null;
   },
   async watches(actor: Actor) {
-    return await Actor.getWatches(actor);
+    const watches = await Actor.getWatches(actor);
+    console.log(actor.name, watches);
+    return watches;
   },
   async numScenes(actor: Actor) {
     return (await Scene.getByActor(actor._id)).length;

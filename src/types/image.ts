@@ -1,4 +1,3 @@
-import * as database from "../database";
 import { generateHash } from "../hash";
 import Actor from "./actor";
 import Label from "./label";
@@ -7,6 +6,7 @@ import { unlinkAsync } from "../fs/async";
 import { mapAsync } from "./utility";
 import CrossReference from "./cross_references";
 import Vibrant from "node-vibrant";
+import { imageCollection, crossReferenceCollection } from "../database";
 
 export class ImageDimensions {
   width: number | null = null;
@@ -27,7 +27,7 @@ export default class Image {
   favorite: boolean = false;
   bookmark: number | null = null;
   rating: number = 0;
-  customFields: any = {};
+  customFields: Record<string, any> = {};
   labels?: string[]; // backwards compatibility
   meta = new ImageMeta();
   actors?: string[];
@@ -36,11 +36,12 @@ export default class Image {
   color: string | null = null;
 
   static async filterCustomField(fieldId: string) {
-    await database.update(
-      database.store.images,
-      {},
-      { $unset: { [`customFields.${fieldId}`]: true } }
-    );
+    for (const image of await Image.getAll()) {
+      if (image.customFields[fieldId] !== undefined) {
+        delete image.customFields[fieldId];
+        await imageCollection.upsert(image._id, image);
+      }
+    }
   }
 
   static async color(image: Image) {
@@ -61,13 +62,8 @@ export default class Image {
             palette.Vibrant?.getHex();
 
           if (color) {
-            database
-              .update(
-                database.store.images,
-                { _id: image._id },
-                { $set: { color } }
-              )
-              .catch(err => {});
+            image.color = color;
+            imageCollection.upsert(image._id, image).catch(err => {});
           }
         } catch (err) {
           logger.error(image.path, err);
@@ -96,7 +92,7 @@ export default class Image {
             );
           } else {
             const cr = new CrossReference(imageId, actorId);
-            await database.insert(database.store.crossReferences, cr);
+            await crossReferenceCollection.upsert(cr._id, cr);
             logger.log(
               `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
             );
@@ -114,7 +110,7 @@ export default class Image {
             );
           } else {
             const cr = new CrossReference(imageId, labelId);
-            await database.insert(database.store.crossReferences, cr);
+            await crossReferenceCollection.upsert(cr._id, cr);
             logger.log(
               `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
             );
@@ -133,42 +129,32 @@ export default class Image {
         if (image.studio && !image.studio.startsWith("st_")) {
           newImage.studio = "st_" + image.studio;
         }
-        await database.insert(database.store.images, newImage);
-        await database.remove(database.store.images, { _id: image._id });
+        await imageCollection.upsert(newImage._id, newImage);
+        await imageCollection.remove(image._id);
         logger.log(`Changed image ID: ${image._id} -> ${imageId}`);
       } else {
         if (image.studio && !image.studio.startsWith("st_")) {
-          await database.update(
-            database.store.images,
-            { _id: imageId },
-            { $set: { studio: "st_" + image.studio } }
-          );
+          image.studio = "st_" + image.studio;
+          await imageCollection.upsert(image._id, image);
         }
         if (image.scene && !image.scene.startsWith("sc_")) {
-          await database.update(
-            database.store.images,
-            { _id: imageId },
-            { $set: { scene: "sc_" + image.scene } }
-          );
+          image.scene = "sc_" + image.scene;
+          await imageCollection.upsert(image._id, image);
         }
-        if (image.actors)
-          await database.update(
-            database.store.images,
-            { _id: imageId },
-            { $unset: { actors: true } }
-          );
-        if (image.labels)
-          await database.update(
-            database.store.images,
-            { _id: imageId },
-            { $unset: { labels: true } }
-          );
+        if (image.actors) {
+          delete image.actors;
+          await imageCollection.upsert(image._id, image);
+        }
+        if (image.labels) {
+          delete image.labels;
+          await imageCollection.upsert(image._id, image);
+        }
       }
     }
   }
 
   static async remove(image: Image) {
-    await database.remove(database.store.images, { _id: image._id });
+    await imageCollection.remove(image._id);
     try {
       if (image.path) await unlinkAsync(image.path);
     } catch (error) {
@@ -177,33 +163,25 @@ export default class Image {
   }
 
   static async filterStudio(studioId: string) {
-    await database.update(
-      database.store.images,
-      { studio: studioId },
-      { $set: { studio: null } }
-    );
+    for (const image of await Image.getAll()) {
+      if (image.studio == studioId) {
+        image.studio = null;
+        await imageCollection.upsert(image._id, image);
+      }
+    }
   }
 
-  static async filterScene(scene: string) {
-    await database.update(
-      database.store.images,
-      { scene },
-      { $set: { scene: null } }
-    );
-  }
-
-  static async filterActor(actor: string) {
-    await database.update(
-      database.store.images,
-      {},
-      { $pull: { actors: actor } }
-    );
+  static async filterScene(sceneId: string) {
+    for (const image of await Image.getAll()) {
+      if (image.scene == sceneId) {
+        image.scene = null;
+        await imageCollection.upsert(image._id, image);
+      }
+    }
   }
 
   static async getByScene(id: string) {
-    return (await database.find(database.store.images, {
-      scene: id
-    })) as Image[];
+    return imageCollection.query("scene-index", id);
   }
 
   static async getByActor(id: string) {
@@ -217,13 +195,11 @@ export default class Image {
   }
 
   static async getById(_id: string) {
-    return (await database.findOne(database.store.images, {
-      _id
-    })) as Image | null;
+    return imageCollection.get(_id);
   }
 
   static async getAll() {
-    return (await database.find(database.store.images, {})) as Image[];
+    return imageCollection.getAll();
   }
 
   static async getActors(image: Image) {
@@ -245,13 +221,12 @@ export default class Image {
       .map(r => r._id);
 
     for (const id of oldActorReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(actorIds)]) {
       const crossReference = new CrossReference(image._id, id);
       logger.log("Adding actor to image: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
     }
   }
 
@@ -263,13 +238,13 @@ export default class Image {
       .map(r => r._id);
 
     for (const id of oldLabelReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
       const crossReference = new CrossReference(image._id, id);
       logger.log("Adding label to image: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
+      await crossReferenceCollection.upsert(crossReference._id, crossReference);
     }
   }
 
@@ -284,9 +259,9 @@ export default class Image {
   }
 
   static async getImageByPath(path: string) {
-    return (await database.findOne(database.store.images, {
-      path
-    })) as Image | null;
+    return (await imageCollection.query("path-index", path))[0] as
+      | Image
+      | undefined;
   }
 
   constructor(name: string) {

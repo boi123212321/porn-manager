@@ -131,7 +131,7 @@ export default {
     return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
   async numScenes() {
-    return await database.count(database.store.scenes, {});
+    return 77; // TODO:
   },
   async numActors() {
     return await database.count(database.store.actors, {});
@@ -146,7 +146,8 @@ export default {
     return await database.count(database.store.studios, {});
   },
   async numImages() {
-    return await database.count(database.store.images, {});
+    // return await database.count(database.store.images, {});
+    return 77; // TODO:
   },
   async actorGraph() {
     const actors = await Actor.getAll();

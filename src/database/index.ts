@@ -12,15 +12,18 @@ import Studio from "../types/studio";
 import CrossReference from "../types/cross_references";
 import Marker from "../types/marker";
 import { bookmarksToTimestamp } from "../integrity";
+import { Izzy } from "./internal/index";
+import args from "../args";
 
 mkdirp.sync("backups/");
 mkdirp.sync("tmp/");
 
+export let sceneCollection!: Izzy.Collection<Scene>;
+export let imageCollection!: Izzy.Collection<Image>;
+export let crossReferenceCollection!: Izzy.Collection<CrossReference>;
+
 let store = {} as {
-  crossReferences: DataStore;
-  scenes: DataStore;
   actors: DataStore;
-  images: DataStore;
   labels: DataStore;
   movies: DataStore;
   studios: DataStore;
@@ -77,11 +80,59 @@ export async function loadStores() {
 
   const dbLoader = ora("Loading DB...").start();
 
+  crossReferenceCollection = await Izzy.createCollection(
+    "cross-references",
+    libraryPath("cross_references.db"),
+    [
+      {
+        name: "from-index",
+        key: "from"
+      },
+      {
+        name: "to-index",
+        key: "to"
+      }
+    ]
+  );
+  imageCollection = await Izzy.createCollection(
+    "images",
+    libraryPath("images.db"),
+    [
+      {
+        name: "scene-index",
+        key: "scene"
+      },
+      {
+        name: "studio-index",
+        key: "studio"
+      },
+      {
+        name: "path-index",
+        key: "path"
+      }
+    ]
+  );
+  sceneCollection = await Izzy.createCollection(
+    "scenes",
+    libraryPath("scenes.db"),
+    [
+      {
+        name: "studio-index",
+        key: "studio"
+      },
+      {
+        name: "path-index",
+        key: "path"
+      },
+      {
+        name: "preview-index",
+        key: "preview"
+      }
+    ]
+  );
+
   store = {
-    crossReferences: await loadStore(libraryPath("cross_references.db")),
-    scenes: await loadStore(libraryPath("scenes.db")),
     actors: await loadStore(libraryPath("actors.db")),
-    images: await loadStore(libraryPath("images.db")),
     labels: await loadStore(libraryPath("labels.db")),
     movies: await loadStore(libraryPath("movies.db")),
     studios: await loadStore(libraryPath("studios.db")),
@@ -94,22 +145,7 @@ export async function loadStores() {
 
   const indexLoader = ora("Building DB indices...").start();
 
-  await buildIndex(store.crossReferences, {
-    fieldName: "from"
-  });
-  await buildIndex(store.crossReferences, {
-    fieldName: "to"
-  });
-  await buildIndex(store.scenes, {
-    fieldName: "studio"
-  });
   await buildIndex(store.movies, {
-    fieldName: "studio"
-  });
-  await buildIndex(store.images, {
-    fieldName: "scene"
-  });
-  await buildIndex(store.images, {
     fieldName: "studio"
   });
   await buildIndex(store.studios, {
@@ -121,19 +157,21 @@ export async function loadStores() {
 
   indexLoader.succeed();
 
-  const integrityLoader = ora(
-    "Checking database integrity. This might take a minute..."
-  ).start();
+  if (args["ignore-integrity"]) {
+    const integrityLoader = ora(
+      "Checking database integrity. This might take a minute..."
+    ).start();
 
-  await Scene.checkIntegrity();
-  await Actor.checkIntegrity();
-  await Label.checkIntegrity();
-  await Image.checkIntegrity();
-  await Studio.checkIntegrity();
-  await Movie.checkIntegrity();
-  await CrossReference.checkIntegrity();
-  await Marker.checkIntegrity();
-  integrityLoader.succeed("Integrity check done.");
+    await Scene.checkIntegrity();
+    await Actor.checkIntegrity();
+    await Label.checkIntegrity();
+    await Image.checkIntegrity();
+    await Studio.checkIntegrity();
+    await Movie.checkIntegrity();
+    await CrossReference.checkIntegrity();
+    await Marker.checkIntegrity();
+    integrityLoader.succeed("Integrity check done.");
+  }
 }
 
 export function count(store: DataStore, query: any): Promise<number> {

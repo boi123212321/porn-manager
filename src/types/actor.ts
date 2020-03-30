@@ -6,6 +6,7 @@ import { mapAsync, createObjectSet } from "./utility";
 import CrossReference from "./cross_references";
 import * as logger from "../logger";
 import moment = require("moment");
+import { crossReferenceCollection } from "../database";
 
 export default class Actor {
   _id: string;
@@ -56,7 +57,7 @@ export default class Actor {
             );
           } else {
             const cr = new CrossReference(actorId, labelId);
-            await database.insert(database.store.crossReferences, cr);
+            await crossReferenceCollection.upsert(cr._id, cr);
             logger.log(
               `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
             );
@@ -112,13 +113,13 @@ export default class Actor {
       .map(r => r._id);
 
     for (const id of oldLabelReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
       const crossReference = new CrossReference(actor._id, id);
       logger.log("Adding label to actor: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
+      await crossReferenceCollection.upsert(crossReference._id, crossReference);
     }
   }
 

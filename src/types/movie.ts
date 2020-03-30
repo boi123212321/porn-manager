@@ -6,6 +6,7 @@ import Label from "./label";
 import { mapAsync } from "./utility";
 import CrossReference from "./cross_references";
 import * as logger from "../logger";
+import { crossReferenceCollection } from "../database";
 
 export default class Movie {
   _id: string;
@@ -49,7 +50,7 @@ export default class Movie {
             );
           } else {
             const cr = new CrossReference(movieId, actorId);
-            await database.insert(database.store.crossReferences, cr);
+            await crossReferenceCollection.upsert(cr._id, cr);
             logger.log(
               `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
             );
@@ -206,13 +207,13 @@ export default class Movie {
       .map(r => r._id);
 
     for (const id of oldSceneReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(sceneIds)]) {
       const crossReference = new CrossReference(movie._id, id);
       logger.log("Adding label to scene: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
+      await crossReferenceCollection.upsert(crossReference._id, crossReference);
     }
   }
 

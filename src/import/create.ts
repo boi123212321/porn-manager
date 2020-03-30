@@ -25,6 +25,7 @@ import { onActorCreate } from "../plugin_events/actor";
 import { isString } from "./schemas/common";
 import { onMovieCreate } from "../plugin_events/movie";
 import { isNumber, isBoolean } from "../types/utility";
+import { imageCollection, crossReferenceCollection } from "../database/index";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -140,7 +141,8 @@ export async function createFromFileData(opts: ICreateOptions) {
         studio.thumbnail = image._id;
 
         if (args["commit-import"])
-          await database.insert(database.store.images, image);
+          // await database.insert(database.store.images, image);
+          await imageCollection.upsert(image._id, image);
       }
 
       if (args["commit-import"])
@@ -178,8 +180,8 @@ export async function createFromFileData(opts: ICreateOptions) {
         const reference = new CrossReference(image._id, actor._id);
 
         if (args["commit-import"]) {
-          await database.insert(database.store.crossReferences, reference);
-          await database.insert(database.store.images, image);
+          await crossReferenceCollection.upsert(reference._id, reference);
+          await imageCollection.upsert(image._id, image);
         }
       }
 

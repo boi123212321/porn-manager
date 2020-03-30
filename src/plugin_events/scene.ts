@@ -20,6 +20,7 @@ import { onActorCreate } from "./actor";
 import { indices } from "../search/index";
 import { createActorSearchDoc } from "../search/actor";
 import { indexImages } from "../search/image";
+import { imageCollection } from "../database/index";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -45,7 +46,7 @@ export async function onSceneCreate(
       img.path = path;
       img.scene = scene._id;
       logger.log("Created image " + img._id);
-      await database.insert(database.store.images, img);
+      await imageCollection.upsert(img._id, img);
       if (!thumbnail) {
         await indexImages([img]);
       }
@@ -62,7 +63,7 @@ export async function onSceneCreate(
       img.path = path;
       img.scene = scene._id;
       logger.log("Created image " + img._id);
-      await database.insert(database.store.images, img);
+      await imageCollection.upsert(img._id, img);
       if (!thumbnail) {
         await indexImages([img]);
       }

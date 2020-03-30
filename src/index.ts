@@ -15,6 +15,7 @@ import Axios from "axios";
 import Scene from "./types/scene";
 import Image from "./types/image";
 import { statAsync } from "./fs/async";
+import { ensureIzzyExists } from "./izzy";
 
 export async function onConfigLoad(config: IConfig) {
   validatePlugins(config);
@@ -137,6 +138,7 @@ printMaxMemory();
     }
 
     await ensureTwigsExists();
+    await ensureIzzyExists();
     startServer();
   }
 })();

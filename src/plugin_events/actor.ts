@@ -10,6 +10,7 @@ import * as database from "../database/index";
 import * as logger from "../logger";
 import { indexImages } from "../search/image";
 import Label from "../types/label";
+import { imageCollection } from "../database/index";
 
 // This function has side effects
 export async function onActorCreate(
@@ -33,7 +34,8 @@ export async function onActorCreate(
       img.path = path;
       await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
-      await database.insert(database.store.images, img);
+      // await database.insert(database.store.images, img);
+      await imageCollection.upsert(img._id, img);
       if (!thumbnail) {
         await indexImages([img]);
       }
@@ -50,7 +52,8 @@ export async function onActorCreate(
       img.path = path;
       await Image.setActors(img, [actor._id]);
       logger.log("Created image " + img._id);
-      await database.insert(database.store.images, img);
+      // await database.insert(database.store.images, img);
+      await imageCollection.upsert(img._id, img);
       if (!thumbnail) {
         await indexImages([img]);
       }

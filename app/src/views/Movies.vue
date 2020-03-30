@@ -483,15 +483,11 @@ export default class MovieList extends mixins(DrawerMixin) {
                 ...ActorFragment
               }
               scenes {
-                ...SceneFragment
-                actors {
-                  ...ActorFragment
-                }
+                _id
               }
             }
           }
           ${movieFragment}
-          ${sceneFragment}
           ${actorFragment}
         `,
         variables: {

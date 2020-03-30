@@ -8,6 +8,7 @@ import Label from "./label";
 import Image from "./image";
 import * as path from "path";
 import { singleScreenshot } from "../ffmpeg/screenshot";
+import { imageCollection, crossReferenceCollection } from "../database";
 
 export default class Marker {
   _id: string;
@@ -55,7 +56,8 @@ export default class Marker {
     await Image.setLabels(image, labels);
 
     await singleScreenshot(scene.path, image.path, marker.time + 15);
-    await database.insert(database.store.images, image);
+    // await database.insert(database.store.images, image);
+    await imageCollection.upsert(image._id, image);
     await database.update(
       database.store.markers,
       { _id: marker._id },
@@ -75,13 +77,13 @@ export default class Marker {
       .map(r => r._id);
 
     for (const id of oldLabelReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
       const crossReference = new CrossReference(marker._id, id);
       logger.log("Adding label to marker: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
+      await crossReferenceCollection.upsert(crossReference._id, crossReference);
     }
   }
 

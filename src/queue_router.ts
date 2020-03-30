@@ -2,8 +2,8 @@ import { Router } from "express";
 import { getHead, removeSceneFromQueue } from "./queue/processing";
 import Scene from "./types/scene";
 import Image from "./types/image";
-import * as database from "./database/index";
 import { indexImages } from "./search/image";
+import { imageCollection, sceneCollection } from "./database/index";
 
 const router = Router();
 
@@ -15,17 +15,11 @@ router.delete("/:id", async (req, res) => {
 router.post("/:id", async (req, res) => {
   await removeSceneFromQueue(req.params.id);
   if (req.body.scene) {
-    await database.update(
-      database.store.scenes,
-      { _id: req.params.id },
-      {
-        $set: req.body.scene
-      }
-    );
+    await sceneCollection.upsert(req.params.id, req.body.scene);
   }
   if (req.body.images) {
     for (const image of req.body.images) {
-      await database.insert(database.store.images, image);
+      await imageCollection.upsert(image._id, image);
       await indexImages([image]);
       const scene = await Scene.getById(image.scene);
       if (scene) {
@@ -44,7 +38,8 @@ router.post("/:id", async (req, res) => {
   }
   if (req.body.thumbs) {
     for (const thumb of req.body.thumbs) {
-      await database.insert(database.store.images, thumb);
+      // await database.insert(database.store.images, thumb);
+      await imageCollection.upsert(thumb._id, thumb);
     }
   }
   res.json(null);

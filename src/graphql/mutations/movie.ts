@@ -5,6 +5,7 @@ import * as logger from "../../logger";
 import { indices } from "../../search/index";
 import { createMovieSearchDoc } from "../../search/movie";
 import { onMovieCreate } from "../../plugin_events/movie";
+import CrossReference from "../../types/cross_references";
 
 type IMovieUpdateOpts = Partial<{
   name: string;
@@ -49,12 +50,8 @@ export default {
       if (movie) {
         await Movie.remove(movie._id);
         indices.movies.remove(movie._id);
-        await database.remove(database.store.crossReferences, {
-          from: movie._id
-        });
-        await database.remove(database.store.crossReferences, {
-          to: movie._id
-        });
+
+        await CrossReference.clear(movie._id);
       }
     }
     return true;

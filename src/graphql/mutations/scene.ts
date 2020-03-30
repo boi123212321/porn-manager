@@ -12,6 +12,8 @@ import Studio from "../../types/studio";
 import Marker from "../../types/marker";
 import { removeSceneDoc, updateSceneDoc } from "../../search/scene";
 import { onSceneCreate } from "../../plugin_events/scene";
+import CrossReference from "../../types/cross_references";
+import { sceneCollection } from "../../database";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
@@ -42,7 +44,7 @@ async function runScenePlugins(ids: string[]) {
 
       await Scene.setLabels(scene, labels);
       await Scene.setActors(scene, actors);
-      await database.update(database.store.scenes, { _id: scene._id }, scene);
+      await sceneCollection.upsert(scene._id, scene);
       await updateSceneDoc(scene);
 
       changedScenes.push(scene);
@@ -144,7 +146,7 @@ export default {
     }
 
     await Scene.setLabels(scene, labels);
-    await database.insert(database.store.scenes, scene);
+    await sceneCollection.upsert(scene._id, scene);
     logger.success(`Scene '${sceneName}' done.`);
     return scene;
   },
@@ -231,7 +233,7 @@ export default {
           scene.customFields = opts.customFields;
         }
 
-        await database.update(database.store.scenes, { _id: scene._id }, scene);
+        await sceneCollection.upsert(scene._id, scene);
         updatedScenes.push(scene);
         await updateSceneDoc(scene);
       }
@@ -257,12 +259,7 @@ export default {
         if (deleteImages === true) {
           for (const image of await Image.getByScene(scene._id)) {
             await Image.remove(image);
-            await database.remove(database.store.crossReferences, {
-              from: image._id
-            });
-            await database.remove(database.store.crossReferences, {
-              to: image._id
-            });
+            await CrossReference.clear(image._id);
           }
           logger.success("Deleted images of scene " + scene._id);
         }
@@ -271,12 +268,7 @@ export default {
 
         logger.success("Deleted scene " + scene._id);
 
-        await database.remove(database.store.crossReferences, {
-          from: scene._id
-        });
-        await database.remove(database.store.crossReferences, {
-          to: scene._id
-        });
+        await CrossReference.clear(scene._id);
       }
     }
     return true;

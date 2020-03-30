@@ -1164,9 +1164,16 @@ export default class SceneDetails extends Vue {
         query($id: String!) {
           getSceneById(id: $id) {
             processed
+            preview {
+              _id
+            }
             ...SceneFragment
             actors {
               ...ActorFragment
+              thumbnail {
+                _id
+                color
+              }
             }
             studio {
               ...StudioFragment

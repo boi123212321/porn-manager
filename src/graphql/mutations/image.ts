@@ -1,4 +1,3 @@
-import * as database from "../../database";
 import Actor from "../../types/actor";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
@@ -14,6 +13,8 @@ import { statAsync, unlinkAsync } from "../../fs/async";
 import { getConfig } from "../../config";
 import Studio from "../../types/studio";
 import { removeImageDoc, indexImages } from "../../search/image";
+import { imageCollection } from "../../database";
+import CrossReference from "../../types/cross_references";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -200,7 +201,8 @@ export default {
 
     // Done
 
-    await database.insert(database.store.images, image);
+    await imageCollection.upsert(image._id, image);
+    // await database.insert(database.store.images, image);
     await indexImages([image]);
     await unlinkAsync(outPath);
     logger.success(`Image '${imageName}' done.`);
@@ -266,10 +268,8 @@ export default {
           image.customFields = opts.customFields;
         }
 
-        await database.update(database.store.images, { _id: image._id }, image);
+        await imageCollection.upsert(image._id, image);
         updatedImages.push(image);
-        // indices.images.update(image._id, await createImageSearchDoc(image));
-        // TODO: update image
       } else {
         throw new Error(`Image ${id} not found`);
       }
@@ -289,12 +289,7 @@ export default {
         await Scene.filterImage(image._id);
         await Label.filterImage(image._id);
         await Movie.filterImage(image._id);
-        await database.remove(database.store.crossReferences, {
-          from: image._id
-        });
-        await database.remove(database.store.crossReferences, {
-          to: image._id
-        });
+        await CrossReference.clear(image._id);
       }
     }
     return true;

@@ -6,6 +6,7 @@ import * as logger from "./logger";
 import { getConfig } from "./config/index";
 import fs from "fs";
 import readline from "readline";
+import { imageCollection, sceneCollection } from "./database/index";
 
 export function bookmarksToTimestamp(file: string) {
   if (!fs.existsSync(file)) return;
@@ -61,17 +62,14 @@ export async function checkSceneSources() {
       const sourceExists = await existsAsync(scene.path);
 
       if (!sourceExists) {
+        removedScenes.push(scene.path);
         if (config.REMOVE_DANGLING_FILE_REFERENCES === true) {
-          await database.update(
-            database.store.scenes,
-            { _id: scene._id },
-            { $set: { path: null } }
-          );
+          scene.path = null;
+          await sceneCollection.upsert(scene._id, scene);
           logger.log(
             `Removed file reference from ${scene._id} (${scene.path})`
           );
         }
-        removedScenes.push(scene.path);
         removedReferences++;
       }
     }
@@ -101,14 +99,16 @@ export async function checkImageSources() {
 
       if (!sourceExists) {
         if (config.REMOVE_DANGLING_FILE_REFERENCES) {
-          await database.remove(database.store.images, { _id: image._id });
+          // await database.remove(database.store.images, { _id: image._id });
+          await imageCollection.remove(image._id);
           logger.log("Removed image " + image._id);
         }
         removedImages.push(image.path);
         removedReferences++;
       }
     } else {
-      await database.remove(database.store.images, { _id: image._id });
+      // await database.remove(database.store.images, { _id: image._id });
+      await imageCollection.remove(image._id);
       logger.log("Removed image " + image._id);
     }
   }

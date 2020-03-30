@@ -9,6 +9,7 @@ import * as database from "../database/index";
 import * as logger from "../logger";
 import { indexImages } from "../search/image";
 import Movie from "../types/movie";
+import { imageCollection } from "../database/index";
 
 // This function has side effects
 export async function onMovieCreate(movie: Movie, event = "movieCreated") {
@@ -27,7 +28,8 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
       if (thumbnail) img.name += " (thumbnail)";
       img.path = path;
       logger.log("Created image " + img._id);
-      await database.insert(database.store.images, img);
+      // await database.insert(database.store.images, img);
+      await imageCollection.upsert(img._id, img);
       if (!thumbnail) {
         await indexImages([img]);
       }
@@ -43,7 +45,8 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
       await downloadFile(url, path);
       img.path = path;
       logger.log("Created image " + img._id);
-      await database.insert(database.store.images, img);
+      // await database.insert(database.store.images, img);
+      await imageCollection.upsert(img._id, img);
       if (!thumbnail) {
         await indexImages([img]);
       }

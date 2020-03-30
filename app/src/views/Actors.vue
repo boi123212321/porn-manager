@@ -531,6 +531,15 @@ export default class SceneList extends mixins(DrawerMixin) {
           query($query: String) {
             getActors(query: $query) {
               ...ActorFragment
+              labels {
+                _id
+                name
+              }
+              thumbnail {
+                _id
+                color
+              }
+              numScenes
             }
           }
           ${actorFragment}

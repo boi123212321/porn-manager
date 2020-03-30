@@ -23,6 +23,11 @@ import { extractStudios, extractActors, extractLabels } from "../extractor";
 import Studio from "./studio";
 import { onSceneCreate } from "../plugin_events/scene";
 import { enqueueScene } from "../queue/processing";
+import {
+  imageCollection,
+  crossReferenceCollection,
+  sceneCollection
+} from "../database";
 
 export function runFFprobe(file: string): Promise<FfprobeData> {
   return new Promise((resolve, reject) => {
@@ -178,13 +183,13 @@ export default class Scene {
     await Image.setLabels(image, sceneLabels);
     await Image.setActors(image, sceneActors);
     logger.log(`Creating image with id ${image._id}...`);
-    await database.insert(database.store.images, image);
+    await imageCollection.upsert(image._id, image);
 
     scene.thumbnail = image._id;
     logger.log(`Creating scene with id ${scene._id}...`);
     await Scene.setLabels(scene, sceneLabels);
     await Scene.setActors(scene, sceneActors);
-    await database.insert(database.store.scenes, scene);
+    await sceneCollection.upsert(scene._id, scene);
     await indexScenes([scene]);
     logger.success(`Scene '${scene.name}' created.`);
 
@@ -202,20 +207,14 @@ export default class Scene {
 
       if (scene.processed === undefined) {
         logger.log(`Undefined scene processed status, setting to true...`);
-        await database.update(
-          database.store.scenes,
-          { _id: sceneId },
-          { $set: { processed: true } }
-        );
+        scene.processed = true;
+        await sceneCollection.upsert(scene._id, scene);
       }
 
       if (scene.preview === undefined) {
         logger.log(`Undefined scene preview, setting to null...`);
-        await database.update(
-          database.store.scenes,
-          { _id: sceneId },
-          { $set: { preview: null } }
-        );
+        scene.preview = null;
+        await sceneCollection.upsert(scene._id, scene);
       }
 
       if (scene.actors && scene.actors.length) {
@@ -228,7 +227,7 @@ export default class Scene {
             );
           } else {
             const cr = new CrossReference(sceneId, actorId);
-            await database.insert(database.store.crossReferences, cr);
+            await crossReferenceCollection.upsert(cr._id, cr);
             logger.log(
               `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
             );
@@ -246,7 +245,7 @@ export default class Scene {
             );
           } else {
             const cr = new CrossReference(sceneId, labelId);
-            await database.insert(database.store.crossReferences, cr);
+            await crossReferenceCollection.upsert(cr._id, cr);
             logger.log(
               `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
             );
@@ -265,62 +264,42 @@ export default class Scene {
         if (scene.studio && !scene.studio.startsWith("st_")) {
           newScene.studio = "st_" + scene.studio;
         }
-        await database.insert(database.store.scenes, newScene);
-        await database.remove(database.store.scenes, { _id: scene._id });
+        await sceneCollection.upsert(newScene._id, newScene);
+        await sceneCollection.remove(scene._id);
         logger.log(`Changed scene ID: ${scene._id} -> ${sceneId}`);
       } else {
         if (scene.studio && !scene.studio.startsWith("st_")) {
-          await database.update(
-            database.store.scenes,
-            { _id: sceneId },
-            { $set: { studio: "st_" + scene.studio } }
-          );
+          scene.studio = "st_" + scene.studio;
+          await sceneCollection.upsert(scene._id, scene);
         }
         if (scene.thumbnail && !scene.thumbnail.startsWith("im_")) {
-          await database.update(
-            database.store.scenes,
-            { _id: sceneId },
-            { $set: { thumbnail: "im_" + scene.thumbnail } }
-          );
+          scene.thumbnail = "im_" + scene.thumbnail;
+          await sceneCollection.upsert(scene._id, scene);
         }
-        if (scene.actors)
-          await database.update(
-            database.store.scenes,
-            { _id: sceneId },
-            { $unset: { actors: true } }
-          );
-        if (scene.labels)
-          await database.update(
-            database.store.scenes,
-            { _id: sceneId },
-            { $unset: { labels: true } }
-          );
+        if (scene.actors) {
+          delete scene.actors;
+          await sceneCollection.upsert(scene._id, scene);
+        }
+        if (scene.labels) {
+          delete scene.labels;
+          await sceneCollection.upsert(scene._id, scene);
+        }
       }
     }
   }
 
   static async watch(scene: Scene) {
     scene.watches.push(Date.now());
-
-    await database.update(
-      database.store.scenes,
-      { _id: scene._id },
-      { $set: { watches: scene.watches } }
-    );
+    await sceneCollection.upsert(scene._id, scene);
   }
 
   static async unwatch(scene: Scene) {
     scene.watches.pop();
-
-    await database.update(
-      database.store.scenes,
-      { _id: scene._id },
-      { $set: { watches: scene.watches } }
-    );
+    await sceneCollection.upsert(scene._id, scene);
   }
 
   static async remove(scene: Scene) {
-    await database.remove(database.store.scenes, { _id: scene._id });
+    await sceneCollection.remove(scene._id);
     try {
       if (scene.path) await unlinkAsync(scene.path);
     } catch (error) {
@@ -329,32 +308,31 @@ export default class Scene {
   }
 
   static async filterCustomField(fieldId: string) {
-    await database.update(
-      database.store.scenes,
-      {},
-      { $unset: { [`customFields.${fieldId}`]: true } }
-    );
+    for (const scene of await Scene.getAll()) {
+      if (scene.customFields[fieldId] !== undefined) {
+        delete scene.customFields[fieldId];
+        await sceneCollection.upsert(scene._id, scene);
+      }
+    }
   }
 
   static async filterStudio(studioId: string) {
-    await database.update(
-      database.store.scenes,
-      { studio: studioId },
-      { $set: { studio: null } }
-    );
+    for (const scene of await Scene.getAll()) {
+      if (scene.studio == studioId) {
+        scene.studio = null;
+        await sceneCollection.upsert(scene._id, scene);
+      }
+    }
   }
 
   static async filterImage(imageId: string) {
-    await database.update(
-      database.store.scenes,
-      { thumbnail: imageId },
-      { $set: { thumbnail: null } }
-    );
-    await database.update(
-      database.store.scenes,
-      { preview: imageId },
-      { $set: { preview: null } }
-    );
+    for (const scene of await Scene.getAll()) {
+      if (scene.thumbnail == imageId) {
+        scene.studio = null;
+        if (scene.preview == imageId) scene.studio = null;
+        await sceneCollection.upsert(scene._id, scene);
+      }
+    }
   }
 
   static async getByActor(id: string) {
@@ -368,9 +346,7 @@ export default class Scene {
   }
 
   static async getByStudio(id: string) {
-    return (await database.find(database.store.scenes, {
-      studio: id
-    })) as Scene[];
+    return sceneCollection.query("studio-index", id);
   }
 
   static async getMarkers(scene: Scene) {
@@ -411,13 +387,13 @@ export default class Scene {
       .map(r => r._id);
 
     for (const id of oldActorReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(actorIds)]) {
       const crossReference = new CrossReference(scene._id, id);
       logger.log("Adding actor to scene: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
+      await crossReferenceCollection.upsert(crossReference._id, crossReference);
     }
   }
 
@@ -429,13 +405,13 @@ export default class Scene {
       .map(r => r._id);
 
     for (const id of oldLabelReferences) {
-      await database.remove(database.store.crossReferences, { _id: id });
+      await crossReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
       const crossReference = new CrossReference(scene._id, id);
       logger.log("Adding label to scene: " + JSON.stringify(crossReference));
-      await database.insert(database.store.crossReferences, crossReference);
+      await crossReferenceCollection.upsert(crossReference._id, crossReference);
     }
   }
 
@@ -450,19 +426,18 @@ export default class Scene {
   }
 
   static async getSceneByPath(path: string) {
-    return (await database.findOne(database.store.scenes, {
-      path
-    })) as Scene | null;
+    return sceneCollection.query("path-index", path);
   }
 
   static async getById(_id: string) {
-    return (await database.findOne(database.store.scenes, {
+    return sceneCollection.get(_id);
+    /*  return (await database.findOne(database.store.scenes, {
       _id
-    })) as Scene | null;
+    })) as Scene | null; */
   }
 
   static async getAll(): Promise<Scene[]> {
-    return (await database.find(database.store.scenes, {})) as Scene[];
+    return sceneCollection.getAll();
   }
 
   constructor(name: string) {
@@ -668,7 +643,8 @@ export default class Scene {
     );
 
     logger.log("Screenshot done.");
-    await database.insert(database.store.images, image);
+    // await database.insert(database.store.images, image);
+    await imageCollection.upsert(image._id, image);
 
     const actors = (await Scene.getActors(scene)).map(l => l._id);
     await Image.setActors(image, actors);
@@ -676,15 +652,8 @@ export default class Scene {
     const labels = (await Scene.getLabels(scene)).map(l => l._id);
     await Image.setLabels(image, labels);
 
-    await database.update(
-      database.store.scenes,
-      { _id: scene._id },
-      {
-        $set: {
-          thumbnail: image._id
-        }
-      }
-    );
+    scene.thumbnail = image._id;
+    await sceneCollection.upsert(scene._id, scene);
 
     return image;
   }

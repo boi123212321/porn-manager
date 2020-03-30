@@ -11,6 +11,7 @@ import { createActorSearchDoc } from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
 import { updateSceneDoc } from "../../search/scene";
 import { updateImageDoc } from "../../search/image";
+import CrossReference from "../../types/cross_references";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -203,12 +204,7 @@ export default {
       if (actor) {
         await Actor.remove(actor);
         indices.actors.remove(actor._id);
-        await database.remove(database.store.crossReferences, {
-          from: actor._id
-        });
-        await database.remove(database.store.crossReferences, {
-          to: actor._id
-        });
+        await CrossReference.clear(actor._id);
       }
     }
     return true;

@@ -28,6 +28,7 @@ import queueRouter from "./queue_router";
 import { spawn } from "child_process";
 import { clearSceneIndex } from "./search/scene";
 import { clearImageIndex } from "./search/image";
+import { spawnIzzy, izzyVersion, resetIzzy } from "./izzy";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
@@ -179,6 +180,12 @@ export default async () => {
   }
 
   setupMessage = "Loading database...";
+  if (await izzyVersion()) {
+    logger.log("Izzy already running, clearing...");
+    await resetIzzy();
+  } else {
+    await spawnIzzy();
+  }
   await loadStores();
 
   setupMessage = "Checking imports...";

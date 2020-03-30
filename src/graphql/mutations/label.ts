@@ -7,6 +7,7 @@ import { stripStr } from "../../extractor";
 import * as logger from "../../logger";
 import { updateSceneDoc } from "../../search/scene";
 import { updateImageDoc } from "../../search/image";
+import CrossReference from "../../types/cross_references";
 
 type ILabelUpdateOpts = Partial<{
   name: string;
@@ -21,9 +22,7 @@ export default {
 
       if (label) {
         await Label.remove(label._id);
-        await database.remove(database.store.crossReferences, {
-          to: label._id
-        });
+        await CrossReference.removeByDest(id);
       }
     }
     return true;

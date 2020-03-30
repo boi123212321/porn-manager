@@ -1,6 +1,7 @@
 import * as database from "../database";
 import { generateHash } from "../hash";
 import * as logger from "../logger";
+import { crossReferenceCollection } from "../database";
 
 export default class CrossReference {
   _id: string;
@@ -25,44 +26,48 @@ export default class CrossReference {
   }
 
   static async getAll() {
-    return (await database.find(
-      database.store.crossReferences,
-      {}
-    )) as CrossReference[];
+    return crossReferenceCollection.getAll();
+  }
+
+  static async clear(id: string) {
+    await CrossReference.removeBySource(id);
+    await CrossReference.removeByDest(id);
+  }
+
+  static async removeByDest(id: string) {
+    for (const ref of await CrossReference.getByDest(id)) {
+      await CrossReference.removeById(ref._id);
+    }
+  }
+
+  static async removeBySource(id: string) {
+    for (const ref of await CrossReference.getBySource(id)) {
+      await CrossReference.removeById(ref._id);
+    }
   }
 
   static async removeById(_id: string) {
-    return database.remove(database.store.crossReferences, {
-      _id
-    }) as Promise<CrossReference[]>;
+    await crossReferenceCollection.remove(_id);
   }
 
   static async remove(from: string, to: string) {
-    return database.remove(database.store.crossReferences, {
-      from,
-      to
-    }) as Promise<CrossReference[]>;
+    const reference = await CrossReference.get(from, to);
+    if (reference) await CrossReference.removeById(reference._id);
   }
 
   static async getByDest(to: string) {
-    const result = (await database.find(database.store.crossReferences, {
-      to
-    })) as CrossReference[];
-    return result;
+    return crossReferenceCollection.query("to-index", to);
   }
 
   static async getBySource(from: string) {
-    const result = (await database.find(database.store.crossReferences, {
-      from
-    })) as CrossReference[];
-    return result;
+    return crossReferenceCollection.query("from-index", from);
   }
 
   static async get(from: string, to: string) {
-    const result = (await database.findOne(database.store.crossReferences, {
-      from,
-      to
-    })) as CrossReference | null;
-    return result;
+    const fromReferences = await crossReferenceCollection.query(
+      "from-index",
+      from
+    );
+    return fromReferences.find(r => r.to == to);
   }
 }
