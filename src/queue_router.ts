@@ -17,9 +17,11 @@ router.post("/:id", async (req, res) => {
   await removeSceneFromQueue(req.params.id);
   if (req.body.scene) {
     const scene = await Scene.getById(req.params.id);
-    Object.assign(scene, req.body.scene);
-    logger.log("Merging scene data:", req.body.scene);
-    await sceneCollection.upsert(req.params.id, scene);
+    if (scene) {
+      Object.assign(scene, req.body.scene);
+      logger.log("Merging scene data:", req.body.scene);
+      await sceneCollection.upsert(req.params.id, scene);
+    }
   }
   if (req.body.images) {
     for (const image of req.body.images) {

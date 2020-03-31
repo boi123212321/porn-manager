@@ -1,6 +1,7 @@
 // TS bindings for Izzy
 
 import Axios from "axios";
+import * as logger from "../../logger";
 
 export namespace Izzy {
   export interface IIndexCreation {
@@ -14,6 +15,17 @@ export namespace Izzy {
       this.name = name;
     }
 
+    async count() {
+      const res = await Axios.options(
+        `http://localhost:7999/collection/${this.name}/count`
+      );
+      if (res.data.error) {
+        console.log(res);
+        throw res.data.message;
+      }
+      return res.data.count;
+    }
+
     async compact() {
       return Axios.patch(
         `http://localhost:7999/collection/compact/${this.name}`
@@ -21,40 +33,59 @@ export namespace Izzy {
     }
 
     async upsert(id: string, obj: T) {
-      const { data } = await Axios.post(
+      const res = await Axios.post(
         `http://localhost:7999/collection/${this.name}/${id}`,
         obj
       );
-      return data as T;
+      if (res.data.error) {
+        console.log(res);
+        throw res.data.message;
+      }
+      return res.data as T;
     }
 
     async remove(id: string) {
-      const { data } = await Axios.delete(
+      const res = await Axios.delete(
         `http://localhost:7999/collection/${this.name}/${id}`
       );
-      return data as T;
+      if (res.data.error) {
+        console.log(res);
+        throw res.data.message;
+      }
+      return res.data as T;
     }
 
     async getAll() {
-      const { data } = await Axios.get(
+      const res = await Axios.get(
         `http://localhost:7999/collection/${this.name}`
       );
-      if (data.error) throw data.message;
-      return data.items as T[];
+      if (res.data.error) {
+        console.log(res);
+        throw res.data.message;
+      }
+      return res.data.items as T[];
     }
 
     async get(id: string) {
-      const { data } = await Axios.get(
+      const res = await Axios.get(
         `http://localhost:7999/collection/${this.name}/${id}`
       );
-      return data as T;
+      if (res.data.error) {
+        if (res.data.status == 404) return null;
+        throw res.data.message;
+      }
+      return res.data as T;
     }
 
     async query(index: string, key: string | null) {
-      const { data } = await Axios.get(
+      const res = await Axios.get(
         `http://localhost:7999/collection/${this.name}/${index}/${key}`
       );
-      return data.items as T[];
+      if (res.data.error) {
+        console.log(res);
+        throw res.data.message;
+      }
+      return res.data.items as T[];
     }
   }
 

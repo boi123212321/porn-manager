@@ -1,4 +1,3 @@
-import "./database";
 import startServer from "./server";
 import { checkConfig, getConfig, IConfig } from "./config/index";
 import inquirer from "inquirer";

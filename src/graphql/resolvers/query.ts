@@ -14,6 +14,7 @@ import { getStudios } from "./search/studio";
 import { getMovies } from "./search/movie";
 import { twigsVersion } from "../../search/index";
 import { getLength, isProcessing } from "../../queue/processing";
+import { sceneCollection, imageCollection } from "../../database/index";
 
 export default {
   async twigs() {
@@ -131,7 +132,7 @@ export default {
     return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
   async numScenes() {
-    return 77; // TODO:
+    return await sceneCollection.count();
   },
   async numActors() {
     return await database.count(database.store.actors, {});
@@ -146,8 +147,7 @@ export default {
     return await database.count(database.store.studios, {});
   },
   async numImages() {
-    // return await database.count(database.store.images, {});
-    return 77; // TODO:
+    return await imageCollection.count();
   },
   async actorGraph() {
     const actors = await Actor.getAll();

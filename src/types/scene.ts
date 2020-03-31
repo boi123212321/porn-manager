@@ -432,7 +432,10 @@ export default class Scene {
   }
 
   static async getSceneByPath(path: string) {
-    const scenes = await sceneCollection.query("path-index", path);
+    const scenes = await sceneCollection.query(
+      "path-index",
+      encodeURIComponent(path)
+    );
     return scenes[0] as Scene | undefined;
   }
 
