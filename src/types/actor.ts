@@ -6,7 +6,7 @@ import { mapAsync, createObjectSet } from "./utility";
 import CrossReference from "./cross_references";
 import * as logger from "../logger";
 import moment = require("moment");
-import { crossReferenceCollection } from "../database";
+import { crossReferenceCollection, actorCollection } from "../database";
 
 export default class Actor {
   _id: string;
@@ -32,11 +32,12 @@ export default class Actor {
   }
 
   static async filterCustomField(fieldId: string) {
-    await database.update(
-      database.store.actors,
-      {},
-      { $unset: { [`customFields.${fieldId}`]: true } }
-    );
+    for (const actor of await Actor.getAll()) {
+      if (actor.customFields[fieldId] !== undefined) {
+        delete actor.customFields[fieldId];
+        await actorCollection.upsert(actor._id, actor);
+      }
+    }
   }
 
   static async checkIntegrity() {
@@ -72,37 +73,35 @@ export default class Actor {
         if (actor.thumbnail && !actor.thumbnail.startsWith("im_")) {
           newActor.thumbnail = "im_" + actor.thumbnail;
         }
-        await database.insert(database.store.actors, newActor);
-        await database.remove(database.store.actors, { _id: actor._id });
+        await actorCollection.upsert(newActor._id, newActor);
+        await actorCollection.remove(actor._id);
         logger.log(`Changed actor ID: ${actor._id} -> ${actorId}`);
       } else {
         if (actor.thumbnail && !actor.thumbnail.startsWith("im_")) {
-          await database.update(
-            database.store.actors,
-            { _id: actorId },
-            { $set: { thumbnail: "im_" + actor.thumbnail } }
-          );
+          actor.thumbnail = "im_" + actor.thumbnail;
+          await actorCollection.upsert(actor._id, actor);
         }
-        if (actor.labels)
-          await database.update(
-            database.store.actors,
-            { _id: actorId },
-            { $unset: { labels: true } }
-          );
+        if (actor.labels) {
+          delete actor.labels;
+          await actorCollection.upsert(actor._id, actor);
+        }
       }
     }
   }
 
-  static async filterImage(thumbnail: string) {
-    await database.update(
-      database.store.actors,
-      { thumbnail },
-      { $set: { thumbnail: null, altThumbnail: null, hero: null } }
-    );
+  static async filterImage(imageId: string) {
+    for (const actor of await Actor.getAll()) {
+      let changed = false;
+      if (actor.thumbnail == imageId) actor.thumbnail = null;
+      if (actor.altThumbnail == imageId) actor.altThumbnail = null;
+      if (actor.hero == imageId) actor.hero = null;
+      if (actor.avatar == imageId) actor.avatar = null;
+      if (changed) await actorCollection.upsert(actor._id, actor);
+    }
   }
 
   static async remove(actor: Actor) {
-    await database.remove(database.store.actors, { _id: actor._id });
+    return actorCollection.remove(actor._id);
   }
 
   static async setLabels(actor: Actor, labelIds: string[]) {
@@ -134,13 +133,11 @@ export default class Actor {
   }
 
   static async getById(_id: string) {
-    return (await database.findOne(database.store.actors, {
-      _id
-    })) as Actor | null;
+    return actorCollection.get(_id);
   }
 
   static async getAll(): Promise<Actor[]> {
-    return (await database.find(database.store.actors, {})) as Actor[];
+    return actorCollection.getAll();
   }
 
   static async getWatches(actor: Actor) {

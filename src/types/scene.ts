@@ -333,11 +333,16 @@ export default class Scene {
 
   static async filterImage(imageId: string) {
     for (const scene of await Scene.getAll()) {
+      let changed = false;
       if (scene.thumbnail == imageId) {
         scene.studio = null;
-        if (scene.preview == imageId) scene.studio = null;
-        await sceneCollection.upsert(scene._id, scene);
+        changed = true;
       }
+      if (scene.preview == imageId) {
+        scene.studio = null;
+        changed = true;
+      }
+      if (changed) await sceneCollection.upsert(scene._id, scene);
     }
   }
 
@@ -617,13 +622,12 @@ export default class Scene {
           })
         );
 
-        thumbnailFiles.sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { numeric: true })
-        );
+        logger.success(`Generated 1 thumbnail.`);
 
-        logger.success(`Generated ${thumbnailFiles.length} thumbnails.`);
-
-        resolve(thumbnailFiles[0]);
+        const thumb = thumbnailFiles[0];
+        if (!thumb)
+          throw new Error("Thumbnail generation failed");
+        resolve(thumb);
       } catch (err) {
         logger.error(err);
         reject(err);

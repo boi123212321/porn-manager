@@ -25,7 +25,11 @@ import { onActorCreate } from "../plugin_events/actor";
 import { isString } from "./schemas/common";
 import { onMovieCreate } from "../plugin_events/movie";
 import { isNumber, isBoolean } from "../types/utility";
-import { imageCollection, crossReferenceCollection } from "../database/index";
+import {
+  imageCollection,
+  crossReferenceCollection,
+  actorCollection
+} from "../database/index";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -208,8 +212,7 @@ export async function createFromFileData(opts: ICreateOptions) {
         logger.error(error.message);
       }
 
-      if (args["commit-import"])
-        await database.insert(database.store.actors, actor);
+      if (args["commit-import"]) await actorCollection.upsert(actor._id, actor);
       createdActors[actorId] = actor;
     }
   } // TODO:

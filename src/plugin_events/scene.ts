@@ -20,7 +20,7 @@ import { onActorCreate } from "./actor";
 import { indices } from "../search/index";
 import { createActorSearchDoc } from "../search/actor";
 import { indexImages } from "../search/image";
-import { imageCollection } from "../database/index";
+import { imageCollection, actorCollection } from "../database/index";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -114,7 +114,7 @@ export async function onSceneCreate(
         let actor = new Actor(actorName);
         actorIds.push(actor._id);
         actor = await onActorCreate(actor, []);
-        await database.insert(database.store.actors, actor);
+        await actorCollection.upsert(actor._id, actor);
         indices.actors.add(await createActorSearchDoc(actor));
         logger.log("Created actor " + actor.name);
       }

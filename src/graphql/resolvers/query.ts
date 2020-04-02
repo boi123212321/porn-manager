@@ -14,7 +14,11 @@ import { getStudios } from "./search/studio";
 import { getMovies } from "./search/movie";
 import { twigsVersion } from "../../search/index";
 import { getLength, isProcessing } from "../../queue/processing";
-import { sceneCollection, imageCollection } from "../../database/index";
+import {
+  sceneCollection,
+  imageCollection,
+  actorCollection
+} from "../../database/index";
 
 export default {
   async twigs() {
@@ -135,7 +139,7 @@ export default {
     return await sceneCollection.count();
   },
   async numActors() {
-    return await database.count(database.store.actors, {});
+    return await actorCollection.count();
   },
   async numMovies() {
     return await database.count(database.store.movies, {});

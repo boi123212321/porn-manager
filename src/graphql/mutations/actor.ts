@@ -12,6 +12,7 @@ import { onActorCreate } from "../../plugin_events/actor";
 import { updateSceneDoc } from "../../search/scene";
 import { updateImageDoc, isBlacklisted } from "../../search/image";
 import CrossReference from "../../types/cross_references";
+import { actorCollection } from "../../database";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -41,7 +42,7 @@ async function runActorPlugins(ids: string[]) {
       actor = await onActorCreate(actor, labels, "actorCustom");
 
       await Actor.setLabels(actor, labels);
-      await database.update(database.store.actors, { _id: actor._id }, actor);
+      await actorCollection.upsert(actor._id, actor);
       indices.actors.update(actor._id, await createActorSearchDoc(actor));
 
       changedActors.push(actor);
@@ -78,7 +79,7 @@ export default {
     }
 
     await Actor.setLabels(actor, actorLabels);
-    await database.insert(database.store.actors, actor);
+    await actorCollection.upsert(actor._id, actor);
 
     for (const scene of await Scene.getAll()) {
       const perms = stripStr(scene.path || scene.name);
@@ -187,10 +188,9 @@ export default {
           actor.customFields = opts.customFields;
         }
 
-        await database.update(database.store.actors, { _id: actor._id }, actor);
-
-        updatedActors.push(actor);
+        await actorCollection.upsert(actor._id, actor);
         indices.actors.update(actor._id, await createActorSearchDoc(actor));
+        updatedActors.push(actor);
       } else {
         throw new Error(`Actor ${id} not found`);
       }

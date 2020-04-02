@@ -21,9 +21,9 @@ mkdirp.sync("tmp/");
 export let sceneCollection!: Izzy.Collection<Scene>;
 export let imageCollection!: Izzy.Collection<Image>;
 export let crossReferenceCollection!: Izzy.Collection<CrossReference>;
+export let actorCollection!: Izzy.Collection<Actor>;
 
 let store = {} as {
-  actors: DataStore;
   labels: DataStore;
   movies: DataStore;
   studios: DataStore;
@@ -132,17 +132,21 @@ export async function loadStores() {
       }
     ]
   );
+  actorCollection = await Izzy.createCollection(
+    "actors",
+    libraryPath("actors.db")
+  );
 
   if (!args["skip-compaction"]) {
     const compactLoader = ora("Compacting DB...").start();
     await sceneCollection.compact();
     await imageCollection.compact();
-    await imageCollection.compact();
+    await crossReferenceCollection.compact();
+    await actorCollection.compact();
     compactLoader.succeed("Compacted DB");
   }
 
   store = {
-    actors: await loadStore(libraryPath("actors.db")),
     labels: await loadStore(libraryPath("labels.db")),
     movies: await loadStore(libraryPath("movies.db")),
     studios: await loadStore(libraryPath("studios.db")),
