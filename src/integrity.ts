@@ -16,8 +16,9 @@ export function bookmarksToTimestamp(file: string) {
   logger.log("Replacing bookmarks with timestamps in " + file);
 
   return new Promise((resolve, reject) => {
+    const readStream = fs.createReadStream(file);
     const rl = readline.createInterface({
-      input: fs.createReadStream(file),
+      input: readStream,
       output: process.stdout,
       terminal: false
     });
@@ -30,14 +31,18 @@ export function bookmarksToTimestamp(file: string) {
           else item.bookmark = null;
           modified = true;
         }
-      } else {
-        logger.log("Bookmarks already timestamp... aborting");
-        return rl.close();
       }
+      /* else {
+        logger.log("Bookmarks already timestamp... aborting");
+        rl.removeAllListeners();
+        return rl.close();
+      } */
       lines.push(JSON.stringify(item));
     });
 
     rl.on("close", () => {
+      readStream.removeAllListeners();
+      readStream.close();
       if (modified) {
         fs.unlinkSync(file);
         for (const line of lines) {

@@ -60,8 +60,6 @@ export interface IConfig {
 
   EXCLUDE_FILES: string[];
 
-  CALCULATE_FILE_CHECKSUM: boolean;
-
   PLUGINS: Dictionary<IPlugin>;
   PLUGIN_EVENTS: Dictionary<(string | PluginCallWithArgument)[]>;
 
@@ -100,7 +98,6 @@ export const defaultConfig: IConfig = {
   BACKUP_ON_STARTUP: true,
   MAX_BACKUP_AMOUNT: 10,
   EXCLUDE_FILES: [],
-  CALCULATE_FILE_CHECKSUM: false,
   PLUGINS: {},
   PLUGIN_EVENTS: {
     actorCreated: [],
