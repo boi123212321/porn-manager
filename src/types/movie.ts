@@ -6,7 +6,11 @@ import Label from "./label";
 import { mapAsync } from "./utility";
 import CrossReference from "./cross_references";
 import * as logger from "../logger";
-import { crossReferenceCollection } from "../database";
+import {
+  crossReferenceCollection,
+  sceneCollection,
+  actorCollection,
+} from "../database";
 
 export default class Movie {
   _id: string;
@@ -100,7 +104,7 @@ export default class Movie {
 
   static async calculateDuration(movie: Movie) {
     const scenesWithSource = (await Movie.getScenes(movie)).filter(
-      scene => scene.meta && scene.path
+      (scene) => scene.meta && scene.path
     );
 
     if (!scenesWithSource.length) return null;
@@ -133,7 +137,7 @@ export default class Movie {
 
   static async getById(_id: string) {
     return (await database.findOne(database.store.movies, {
-      _id
+      _id,
     })) as Movie | null;
   }
 
@@ -145,15 +149,15 @@ export default class Movie {
     const references = await CrossReference.getByDest(id);
     return (
       await mapAsync(
-        references.filter(r => r.from.startsWith("mo_")),
-        r => Movie.getById(r.from)
+        references.filter((r) => r.from.startsWith("mo_")),
+        (r) => Movie.getById(r.from)
       )
     ).filter(Boolean) as Movie[];
   }
 
   static async getByStudio(id: string) {
     return (await database.find(database.store.movies, {
-      studio: id
+      studio: id,
     })) as Movie[];
   }
 
@@ -161,8 +165,8 @@ export default class Movie {
     const scenes = await Movie.getScenes(movie);
     const labelIds = [
       ...new Set(
-        (await mapAsync(scenes, Scene.getLabels)).flat().map(a => a._id)
-      )
+        (await mapAsync(scenes, Scene.getLabels)).flat().map((a) => a._id)
+      ),
     ];
     return (await mapAsync(labelIds, Label.getById)).filter(Boolean) as Label[];
   }
@@ -171,18 +175,18 @@ export default class Movie {
     const scenes = await Movie.getScenes(movie);
     const actorIds = [
       ...new Set(
-        (await mapAsync(scenes, Scene.getActors)).flat().map(a => a._id)
-      )
+        (await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)
+      ),
     ];
-    return (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
+    return (await actorCollection.getBulk(actorIds)).filter(Boolean);
   }
 
   static async setScenes(movie: Movie, sceneIds: string[]) {
     const references = await CrossReference.getBySource(movie._id);
 
     const oldSceneReferences = references
-      .filter(r => r.to.startsWith("sc_"))
-      .map(r => r._id);
+      .filter((r) => r.to.startsWith("sc_"))
+      .map((r) => r._id);
 
     for (const id of oldSceneReferences) {
       await crossReferenceCollection.remove(id);
@@ -198,16 +202,15 @@ export default class Movie {
   static async getScenes(movie: Movie) {
     const references = await CrossReference.getBySource(movie._id);
     return (
-      await mapAsync(
-        references.filter(r => r.to.startsWith("sc_")),
-        r => Scene.getById(r.to)
+      await sceneCollection.getBulk(
+        references.filter((r) => r.to.startsWith("sc_")).map((r) => r.to)
       )
-    ).filter(Boolean) as Scene[];
+    ).filter(Boolean);
   }
 
   static async getRating(movie: Movie) {
     const scenesWithScore = (await Movie.getScenes(movie)).filter(
-      scene => !!scene.rating
+      (scene) => !!scene.rating
     );
 
     if (!scenesWithScore.length) return 0;

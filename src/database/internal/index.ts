@@ -64,6 +64,15 @@ export namespace Izzy {
       }
     }
 
+    async getBulk(items: string[]) {
+      logger.log(`Getting bulk from ${this.name}...`);
+      const res = await Axios.post(
+        `http://localhost:7999/collection/${this.name}/bulk`,
+        { items }
+      );
+      return res.data.items as T[];
+    }
+
     async query(index: string, key: string | null) {
       logger.log(`Getting indexed: ${this.name}/${key}...`);
       const res = await Axios.get(
@@ -88,7 +97,7 @@ export namespace Izzy {
   ) {
     await Axios.post(`http://localhost:7999/collection/${name}`, {
       file,
-      indexes
+      indexes,
     });
     return new Collection(name);
   }

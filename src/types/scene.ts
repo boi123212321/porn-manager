@@ -25,7 +25,8 @@ import { enqueueScene } from "../queue/processing";
 import {
   imageCollection,
   crossReferenceCollection,
-  sceneCollection
+  sceneCollection,
+  actorCollection,
 } from "../database";
 
 export function runFFprobe(file: string): Promise<FfprobeData> {
@@ -142,10 +143,10 @@ export default class Scene {
       sceneLabels.push(
         ...(
           await Promise.all(
-            extractedActors.map(async id => {
+            extractedActors.map(async (id) => {
               const actor = await Actor.getById(id);
               if (!actor) return [];
-              return (await Actor.getLabels(actor)).map(l => l._id);
+              return (await Actor.getLabels(actor)).map((l) => l._id);
             })
           )
         ).flat()
@@ -165,7 +166,9 @@ export default class Scene {
 
         if (studio) {
           logger.log("Applying studio labels to scene");
-          sceneLabels.push(...(await Studio.getLabels(studio)).map(l => l._id));
+          sceneLabels.push(
+            ...(await Studio.getLabels(studio)).map((l) => l._id)
+          );
         }
       }
     }
@@ -325,11 +328,10 @@ export default class Scene {
   static async getByActor(id: string) {
     const references = await CrossReference.getByDest(id);
     return (
-      await mapAsync(
-        references.filter(r => r.from.startsWith("sc_")),
-        r => Scene.getById(r.from)
+      await sceneCollection.getBulk(
+        references.filter((r) => r.from.startsWith("sc_")).map((r) => r.from)
       )
-    ).filter(Boolean) as Scene[];
+    ).filter(Boolean);
   }
 
   static async getByStudio(id: string) {
@@ -340,8 +342,8 @@ export default class Scene {
     const references = await CrossReference.getBySource(scene._id);
     return (
       await mapAsync(
-        references.filter(r => r.to.startsWith("mk_")),
-        r => Marker.getById(r.to)
+        references.filter((r) => r.to.startsWith("mk_")),
+        (r) => Marker.getById(r.to)
       )
     ).filter(Boolean) as Marker[];
   }
@@ -350,8 +352,8 @@ export default class Scene {
     const references = await CrossReference.getByDest(scene._id);
     return (
       await mapAsync(
-        references.filter(r => r.from.startsWith("mo_")),
-        r => Movie.getById(r.from)
+        references.filter((r) => r.from.startsWith("mo_")),
+        (r) => Movie.getById(r.from)
       )
     ).filter(Boolean) as Movie[];
   }
@@ -359,19 +361,18 @@ export default class Scene {
   static async getActors(scene: Scene) {
     const references = await CrossReference.getBySource(scene._id);
     return (
-      await mapAsync(
-        references.filter(r => r.to.startsWith("ac_")),
-        r => Actor.getById(r.to)
+      await actorCollection.getBulk(
+        references.filter((r) => r.to.startsWith("ac_")).map((r) => r.to)
       )
-    ).filter(Boolean) as Actor[];
+    ).filter(Boolean);
   }
 
   static async setActors(scene: Scene, actorIds: string[]) {
     const references = await CrossReference.getBySource(scene._id);
 
     const oldActorReferences = references
-      .filter(r => r.to.startsWith("ac_"))
-      .map(r => r._id);
+      .filter((r) => r.to.startsWith("ac_"))
+      .map((r) => r._id);
 
     for (const id of oldActorReferences) {
       await crossReferenceCollection.remove(id);
@@ -388,8 +389,8 @@ export default class Scene {
     const references = await CrossReference.getBySource(scene._id);
 
     const oldLabelReferences = references
-      .filter(r => r.to && r.to.startsWith("la_"))
-      .map(r => r._id);
+      .filter((r) => r.to && r.to.startsWith("la_"))
+      .map((r) => r._id);
 
     for (const id of oldLabelReferences) {
       await crossReferenceCollection.remove(id);
@@ -406,8 +407,8 @@ export default class Scene {
     const references = await CrossReference.getBySource(scene._id);
     return (
       await mapAsync(
-        references.filter(r => r.to && r.to.startsWith("la_")),
-        r => Label.getById(r.to)
+        references.filter((r) => r.to && r.to.startsWith("la_")),
+        (r) => Label.getById(r.to)
       )
     ).filter(Boolean) as Label[];
   }
@@ -451,7 +452,7 @@ export default class Scene {
         pattern: `${scene._id}-{{index}}.jpg`,
         count: 100 + 1, // Don't ask why +1, just accept it
         thumbnailPath: tmpFolder,
-        quality: "60"
+        quality: "60",
       };
 
       const timestamps = [] as string[];
@@ -471,8 +472,8 @@ export default class Scene {
 
       let hadError = false;
 
-      await asyncPool(4, timestamps, timestamp => {
-        const index = timestamps.findIndex(s => s == timestamp);
+      await asyncPool(4, timestamps, (timestamp) => {
+        const index = timestamps.findIndex((s) => s == timestamp);
         return new Promise((resolve, reject) => {
           logger.log(`Creating thumbnail ${index}...`);
           ffmpeg(options.file)
@@ -484,7 +485,7 @@ export default class Scene {
               logger.error({
                 options,
                 duration: scene.meta.duration,
-                timestamps
+                timestamps,
               });
               logger.error(err);
               logger.error(
@@ -503,7 +504,7 @@ export default class Scene {
                 index.toString().padStart(3, "0")
               ),
               folder: options.thumbnailPath,
-              size: "160x?"
+              size: "160x?",
             });
         });
       });
@@ -520,7 +521,7 @@ export default class Scene {
 
       logger.log(`Created 100 small thumbnails for ${scene._id}.`);
 
-      const files = (await readdirAsync(tmpFolder, "utf-8")).map(fileName =>
+      const files = (await readdirAsync(tmpFolder, "utf-8")).map((fileName) =>
         path.join(tmpFolder, fileName)
       );
       logger.log(files);
@@ -578,26 +579,26 @@ export default class Scene {
                   Math.min(
                     dimensions.width || config.COMPRESS_IMAGE_SIZE,
                     config.COMPRESS_IMAGE_SIZE
-                  ) + "x?"
+                  ) + "x?",
               });
           });
         })();
 
         logger.success("Thumbnail generation done.");
 
-        const thumbnailFilenames = (await readdirAsync(folder)).filter(name =>
+        const thumbnailFilenames = (await readdirAsync(folder)).filter((name) =>
           name.includes(id)
         );
 
         const thumbnailFiles = await Promise.all(
-          thumbnailFilenames.map(async name => {
+          thumbnailFilenames.map(async (name) => {
             const filePath = libraryPath(`thumbnails/${name}`);
             const stats = await statAsync(filePath);
             return {
               name,
               path: filePath,
               size: stats.size,
-              time: stats.mtime.getTime()
+              time: stats.mtime.getTime(),
             };
           })
         );
@@ -640,10 +641,10 @@ export default class Scene {
     // await database.insert(database.store.images, image);
     await imageCollection.upsert(image._id, image);
 
-    const actors = (await Scene.getActors(scene)).map(l => l._id);
+    const actors = (await Scene.getActors(scene)).map((l) => l._id);
     await Image.setActors(image, actors);
 
-    const labels = (await Scene.getLabels(scene)).map(l => l._id);
+    const labels = (await Scene.getLabels(scene)).map((l) => l._id);
     await Image.setLabels(image, labels);
 
     scene.thumbnail = image._id;
@@ -679,7 +680,7 @@ export default class Scene {
         file: scene.path,
         pattern: `${scene._id}-{{index}}.jpg`,
         count: amount,
-        thumbnailPath: libraryPath("thumbnails/")
+        thumbnailPath: libraryPath("thumbnails/"),
       };
 
       try {
@@ -698,8 +699,8 @@ export default class Scene {
         logger.log("Timestamps: ", timestamps);
         logger.log("Creating thumbnails with options: ", options);
 
-        await asyncPool(4, timestamps, timestamp => {
-          const index = timestamps.findIndex(s => s == timestamp);
+        await asyncPool(4, timestamps, (timestamp) => {
+          const index = timestamps.findIndex((s) => s == timestamp);
           return new Promise((resolve, reject) => {
             logger.log(`Creating thumbnail ${index}...`);
             ffmpeg(options.file)
@@ -714,7 +715,7 @@ export default class Scene {
                 logger.error({
                   options,
                   duration: scene.meta.duration,
-                  timestamps
+                  timestamps,
                 });
                 reject(err);
               })
@@ -733,7 +734,7 @@ export default class Scene {
                     // @ts-ignore
                     scene.meta.dimensions.width || config.COMPRESS_IMAGE_SIZE,
                     config.COMPRESS_IMAGE_SIZE
-                  ) + "x?"
+                  ) + "x?",
               });
           });
         });
@@ -742,17 +743,17 @@ export default class Scene {
 
         const thumbnailFilenames = (
           await readdirAsync(options.thumbnailPath)
-        ).filter(name => name.includes(scene._id));
+        ).filter((name) => name.includes(scene._id));
 
         const thumbnailFiles = await Promise.all(
-          thumbnailFilenames.map(async name => {
+          thumbnailFilenames.map(async (name) => {
             const filePath = libraryPath(`thumbnails/${name}`);
             const stats = await statAsync(filePath);
             return {
               name,
               path: filePath,
               size: stats.size,
-              time: stats.mtime.getTime()
+              time: stats.mtime.getTime(),
             };
           })
         );
