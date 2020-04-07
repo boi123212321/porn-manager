@@ -5,7 +5,7 @@ import {
   IImportedLabel,
   IImportedMovie,
   IImportedStudio,
-  IImportedCustomField
+  IImportedCustomField,
 } from "./types";
 import Label from "../types/label";
 import Scene from "../types/scene";
@@ -17,7 +17,6 @@ import * as database from "../database/index";
 import CustomField, { CustomFieldTarget } from "../types/custom_field";
 import CrossReference from "../types/cross_references";
 import { inspect } from "util";
-import { basename } from "path";
 import Movie from "../types/movie";
 import Studio from "../types/studio";
 import args from "../args";
@@ -25,6 +24,8 @@ import { onActorCreate } from "../plugin_events/actor";
 import { isString } from "./schemas/common";
 import { onMovieCreate } from "../plugin_events/movie";
 import { isNumber, isBoolean } from "../types/utility";
+import { existsAsync } from "../fs/async";
+import { onSceneCreate } from "../plugin_events/scene";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -58,7 +59,7 @@ function normalizeCreatedObjects(
   ids: string[],
   newlyCreated: Dictionary<{ _id: string }>
 ) {
-  return ids.map(str => {
+  return ids.map((str) => {
     // Newly created object, get database ID instead
     if (newlyCreated[str] !== undefined) return newlyCreated[str]._id;
     // Already in database, just return ID
@@ -70,7 +71,7 @@ export async function createFromFileData(opts: ICreateOptions) {
   const createdLabels = {} as Dictionary<Label>;
   const createdFields = {} as Dictionary<CustomField>;
   const createdActors = {} as Dictionary<Actor>;
-  // const createdScenes = {} as Dictionary<IQueueItem>; // TODO:
+  const createdScenes = {} as Dictionary<Scene>;
   const createdMovies = {} as Dictionary<Movie>;
   const createdStudios = {} as Dictionary<Studio>;
 
@@ -85,9 +86,9 @@ export async function createFromFileData(opts: ICreateOptions) {
           const perms = stripStr(scene.path || scene.name);
           if (
             perms.includes(stripStr(label.name)) ||
-            label.aliases.some(alias => perms.includes(stripStr(alias)))
+            label.aliases.some((alias) => perms.includes(stripStr(alias)))
           ) {
-            const labels = (await Scene.getLabels(scene)).map(l => l._id);
+            const labels = (await Scene.getLabels(scene)).map((l) => l._id);
             labels.push(label._id);
             await Scene.setLabels(scene, labels);
             logger.log(`Updated labels of ${scene._id}.`);
@@ -200,24 +201,25 @@ export async function createFromFileData(opts: ICreateOptions) {
         );
       }
 
-      try {
-        actor = await onActorCreate(actor, actorLabels);
-      } catch (error) {
-        logger.error(error.message);
-      }
-
-      if (args["commit-import"])
+      if (args["commit-import"]) {
+        try {
+          actor = await onActorCreate(actor, actorLabels);
+        } catch (error) {
+          logger.error(error.message);
+        }
         await database.insert(database.store.actors, actor);
+      }
       createdActors[actorId] = actor;
     }
-  } // TODO:
-  /*
+  }
+
   if (opts.scenes) {
+    console.log();
     for (const sceneId in opts.scenes) {
       const sceneToCreate = opts.scenes[sceneId];
 
-      const _id = new Scene("")._id;
-      logger.log(`Creating scene queue item with id ${_id}...`);
+      let newScene = new Scene(sceneToCreate.name);
+      logger.log(`Creating scene with id ${newScene._id}...`);
 
       let thumbnail = null as string | null;
       let labels = [] as string[];
@@ -229,7 +231,7 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = sceneToCreate.thumbnail;
         thumbnail = image._id;
 
-        const reference = new CrossReference(_id, image._id);
+        const reference = new CrossReference(newScene._id, image._id);
 
         if (args["commit-import"]) {
           await database.insert(database.store.crossReferences, reference);
@@ -252,44 +254,24 @@ export async function createFromFileData(opts: ICreateOptions) {
         );
       }
 
-      const queueItem: IQueueItem = {
-        _id,
-        filename: basename(sceneToCreate.path),
-        path: sceneToCreate.path,
-        name: sceneToCreate.name,
-        description: sceneToCreate.description || null,
-        bookmark: isNumber(sceneToCreate.bookmark)
-          ? <number>sceneToCreate.bookmark
-          : undefined,
-        favorite: isBoolean(sceneToCreate.favorite)
-          ? <boolean>sceneToCreate.favorite
-          : undefined,
-        releaseDate: isNumber(sceneToCreate.releaseDate)
-          ? <number>sceneToCreate.releaseDate
-          : undefined,
-        rating: isNumber(sceneToCreate.rating)
-          ? <number>sceneToCreate.rating
-          : undefined,
-        thumbnail,
-        actors,
-        labels,
-        customFields,
-        studio: sceneToCreate.studio
-          ? normalizeCreatedObjects(
-              [sceneToCreate.studio],
-              createdStudios
-            ).pop() || null
-          : undefined
-      };
-
-      if (args["commit-import"]) {
-        // TODO: add to library/queue
-        // await ProcessingQueue.append(queueItem);
+      if (await existsAsync(sceneToCreate.path)) {
+        try {
+          newScene = await onSceneCreate(newScene, labels, actors);
+        } catch (error) {
+          logger.error(error.message);
+        }
+        if (args["commit-import"]) {
+          newScene = await Scene.onImport(sceneToCreate.path, false);
+          await Scene.setActors(newScene, actors);
+          await Scene.setLabels(newScene, labels);
+        }
+        createdScenes[newScene._id] = newScene;
+      } else {
+        logger.error(`${sceneToCreate.path} not found`);
       }
-      createdScenes[_id] = queueItem;
     }
-  }*/
-  /*
+  }
+
   if (opts.movies) {
     for (const movieId in opts.movies) {
       const movieToCreate = opts.movies[movieId];
@@ -335,7 +317,7 @@ export async function createFromFileData(opts: ICreateOptions) {
       }
 
       if (movieToCreate.spineCover) {
-        const image = new Image(`${movie.name} (back cover)`);
+        const image = new Image(`${movie.name} (spine cover)`);
         image.path = movieToCreate.spineCover;
         movie.spineCover = image._id;
 
@@ -343,28 +325,35 @@ export async function createFromFileData(opts: ICreateOptions) {
           await database.insert(database.store.images, image);
       }
 
-      try {
-        movie = await onMovieCreate(movie);
-      } catch (error) {
-        logger.error(error.message);
+      let scenes = [] as string[];
+
+      if (movieToCreate.scenes) {
+        scenes = normalizeCreatedObjects(movieToCreate.scenes, createdLabels);
       }
 
-      if (args["commit-import"])
+      if (args["commit-import"]) {
+        try {
+          movie = await onMovieCreate(movie);
+        } catch (error) {
+          logger.error(error.message);
+        }
+        await Movie.setScenes(movie, scenes);
         await database.insert(database.store.movies, movie);
+      }
       createdMovies[movieId] = movie;
     }
-  }*/ if (
-    !args["commit-import"]
-  ) {
+  }
+
+  if (!args["commit-import"]) {
     console.log(
       inspect(
         {
           createdFields,
           createdLabels,
-          //createdScenes,
+          createdScenes,
           createdActors,
           createdMovies,
-          createdStudios
+          createdStudios,
         },
         true,
         null

@@ -22,7 +22,7 @@ import { dvdRenderer } from "./dvd_renderer";
 import {
   getLength,
   isProcessing,
-  setProcessingStatus
+  setProcessingStatus,
 } from "./queue/processing";
 import queueRouter from "./queue_router";
 import { spawn } from "child_process";
@@ -43,8 +43,8 @@ async function tryStartProcessing() {
     spawn(process.argv[0], process.argv.slice(1).concat(["--process-queue"]), {
       cwd: process.cwd(),
       detached: false,
-      stdio: "inherit"
-    }).on("exit", code => {
+      stdio: "inherit",
+    }).on("exit", (code) => {
       logger.log("Processing process exited with code " + code);
       setProcessingStatus(false);
     });
@@ -57,7 +57,7 @@ async function scanFolders() {
   await checkVideoFolders();
   checkImageFolders();
 
-  tryStartProcessing().catch(err => {
+  tryStartProcessing().catch((err) => {
     logger.error("Couldn't start processing...");
     logger.error(err.message);
   });
@@ -73,7 +73,7 @@ export default async () => {
   app.get("/setup", (req, res) => {
     res.json({
       serverReady,
-      setupMessage
+      setupMessage,
     });
   });
 
@@ -82,7 +82,7 @@ export default async () => {
     else {
       res.status(404).send(
         await renderHandlebars("./views/setup.html", {
-          message: setupMessage
+          message: setupMessage,
         })
       );
     }
@@ -95,7 +95,7 @@ export default async () => {
 
     res.writeHead(200, {
       "Content-Type": "image/png",
-      "Content-Length": img.length
+      "Content-Length": img.length,
     });
     res.end(img);
   });
@@ -126,7 +126,7 @@ export default async () => {
       return res.status(404).send(
         await renderHandlebars("./views/error.html", {
           code: 404,
-          message: `File <b>${file}</b> not found`
+          message: `File <b>${file}</b> not found`,
         })
       );
     }
@@ -181,9 +181,6 @@ export default async () => {
   setupMessage = "Loading database...";
   await loadStores();
 
-  setupMessage = "Checking imports...";
-  await checkImportFolders();
-
   setupMessage = "Starting search engine...";
   if (await twigsVersion()) {
     logger.log("Twigs already running, clearing indices...");
@@ -192,6 +189,9 @@ export default async () => {
   } else {
     await spawnTwigs();
   }
+
+  setupMessage = "Checking imports...";
+  await checkImportFolders();
 
   setupMessage = "Building search indices...";
   await buildIndices();
