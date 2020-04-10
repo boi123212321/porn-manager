@@ -70,6 +70,8 @@ export interface IConfig {
   MAX_LOG_SIZE: number;
 
   COMPRESS_IMAGE_SIZE: number;
+
+  CACHE_TIME: number;
 }
 
 export const defaultConfig: IConfig = {
@@ -111,7 +113,9 @@ export const defaultConfig: IConfig = {
   CREATE_MISSING_LABELS: false,
   MAX_LOG_SIZE: 2500,
 
-  COMPRESS_IMAGE_SIZE: 720
+  COMPRESS_IMAGE_SIZE: 720,
+
+  CACHE_TIME: 15
 };
 
 let loadedConfig;
