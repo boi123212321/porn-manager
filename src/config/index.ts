@@ -66,6 +66,7 @@ export interface IConfig {
   CREATE_MISSING_ACTORS: boolean;
   CREATE_MISSING_STUDIOS: boolean;
   CREATE_MISSING_LABELS: boolean;
+  CREATE_MISSING_MOVIES: boolean;
 
   MAX_LOG_SIZE: number;
 
@@ -106,16 +107,17 @@ export const defaultConfig: IConfig = {
     sceneCreated: [],
     actorCustom: [],
     sceneCustom: [],
-    movieCreated: []
+    movieCreated: [],
   },
   CREATE_MISSING_ACTORS: false,
   CREATE_MISSING_STUDIOS: false,
   CREATE_MISSING_LABELS: false,
+  CREATE_MISSING_MOVIES: false,
   MAX_LOG_SIZE: 2500,
 
   COMPRESS_IMAGE_SIZE: 720,
 
-  CACHE_TIME: 15
+  CACHE_TIME: 15,
 };
 
 let loadedConfig;
@@ -148,8 +150,8 @@ export async function checkConfig() {
       type: "confirm",
       name: "yaml",
       message: "Use YAML (instead of JSON) for config file?",
-      default: false
-    }
+      default: false,
+    },
   ]);
 
   loadedConfig = await setupFunction();

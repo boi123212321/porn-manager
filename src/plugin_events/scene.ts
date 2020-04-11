@@ -6,6 +6,7 @@ import {
   extractStudios,
   extractActors,
   extractFields,
+  extractMovies,
 } from "../extractor";
 import { getConfig } from "../config";
 import { extname } from "path";
@@ -20,7 +21,14 @@ import { onActorCreate } from "./actor";
 import { indices } from "../search/index";
 import { createActorSearchDoc } from "../search/actor";
 import { indexImages } from "../search/image";
-import { imageCollection, actorCollection } from "../database/index";
+import {
+  imageCollection,
+  actorCollection,
+  movieCollection,
+} from "../database/index";
+import Movie from "../types/movie";
+import { onMovieCreate } from "./movie";
+import { createMovieSearchDoc } from "../search/movie";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -151,6 +159,32 @@ export async function onSceneCreate(
       scene.studio = studio._id;
       await database.insert(database.store.studios, studio);
       logger.log("Created studio " + studio.name);
+    }
+  }
+
+  if (pluginResult.movie && typeof pluginResult.movie === "string") {
+    const movieId = (await extractMovies(pluginResult.movie))[0];
+
+    if (movieId) {
+      const movie = <Movie>await Movie.getById(movieId);
+      const sceneIds = (await Movie.getScenes(movie)).map((sc) => sc._id);
+      await Movie.setScenes(movie, sceneIds.concat(scene._id));
+      indices.movies.update(movie._id, await createMovieSearchDoc(movie));
+    } else if (config.CREATE_MISSING_STUDIOS) {
+      let movie = new Movie(pluginResult.movie);
+
+      try {
+        movie = await onMovieCreate(movie, "movieCreated");
+      } catch (error) {
+        logger.log(error);
+        logger.error(error.message);
+      }
+
+      await movieCollection.upsert(movie._id, movie);
+      logger.log("Created movie " + movie.name);
+      await Movie.setScenes(movie, [scene._id]);
+      logger.log(`Attached ${scene.name} to movie ${movie.name}`);
+      indices.movies.add(await createMovieSearchDoc(movie));
     }
   }
 
