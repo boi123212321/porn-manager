@@ -5,7 +5,6 @@ import * as logger from "../../logger";
 import Image from "../../types/image";
 import { extractLabels, extractActors } from "../../extractor";
 import { Dictionary, mapAsync } from "../../types/utility";
-import Movie from "../../types/movie";
 import { getConfig } from "../../config/index";
 import Studio from "../../types/studio";
 import Marker from "../../types/marker";

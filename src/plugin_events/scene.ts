@@ -5,7 +5,7 @@ import {
   extractLabels,
   extractStudios,
   extractActors,
-  extractFields
+  extractFields,
 } from "../extractor";
 import { getConfig } from "../config";
 import { extname } from "path";
@@ -68,7 +68,7 @@ export async function onSceneCreate(
         await indexImages([img]);
       }
       return img._id;
-    }
+    },
   });
 
   if (
@@ -79,7 +79,7 @@ export async function onSceneCreate(
 
   if (typeof pluginResult.name === "string") scene.name = pluginResult.name;
 
-  if (typeof pluginResult.name === "string") scene.path = pluginResult.path;
+  if (typeof pluginResult.path === "string") scene.path = pluginResult.path;
 
   if (typeof pluginResult.description === "string")
     scene.description = pluginResult.description;
