@@ -24,7 +24,7 @@
           <div class="mt-3">
             <MarkerItem
               style="width: 100%"
-              @jump="$refs.player.seek(marker.time, marker.name)"
+              @jump="$refs.player.seek(marker.time, marker.name); $refs.player.play()"
               @delete="removeMarker(marker._id)"
               :marker="marker"
               v-for="marker in markers"
