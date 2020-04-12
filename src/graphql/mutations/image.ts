@@ -7,14 +7,14 @@ import { extname } from "path";
 import * as logger from "../../logger";
 import { extractLabels, extractActors } from "../../extractor";
 import { Dictionary, libraryPath, mapAsync } from "../../types/utility";
-import Movie from "../../types/movie";
 import Jimp from "jimp";
 import { statAsync, unlinkAsync } from "../../fs/async";
 import { getConfig } from "../../config";
 import Studio from "../../types/studio";
 import { removeImageDoc, indexImages } from "../../search/image";
 import { imageCollection } from "../../database";
-import CrossReference from "../../types/cross_references";
+import LabelledItem from "../../types/labelled_item";
+import ActorReference from "../../types/actor_reference";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -159,9 +159,9 @@ export default {
       if (scene) {
         image.scene = args.scene;
 
-        const sceneActors = (await Scene.getActors(scene)).map(a => a._id);
+        const sceneActors = (await Scene.getActors(scene)).map((a) => a._id);
         actors.push(...sceneActors);
-        const sceneLabels = (await Scene.getLabels(scene)).map(a => a._id);
+        const sceneLabels = (await Scene.getLabels(scene)).map((a) => a._id);
         labels.push(...sceneLabels);
       }
     }
@@ -187,10 +187,10 @@ export default {
       labels.push(
         ...(
           await Promise.all(
-            extractedActors.map(async id => {
+            extractedActors.map(async (id) => {
               const actor = await Actor.getById(id);
               if (!actor) return [];
-              return (await Actor.getLabels(actor)).map(l => l._id);
+              return (await Actor.getLabels(actor)).map((l) => l._id);
             })
           )
         ).flat()
@@ -224,13 +224,15 @@ export default {
           const actorIds = [...new Set(opts.actors)];
           await Image.setActors(image, actorIds);
 
-          const existingLabels = (await Image.getLabels(image)).map(l => l._id);
+          const existingLabels = (await Image.getLabels(image)).map(
+            (l) => l._id
+          );
 
           if (config.APPLY_ACTOR_LABELS === true) {
             const actors = (await mapAsync(actorIds, Actor.getById)).filter(
               Boolean
             ) as Actor[];
-            const labelIds = actors.map(ac => ac.labels).flat();
+            const labelIds = actors.map((ac) => ac.labels).flat();
 
             logger.log("Applying actor labels to image");
             await Image.setLabels(image, existingLabels.concat(labelIds));
@@ -285,9 +287,10 @@ export default {
       if (image) {
         await Image.remove(image);
         await removeImageDoc(image._id);
-        await CrossReference.clear(image._id);
+        await LabelledItem.removeByItem(image._id);
+        await ActorReference.removeByItem(image._id);
       }
     }
     return true;
-  }
+  },
 };

@@ -2,10 +2,10 @@ import { generateHash } from "../hash";
 import Label from "./label";
 import Scene from "./scene";
 import { mapAsync, createObjectSet } from "./utility";
-import CrossReference from "./cross_references";
 import * as logger from "../logger";
 import moment = require("moment");
-import { crossReferenceCollection, actorCollection } from "../database";
+import { actorCollection, labelledItemCollection } from "../database";
+import LabelledItem from "./labelled_item";
 
 export default class Actor {
   _id: string;
@@ -30,85 +30,33 @@ export default class Actor {
     return null;
   }
 
-  static async checkIntegrity() {
-    const allActors = await Actor.getAll();
-
-    for (const actor of allActors) {
-      const actorId = actor._id.startsWith("ac_")
-        ? actor._id
-        : `ac_${actor._id}`;
-
-      if (actor.labels && actor.labels.length) {
-        for (const label of actor.labels) {
-          const labelId = label.startsWith("la_") ? label : `la_${label}`;
-
-          if (!!(await CrossReference.get(actorId, labelId))) {
-            logger.log(
-              `Cross reference ${actorId} -> ${labelId} already exists.`
-            );
-          } else {
-            const cr = new CrossReference(actorId, labelId);
-            await crossReferenceCollection.upsert(cr._id, cr);
-            logger.log(
-              `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
-            );
-          }
-        }
-      }
-
-      if (!actor._id.startsWith("ac_")) {
-        const newActor = JSON.parse(JSON.stringify(actor)) as Actor;
-        newActor._id = actorId;
-        if (newActor.labels) delete newActor.labels;
-        if (actor.thumbnail && !actor.thumbnail.startsWith("im_")) {
-          newActor.thumbnail = "im_" + actor.thumbnail;
-        }
-        await actorCollection.upsert(newActor._id, newActor);
-        await actorCollection.remove(actor._id);
-        logger.log(`Changed actor ID: ${actor._id} -> ${actorId}`);
-      } else {
-        if (actor.thumbnail && !actor.thumbnail.startsWith("im_")) {
-          actor.thumbnail = "im_" + actor.thumbnail;
-          await actorCollection.upsert(actor._id, actor);
-        }
-        if (actor.labels) {
-          delete actor.labels;
-          await actorCollection.upsert(actor._id, actor);
-        }
-      }
-    }
-  }
+  static async checkIntegrity() {}
 
   static async remove(actor: Actor) {
     return actorCollection.remove(actor._id);
   }
 
   static async setLabels(actor: Actor, labelIds: string[]) {
-    const references = await CrossReference.getBySource(actor._id);
+    const references = await LabelledItem.getByItem(actor._id);
 
-    const oldLabelReferences = references
-      .filter(r => r.to.startsWith("la_"))
-      .map(r => r._id);
+    const oldLabelReferences = references.map((r) => r._id);
 
     for (const id of oldLabelReferences) {
-      await crossReferenceCollection.remove(id);
+      await labelledItemCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
-      const crossReference = new CrossReference(actor._id, id);
-      logger.log("Adding label to actor: " + JSON.stringify(crossReference));
-      await crossReferenceCollection.upsert(crossReference._id, crossReference);
+      const labelledItem = new LabelledItem(actor._id, id, "actor");
+      logger.log("Adding label to actor: " + JSON.stringify(labelledItem));
+      await labelledItemCollection.upsert(labelledItem._id, labelledItem);
     }
   }
 
   static async getLabels(actor: Actor) {
-    const references = await CrossReference.getBySource(actor._id);
-    return (
-      await mapAsync(
-        references.filter(r => r.to.startsWith("la_")),
-        r => Label.getById(r.to)
-      )
-    ).filter(Boolean) as Label[];
+    const references = await LabelledItem.getByItem(actor._id);
+    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
+      Boolean
+    ) as Label[];
   }
 
   static async getById(_id: string) {
@@ -122,7 +70,7 @@ export default class Actor {
   static async getWatches(actor: Actor) {
     const scenes = await Scene.getByActor(actor._id);
     return scenes
-      .map(s => s.watches)
+      .map((s) => s.watches)
       .flat()
       .sort();
   }
@@ -130,7 +78,7 @@ export default class Actor {
   static async getTopActors() {
     const actors = await Actor.getAll();
 
-    const scores = await mapAsync(actors, async actor => {
+    const scores = await mapAsync(actors, async (actor) => {
       const score =
         (await Scene.getByActor(actor._id)).length / 5 +
         (await Actor.getWatches(actor)).length +
@@ -139,18 +87,18 @@ export default class Actor {
 
       return {
         actor,
-        score
+        score,
       };
     });
 
     scores.sort((a, b) => b.score - a.score);
-    return scores.map(s => s.actor);
+    return scores.map((s) => s.actor);
   }
 
   constructor(name: string, aliases: string[] = []) {
     this._id = "ac_" + generateHash();
     this.name = name.trim();
-    this.aliases = [...new Set(aliases.map(tag => tag.trim()))];
+    this.aliases = [...new Set(aliases.map((tag) => tag.trim()))];
   }
 
   static async getMovies(actor: Actor) {
@@ -162,10 +110,12 @@ export default class Actor {
   static async getCollabs(actor: Actor) {
     const scenes = await Scene.getByActor(actor._id);
 
-    return await mapAsync(scenes, async scene => {
+    return await mapAsync(scenes, async (scene) => {
       return {
         scene,
-        actors: (await Scene.getActors(scene)).filter(ac => ac._id != actor._id)
+        actors: (await Scene.getActors(scene)).filter(
+          (ac) => ac._id != actor._id
+        ),
       };
     });
   }

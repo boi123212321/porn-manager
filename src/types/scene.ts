@@ -8,7 +8,6 @@ import { libraryPath, mapAsync, removeExtension } from "./utility";
 import Label from "./label";
 import Actor from "./actor";
 import { statAsync, readdirAsync, unlinkAsync, rimrafAsync } from "../fs/async";
-import CrossReference from "./cross_references";
 import path, { basename } from "path";
 import { existsSync } from "fs";
 import Jimp from "jimp";
@@ -24,10 +23,14 @@ import { onSceneCreate } from "../plugin_events/scene";
 import { enqueueScene } from "../queue/processing";
 import {
   imageCollection,
-  crossReferenceCollection,
   sceneCollection,
   actorCollection,
+  labelledItemCollection,
+  actorReferenceCollection,
 } from "../database";
+import LabelledItem from "./labelled_item";
+import ActorReference from "./actor_reference";
+import MarkerReference from "./marker_reference";
 
 export function runFFprobe(file: string): Promise<FfprobeData> {
   return new Promise((resolve, reject) => {
@@ -210,10 +213,6 @@ export default class Scene {
     const allScenes = await Scene.getAll();
 
     for (const scene of allScenes) {
-      const sceneId = scene._id.startsWith("sc_")
-        ? scene._id
-        : `sc_${scene._id}`;
-
       if (scene.processed === undefined) {
         logger.log(`Undefined scene processed status, setting to true...`);
         scene.processed = true;
@@ -224,75 +223,6 @@ export default class Scene {
         logger.log(`Undefined scene preview, setting to null...`);
         scene.preview = null;
         await sceneCollection.upsert(scene._id, scene);
-      }
-
-      if (scene.actors && scene.actors.length) {
-        for (const actor of scene.actors) {
-          const actorId = actor.startsWith("ac_") ? actor : `ac_${actor}`;
-
-          if (!!(await CrossReference.get(sceneId, actorId))) {
-            logger.log(
-              `Cross reference ${sceneId} -> ${actorId} already exists.`
-            );
-          } else {
-            const cr = new CrossReference(sceneId, actorId);
-            await crossReferenceCollection.upsert(cr._id, cr);
-            logger.log(
-              `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
-            );
-          }
-        }
-      }
-
-      if (scene.labels && scene.labels.length) {
-        for (const label of scene.labels) {
-          const labelId = label.startsWith("la_") ? label : `la_${label}`;
-
-          if (!!(await CrossReference.get(sceneId, labelId))) {
-            logger.log(
-              `Cross reference ${sceneId} -> ${labelId} already exists.`
-            );
-          } else {
-            const cr = new CrossReference(sceneId, labelId);
-            await crossReferenceCollection.upsert(cr._id, cr);
-            logger.log(
-              `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
-            );
-          }
-        }
-      }
-
-      if (!scene._id.startsWith("sc_")) {
-        const newScene = JSON.parse(JSON.stringify(scene)) as Scene;
-        newScene._id = sceneId;
-        if (newScene.actors) delete newScene.actors;
-        if (newScene.labels) delete newScene.labels;
-        if (scene.thumbnail && !scene.thumbnail.startsWith("im_")) {
-          newScene.thumbnail = "im_" + scene.thumbnail;
-        }
-        if (scene.studio && !scene.studio.startsWith("st_")) {
-          newScene.studio = "st_" + scene.studio;
-        }
-        await sceneCollection.upsert(newScene._id, newScene);
-        await sceneCollection.remove(scene._id);
-        logger.log(`Changed scene ID: ${scene._id} -> ${sceneId}`);
-      } else {
-        if (scene.studio && !scene.studio.startsWith("st_")) {
-          scene.studio = "st_" + scene.studio;
-          await sceneCollection.upsert(scene._id, scene);
-        }
-        if (scene.thumbnail && !scene.thumbnail.startsWith("im_")) {
-          scene.thumbnail = "im_" + scene.thumbnail;
-          await sceneCollection.upsert(scene._id, scene);
-        }
-        if (scene.actors) {
-          delete scene.actors;
-          await sceneCollection.upsert(scene._id, scene);
-        }
-        if (scene.labels) {
-          delete scene.labels;
-          await sceneCollection.upsert(scene._id, scene);
-        }
       }
     }
   }
@@ -326,10 +256,10 @@ export default class Scene {
   }
 
   static async getByActor(id: string) {
-    const references = await CrossReference.getByDest(id);
+    const references = await ActorReference.getByActor(id);
     return (
       await sceneCollection.getBulk(
-        references.filter((r) => r.from.startsWith("sc_")).map((r) => r.from)
+        references.filter((r) => r.item.startsWith("sc_")).map((r) => r.item)
       )
     ).filter(Boolean);
   }
@@ -339,78 +269,60 @@ export default class Scene {
   }
 
   static async getMarkers(scene: Scene) {
-    const references = await CrossReference.getBySource(scene._id);
-    return (
-      await mapAsync(
-        references.filter((r) => r.to.startsWith("mk_")),
-        (r) => Marker.getById(r.to)
-      )
-    ).filter(Boolean) as Marker[];
+    const references = await MarkerReference.getByScene(scene._id);
+    return (await mapAsync(references, (r) => Marker.getById(r.marker))).filter(
+      Boolean
+    ) as Marker[];
   }
 
   static async getMovies(scene: Scene) {
-    const references = await CrossReference.getByDest(scene._id);
-    return (
-      await mapAsync(
-        references.filter((r) => r.from.startsWith("mo_")),
-        (r) => Movie.getById(r.from)
-      )
-    ).filter(Boolean) as Movie[];
+    return Movie.getByScene(scene._id);
   }
 
   static async getActors(scene: Scene) {
-    const references = await CrossReference.getBySource(scene._id);
+    const references = await ActorReference.getByItem(scene._id);
     return (
-      await actorCollection.getBulk(
-        references.filter((r) => r.to.startsWith("ac_")).map((r) => r.to)
-      )
+      await actorCollection.getBulk(references.map((r) => r.actor))
     ).filter(Boolean);
   }
 
   static async setActors(scene: Scene, actorIds: string[]) {
-    const references = await CrossReference.getBySource(scene._id);
+    const references = await ActorReference.getByItem(scene._id);
 
-    const oldActorReferences = references
-      .filter((r) => r.to.startsWith("ac_"))
-      .map((r) => r._id);
+    const oldActorReferences = references.map((r) => r._id);
 
     for (const id of oldActorReferences) {
-      await crossReferenceCollection.remove(id);
+      await actorReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(actorIds)]) {
-      const crossReference = new CrossReference(scene._id, id);
-      logger.log("Adding actor to scene: " + JSON.stringify(crossReference));
-      await crossReferenceCollection.upsert(crossReference._id, crossReference);
+      const actorReference = new ActorReference(scene._id, id, "scene");
+      logger.log("Adding actor to scene: " + JSON.stringify(actorReference));
+      await actorReferenceCollection.upsert(actorReference._id, actorReference);
     }
   }
 
   static async setLabels(scene: Scene, labelIds: string[]) {
-    const references = await CrossReference.getBySource(scene._id);
+    const references = await LabelledItem.getByItem(scene._id);
 
-    const oldLabelReferences = references
-      .filter((r) => r.to && r.to.startsWith("la_"))
-      .map((r) => r._id);
+    const oldLabelReferences = references.map((r) => r._id);
 
     for (const id of oldLabelReferences) {
-      await crossReferenceCollection.remove(id);
+      await labelledItemCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
-      const crossReference = new CrossReference(scene._id, id);
-      logger.log("Adding label to scene: " + JSON.stringify(crossReference));
-      await crossReferenceCollection.upsert(crossReference._id, crossReference);
+      const labelledItem = new LabelledItem(scene._id, id, "scene");
+      logger.log("Adding label to scene: " + JSON.stringify(labelledItem));
+      await labelledItemCollection.upsert(labelledItem._id, labelledItem);
     }
   }
 
   static async getLabels(scene: Scene) {
-    const references = await CrossReference.getBySource(scene._id);
-    return (
-      await mapAsync(
-        references.filter((r) => r.to && r.to.startsWith("la_")),
-        (r) => Label.getById(r.to)
-      )
-    ).filter(Boolean) as Label[];
+    const references = await LabelledItem.getByItem(scene._id);
+    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
+      Boolean
+    ) as Label[];
   }
 
   static async getSceneByPath(path: string) {

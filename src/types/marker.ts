@@ -1,14 +1,14 @@
 import * as database from "../database";
 import { generateHash } from "../hash";
 import Scene from "./scene";
-import CrossReference from "./cross_references";
 import * as logger from "../logger";
 import { mapAsync, libraryPath } from "./utility";
 import Label from "./label";
 import Image from "./image";
 import * as path from "path";
 import { singleScreenshot } from "../ffmpeg/screenshot";
-import { imageCollection, crossReferenceCollection } from "../database";
+import { imageCollection, labelledItemCollection } from "../database";
+import LabelledItem from "./labelled_item";
 
 export default class Marker {
   _id: string;
@@ -50,10 +50,10 @@ export default class Marker {
     image.path = imagePath;
     image.scene = marker.scene;
 
-    const actors = (await Scene.getActors(scene)).map(l => l._id);
+    const actors = (await Scene.getActors(scene)).map((l) => l._id);
     await Image.setActors(image, actors);
 
-    const labels = (await Marker.getLabels(marker)).map(l => l._id);
+    const labels = (await Marker.getLabels(marker)).map((l) => l._id);
     await Image.setLabels(image, labels);
 
     await singleScreenshot(scene.path, imagePath, marker.time + 15);
@@ -64,38 +64,33 @@ export default class Marker {
       { _id: marker._id },
       {
         $set: {
-          thumbnail: image._id
-        }
+          thumbnail: image._id,
+        },
       }
     );
   }
 
   static async setLabels(marker: Marker, labelIds: string[]) {
-    const references = await CrossReference.getBySource(marker._id);
+    const references = await LabelledItem.getByItem(marker._id);
 
-    const oldLabelReferences = references
-      .filter(r => r.to.startsWith("la_"))
-      .map(r => r._id);
+    const oldLabelReferences = references.map((r) => r._id);
 
     for (const id of oldLabelReferences) {
-      await crossReferenceCollection.remove(id);
+      await labelledItemCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
-      const crossReference = new CrossReference(marker._id, id);
-      logger.log("Adding label to marker: " + JSON.stringify(crossReference));
-      await crossReferenceCollection.upsert(crossReference._id, crossReference);
+      const labelledItem = new LabelledItem(marker._id, id, "marker");
+      logger.log("Adding label to marker: " + JSON.stringify(labelledItem));
+      await labelledItemCollection.upsert(labelledItem._id, labelledItem);
     }
   }
 
   static async getLabels(marker: Marker) {
-    const references = await CrossReference.getBySource(marker._id);
-    return (
-      await mapAsync(
-        references.filter(r => r.to.startsWith("la_")),
-        r => Label.getById(r.to)
-      )
-    ).filter(Boolean) as Label[];
+    const references = await LabelledItem.getByItem(marker._id);
+    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
+      Boolean
+    ) as Label[];
   }
 
   constructor(name: string, scene: string, time: number) {
@@ -107,7 +102,7 @@ export default class Marker {
 
   static async getById(_id: string) {
     return (await database.findOne(database.store.markers, {
-      _id
+      _id,
     })) as Marker | null;
   }
 

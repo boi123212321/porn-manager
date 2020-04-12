@@ -8,7 +8,7 @@ import * as logger from "../../logger";
 import { indices } from "../../search/index";
 import { createStudioSearchDoc } from "../../search/studio";
 import { updateSceneDoc } from "../../search/scene";
-import CrossReference from "../../types/cross_references";
+import LabelledItem from "../../types/labelled_item";
 
 type IStudioUpdateOpts = Partial<{
   name: string;
@@ -97,9 +97,9 @@ export default {
         await Movie.filterStudio(studio._id);
         await Image.filterStudio(studio._id);
 
-        await CrossReference.clear(studio._id);
+        await LabelledItem.removeByItem(studio._id);
       }
     }
     return true;
-  }
+  },
 };

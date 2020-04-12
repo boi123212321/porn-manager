@@ -8,9 +8,6 @@ export default {
   async scenes(actor: Actor) {
     return await Scene.getByActor(actor._id);
   },
-  async images(actor: Actor) {
-    return await Image.getByActor(actor._id);
-  },
   async labels(actor: Actor) {
     return await Actor.getLabels(actor);
   },
@@ -39,7 +36,7 @@ export default {
   },
   async availableFields() {
     const fields = await CustomField.getAll();
-    return fields.filter(field =>
+    return fields.filter((field) =>
       field.target.includes(CustomFieldTarget.ACTORS)
     );
   },
@@ -51,7 +48,7 @@ export default {
   },
   async collabs(actor: Actor) {
     const collabs = await Actor.getCollabs(actor);
-    const actors = collabs.map(c => c.actors).flat();
+    const actors = collabs.map((c) => c.actors).flat();
     return createObjectSet(actors, "_id");
-  }
+  },
 };

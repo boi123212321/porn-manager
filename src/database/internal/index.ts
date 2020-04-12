@@ -51,7 +51,7 @@ export namespace Izzy {
     }
 
     async get(id: string) {
-      logger.log(`Getting ${this.name}/${id}...`);
+      //logger.log(`Getting ${this.name}/${id}...`);
       try {
         const res = await Axios.get(
           `http://localhost:7999/collection/${this.name}/${id}`
@@ -65,7 +65,7 @@ export namespace Izzy {
     }
 
     async getBulk(items: string[]) {
-      logger.log(`Getting bulk from ${this.name}...`);
+      //logger.log(`Getting bulk from ${this.name}...`);
       const res = await Axios.post(
         `http://localhost:7999/collection/${this.name}/bulk`,
         { items }
@@ -74,7 +74,7 @@ export namespace Izzy {
     }
 
     async query(index: string, key: string | null) {
-      logger.log(`Getting indexed: ${this.name}/${key}...`);
+      //logger.log(`Getting indexed: ${this.name}/${key}...`);
       const res = await Axios.get(
         `http://localhost:7999/collection/${this.name}/${index}/${key}`
       );
@@ -82,7 +82,7 @@ export namespace Izzy {
     }
 
     async times() {
-      logger.log(`Getting times: ${this.name}...`);
+      //logger.log(`Getting times: ${this.name}...`);
       const res = await Axios.get(
         `http://localhost:7999/collection/${this.name}/times`
       );

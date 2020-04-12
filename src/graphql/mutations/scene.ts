@@ -10,9 +10,12 @@ import Studio from "../../types/studio";
 import Marker from "../../types/marker";
 import { removeSceneDoc, updateSceneDoc } from "../../search/scene";
 import { onSceneCreate } from "../../plugin_events/scene";
-import CrossReference from "../../types/cross_references";
 import { sceneCollection } from "../../database";
 import { removeSceneFromQueue } from "../../queue/processing";
+import LabelledItem from "../../types/labelled_item";
+import ActorReference from "../../types/actor_reference";
+import MarkerReference from "../../types/marker_reference";
+import MovieScene from "../../types/movie_scene";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
@@ -258,7 +261,7 @@ export default {
         if (deleteImages === true) {
           for (const image of await Image.getByScene(scene._id)) {
             await Image.remove(image);
-            await CrossReference.clear(image._id);
+            await LabelledItem.removeByItem(image._id);
           }
           logger.success("Deleted images of scene " + scene._id);
         }
@@ -267,7 +270,10 @@ export default {
 
         logger.success("Deleted scene " + scene._id);
 
-        await CrossReference.clear(scene._id);
+        await LabelledItem.removeByItem(scene._id);
+        await MarkerReference.removeByScene(scene._id);
+        await ActorReference.removeByItem(scene._id);
+        await MovieScene.removeByScene(scene._id);
 
         logger.log("Deleting scene from queue (if needed)");
         try {

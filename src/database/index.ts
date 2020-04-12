@@ -9,20 +9,26 @@ import Image from "../types/image";
 import ora from "ora";
 import Movie from "../types/movie";
 import Studio from "../types/studio";
-import CrossReference from "../types/cross_references";
 import Marker from "../types/marker";
 import { bookmarksToTimestamp } from "../integrity";
 import { Izzy } from "./internal/index";
 import args from "../args";
+import LabelledItem from "../types/labelled_item";
+import MovieScene from "../types/movie_scene";
+import ActorReference from "../types/actor_reference";
+import MarkerReference from "../types/marker_reference";
 
 mkdirp.sync("backups/");
 mkdirp.sync("tmp/");
 
 export let sceneCollection!: Izzy.Collection<Scene>;
 export let imageCollection!: Izzy.Collection<Image>;
-export let crossReferenceCollection!: Izzy.Collection<CrossReference>;
 export let actorCollection!: Izzy.Collection<Actor>;
 export let movieCollection!: Izzy.Collection<Movie>;
+export let labelledItemCollection!: Izzy.Collection<LabelledItem>;
+export let movieSceneCollection!: Izzy.Collection<MovieScene>;
+export let actorReferenceCollection!: Izzy.Collection<ActorReference>;
+export let markerReferenceCollection!: Izzy.Collection<MarkerReference>;
 
 let store = {} as {
   labels: DataStore;
@@ -84,17 +90,67 @@ export async function loadStores() {
 
   const dbLoader = ora("Loading DB...").start();
 
-  crossReferenceCollection = await Izzy.createCollection(
-    "cross-references",
-    libraryPath("cross_references.db"),
+  markerReferenceCollection = await Izzy.createCollection(
+    "marker-references",
+    libraryPath("marker_references.db"),
     [
       {
-        name: "from-index",
-        key: "from",
+        name: "marker-index",
+        key: "marker",
       },
       {
-        name: "to-index",
-        key: "to",
+        name: "scene-index",
+        key: "scene",
+      },
+    ]
+  );
+  actorReferenceCollection = await Izzy.createCollection(
+    "actor-references",
+    libraryPath("actor_references.db"),
+    [
+      {
+        name: "actor-index",
+        key: "actor",
+      },
+      {
+        name: "item-index",
+        key: "item",
+      },
+      {
+        name: "type-index",
+        key: "type",
+      },
+    ]
+  );
+  movieSceneCollection = await Izzy.createCollection(
+    "movie-scenes",
+    libraryPath("movie_scenes.db"),
+    [
+      {
+        name: "movie-index",
+        key: "movie",
+      },
+      {
+        name: "scene-index",
+        key: "scene",
+      },
+    ]
+  );
+  labelledItemCollection = await Izzy.createCollection(
+    "labelled-items",
+    libraryPath("labelled_items.db"),
+    [
+      {
+        name: "label-index",
+        key: "label",
+      },
+      {
+        name: "item-index",
+        key: "item",
+      },
+      {
+        name: "type-index",
+        key: "type",
       },
     ]
   );
@@ -155,7 +211,10 @@ export async function loadStores() {
     const compactLoader = ora("Compacting DB...").start();
     await sceneCollection.compact();
     await imageCollection.compact();
-    await crossReferenceCollection.compact();
+    await labelledItemCollection.compact();
+    await movieSceneCollection.compact();
+    await actorReferenceCollection.compact();
+    await markerReferenceCollection.compact();
     await actorCollection.compact();
     await movieCollection.compact();
     compactLoader.succeed("Compacted DB");
@@ -197,7 +256,6 @@ export async function loadStores() {
     await Image.checkIntegrity();
     await Studio.checkIntegrity();
     await Movie.checkIntegrity();
-    await CrossReference.checkIntegrity();
     await Marker.checkIntegrity();
     integrityLoader.succeed("Integrity check done.");
   } else {

@@ -5,7 +5,7 @@ import {
   IImportedLabel,
   IImportedMovie,
   IImportedStudio,
-  IImportedCustomField
+  IImportedCustomField,
 } from "./types";
 import Label from "../types/label";
 import Scene from "../types/scene";
@@ -15,7 +15,6 @@ import { stripStr } from "../extractor";
 import * as logger from "../logger";
 import * as database from "../database/index";
 import CustomField, { CustomFieldTarget } from "../types/custom_field";
-import CrossReference from "../types/cross_references";
 import { inspect } from "util";
 import { basename } from "path";
 import Movie from "../types/movie";
@@ -27,9 +26,10 @@ import { onMovieCreate } from "../plugin_events/movie";
 import { isNumber, isBoolean } from "../types/utility";
 import {
   imageCollection,
-  crossReferenceCollection,
-  actorCollection
+  actorCollection,
+  actorReferenceCollection,
 } from "../database/index";
+import ActorReference from "../types/actor_reference";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -63,7 +63,7 @@ function normalizeCreatedObjects(
   ids: string[],
   newlyCreated: Dictionary<{ _id: string }>
 ) {
-  return ids.map(str => {
+  return ids.map((str) => {
     // Newly created object, get database ID instead
     if (newlyCreated[str] !== undefined) return newlyCreated[str]._id;
     // Already in database, just return ID
@@ -90,9 +90,9 @@ export async function createFromFileData(opts: ICreateOptions) {
           const perms = stripStr(scene.path || scene.name);
           if (
             perms.includes(stripStr(label.name)) ||
-            label.aliases.some(alias => perms.includes(stripStr(alias)))
+            label.aliases.some((alias) => perms.includes(stripStr(alias)))
           ) {
-            const labels = (await Scene.getLabels(scene)).map(l => l._id);
+            const labels = (await Scene.getLabels(scene)).map((l) => l._id);
             labels.push(label._id);
             await Scene.setLabels(scene, labels);
             logger.log(`Updated labels of ${scene._id}.`);
@@ -181,10 +181,10 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = actorToCreate.thumbnail;
         actor.thumbnail = image._id;
 
-        const reference = new CrossReference(image._id, actor._id);
+        const reference = new ActorReference(image._id, actor._id, "image");
 
         if (args["commit-import"]) {
-          await crossReferenceCollection.upsert(reference._id, reference);
+          await actorReferenceCollection.upsert(reference._id, reference);
           await imageCollection.upsert(image._id, image);
         }
       }
@@ -369,7 +369,7 @@ export async function createFromFileData(opts: ICreateOptions) {
           //createdScenes,
           createdActors,
           createdMovies,
-          createdStudios
+          createdStudios,
         },
         true,
         null

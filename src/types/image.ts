@@ -3,13 +3,15 @@ import Label from "./label";
 import * as logger from "../logger";
 import { unlinkAsync } from "../fs/async";
 import { mapAsync } from "./utility";
-import CrossReference from "./cross_references";
 import Vibrant from "node-vibrant";
 import {
   imageCollection,
-  crossReferenceCollection,
   actorCollection,
+  labelledItemCollection,
+  actorReferenceCollection,
 } from "../database";
+import LabelledItem from "./labelled_item";
+import ActorReference from "./actor_reference";
 
 export class ImageDimensions {
   width: number | null = null;
@@ -68,84 +70,7 @@ export default class Image {
     return null;
   }
 
-  static async checkIntegrity() {
-    const allImages = await Image.getAll();
-
-    for (const image of allImages) {
-      const imageId = image._id.startsWith("im_")
-        ? image._id
-        : `im_${image._id}`;
-
-      if (image.actors && image.actors.length) {
-        for (const actor of image.actors) {
-          const actorId = actor.startsWith("ac_") ? actor : `ac_${actor}`;
-
-          if (!!(await CrossReference.get(imageId, actorId))) {
-            logger.log(
-              `Cross reference ${imageId} -> ${actorId} already exists.`
-            );
-          } else {
-            const cr = new CrossReference(imageId, actorId);
-            await crossReferenceCollection.upsert(cr._id, cr);
-            logger.log(
-              `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
-            );
-          }
-        }
-      }
-
-      if (image.labels && image.labels.length) {
-        for (const label of image.labels) {
-          const labelId = label.startsWith("la_") ? label : `la_${label}`;
-
-          if (!!(await CrossReference.get(imageId, labelId))) {
-            logger.log(
-              `Cross reference ${imageId} -> ${labelId} already exists.`
-            );
-          } else {
-            const cr = new CrossReference(imageId, labelId);
-            await crossReferenceCollection.upsert(cr._id, cr);
-            logger.log(
-              `Created cross reference ${cr._id}: ${cr.from} -> ${cr.to}`
-            );
-          }
-        }
-      }
-
-      if (!image._id.startsWith("im_")) {
-        const newImage = JSON.parse(JSON.stringify(image)) as Image;
-        newImage._id = imageId;
-        if (newImage.actors) delete newImage.actors;
-        if (newImage.labels) delete newImage.labels;
-        if (image.scene && !image.scene.startsWith("sc_")) {
-          newImage.scene = "sc_" + image.scene;
-        }
-        if (image.studio && !image.studio.startsWith("st_")) {
-          newImage.studio = "st_" + image.studio;
-        }
-        await imageCollection.upsert(newImage._id, newImage);
-        await imageCollection.remove(image._id);
-        logger.log(`Changed image ID: ${image._id} -> ${imageId}`);
-      } else {
-        if (image.studio && !image.studio.startsWith("st_")) {
-          image.studio = "st_" + image.studio;
-          await imageCollection.upsert(image._id, image);
-        }
-        if (image.scene && !image.scene.startsWith("sc_")) {
-          image.scene = "sc_" + image.scene;
-          await imageCollection.upsert(image._id, image);
-        }
-        if (image.actors) {
-          delete image.actors;
-          await imageCollection.upsert(image._id, image);
-        }
-        if (image.labels) {
-          delete image.labels;
-          await imageCollection.upsert(image._id, image);
-        }
-      }
-    }
-  }
+  static async checkIntegrity() {}
 
   static async remove(image: Image) {
     await imageCollection.remove(image._id);
@@ -178,16 +103,6 @@ export default class Image {
     return imageCollection.query("scene-index", id);
   }
 
-  static async getByActor(id: string) {
-    const references = await CrossReference.getByDest(id);
-    return (
-      await mapAsync(
-        references.filter((r) => r.from.startsWith("im_")),
-        (r) => Image.getById(r.from)
-      )
-    ).filter(Boolean) as Image[];
-  }
-
   static async getById(_id: string) {
     return imageCollection.get(_id);
   }
@@ -197,57 +112,49 @@ export default class Image {
   }
 
   static async getActors(image: Image) {
-    const references = await CrossReference.getBySource(image._id);
+    const references = await ActorReference.getByItem(image._id);
     return (
-      await actorCollection.getBulk(
-        references.filter((r) => r.to.startsWith("ac_")).map((r) => r.to)
-      )
+      await actorCollection.getBulk(references.map((r) => r.actor))
     ).filter(Boolean);
   }
 
   static async setActors(image: Image, actorIds: string[]) {
-    const references = await CrossReference.getBySource(image._id);
+    const references = await ActorReference.getByItem(image._id);
 
-    const oldActorReferences = references
-      .filter((r) => r.to && r.to.startsWith("ac_"))
-      .map((r) => r._id);
+    const oldActorReferences = references.map((r) => r._id);
 
     for (const id of oldActorReferences) {
-      await crossReferenceCollection.remove(id);
+      await actorReferenceCollection.remove(id);
     }
 
     for (const id of [...new Set(actorIds)]) {
-      const crossReference = new CrossReference(image._id, id);
-      logger.log("Adding actor to image: " + JSON.stringify(crossReference));
+      const actorReference = new ActorReference(image._id, id, "image");
+      logger.log("Adding actor to image: " + JSON.stringify(actorReference));
+      await actorReferenceCollection.upsert(actorReference._id, actorReference);
     }
   }
 
   static async setLabels(image: Image, labelIds: string[]) {
-    const references = await CrossReference.getBySource(image._id);
+    const references = await LabelledItem.getByItem(image._id);
 
-    const oldLabelReferences = references
-      .filter((r) => r.to && r.to.startsWith("la_"))
-      .map((r) => r._id);
+    const oldLabelReferences = references.map((r) => r._id);
 
     for (const id of oldLabelReferences) {
-      await crossReferenceCollection.remove(id);
+      await labelledItemCollection.remove(id);
     }
 
     for (const id of [...new Set(labelIds)]) {
-      const crossReference = new CrossReference(image._id, id);
-      logger.log("Adding label to image: " + JSON.stringify(crossReference));
-      await crossReferenceCollection.upsert(crossReference._id, crossReference);
+      const labelledItem = new LabelledItem(image._id, id, "image");
+      logger.log("Adding label to image: " + JSON.stringify(labelledItem));
+      await labelledItemCollection.upsert(labelledItem._id, labelledItem);
     }
   }
 
   static async getLabels(image: Image) {
-    const references = await CrossReference.getBySource(image._id);
-    return (
-      await mapAsync(
-        references.filter((r) => r.to && r.to.startsWith("la_")),
-        (r) => Label.getById(r.to)
-      )
-    ).filter(Boolean) as Label[];
+    const references = await LabelledItem.getByItem(image._id);
+    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
+      Boolean
+    ) as Label[];
   }
 
   static async getImageByPath(path: string) {

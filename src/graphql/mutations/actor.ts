@@ -1,4 +1,3 @@
-import * as database from "../../database";
 import Actor from "../../types/actor";
 import Scene from "../../types/scene";
 import Image from "../../types/image";
@@ -11,8 +10,9 @@ import { createActorSearchDoc } from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
 import { updateSceneDoc } from "../../search/scene";
 import { updateImageDoc, isBlacklisted } from "../../search/image";
-import CrossReference from "../../types/cross_references";
 import { actorCollection } from "../../database";
+import LabelledItem from "../../types/labelled_item";
+import ActorReference from "../../types/actor_reference";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -38,7 +38,7 @@ async function runActorPlugins(ids: string[]) {
     if (actor) {
       logger.message(`Running plugin action event for '${actor.name}'...`);
 
-      const labels = (await Actor.getLabels(actor)).map(l => l._id);
+      const labels = (await Actor.getLabels(actor)).map((l) => l._id);
       actor = await onActorCreate(actor, labels, "actorCustom");
 
       await Actor.setLabels(actor, labels);
@@ -55,7 +55,7 @@ async function runActorPlugins(ids: string[]) {
 
 export default {
   async runAllActorPlugins() {
-    const ids = (await Actor.getAll()).map(a => a._id);
+    const ids = (await Actor.getAll()).map((a) => a._id);
     return runActorPlugins(ids);
   },
 
@@ -86,16 +86,16 @@ export default {
 
       if (
         perms.includes(stripStr(actor.name)) ||
-        actor.aliases.some(alias => perms.includes(stripStr(alias)))
+        actor.aliases.some((alias) => perms.includes(stripStr(alias)))
       ) {
         if (config.APPLY_ACTOR_LABELS === true) {
-          const sceneLabels = (await Scene.getLabels(scene)).map(l => l._id);
+          const sceneLabels = (await Scene.getLabels(scene)).map((l) => l._id);
           await Scene.setLabels(scene, sceneLabels.concat(actorLabels));
           logger.log(`Applied actor labels of new actor to ${scene._id}`);
         }
         await Scene.setActors(
           scene,
-          (await Scene.getActors(scene)).map(l => l._id).concat(actor._id)
+          (await Scene.getActors(scene)).map((l) => l._id).concat(actor._id)
         );
         try {
           await updateSceneDoc(scene);
@@ -113,16 +113,16 @@ export default {
 
       if (
         perms.includes(stripStr(actor.name)) ||
-        actor.aliases.some(alias => perms.includes(stripStr(alias)))
+        actor.aliases.some((alias) => perms.includes(stripStr(alias)))
       ) {
         if (config.APPLY_ACTOR_LABELS === true) {
-          const imageLabels = (await Image.getLabels(image)).map(l => l._id);
+          const imageLabels = (await Image.getLabels(image)).map((l) => l._id);
           await Image.setLabels(image, imageLabels.concat(actorLabels));
           logger.log(`Applied actor labels of new actor to ${image._id}`);
         }
         await Image.setActors(
           image,
-          (await Image.getActors(image)).map(l => l._id).concat(actor._id)
+          (await Image.getActors(image)).map((l) => l._id).concat(actor._id)
         );
         try {
           await updateImageDoc(image);
@@ -206,9 +206,10 @@ export default {
       if (actor) {
         await Actor.remove(actor);
         indices.actors.remove(actor._id);
-        await CrossReference.clear(actor._id);
+        await LabelledItem.removeByItem(actor._id);
+        await ActorReference.removeByActor(actor._id);
       }
     }
     return true;
-  }
+  },
 };

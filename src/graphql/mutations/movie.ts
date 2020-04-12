@@ -1,12 +1,12 @@
-import * as database from "../../database";
 import Movie from "../../types/movie";
 import { Dictionary } from "../../types/utility";
 import * as logger from "../../logger";
 import { indices } from "../../search/index";
 import { createMovieSearchDoc } from "../../search/movie";
 import { onMovieCreate } from "../../plugin_events/movie";
-import CrossReference from "../../types/cross_references";
 import { movieCollection } from "../../database";
+import MovieScene from "../../types/movie_scene";
+import LabelledItem from "../../types/labelled_item";
 
 type IMovieUpdateOpts = Partial<{
   name: string;
@@ -52,7 +52,8 @@ export default {
         await Movie.remove(movie._id);
         indices.movies.remove(movie._id);
 
-        await CrossReference.clear(movie._id);
+        await LabelledItem.removeByItem(movie._id);
+        await MovieScene.removeByMovie(movie._id);
       }
     }
     return true;

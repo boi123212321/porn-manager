@@ -7,7 +7,7 @@ import { stripStr } from "../../extractor";
 import * as logger from "../../logger";
 import { updateSceneDoc } from "../../search/scene";
 import { updateImageDoc, isBlacklisted } from "../../search/image";
-import CrossReference from "../../types/cross_references";
+import LabelledItem from "../../types/labelled_item";
 
 type ILabelUpdateOpts = Partial<{
   name: string;
@@ -22,7 +22,7 @@ export default {
 
       if (label) {
         await Label.remove(label._id);
-        await CrossReference.removeByDest(id);
+        await LabelledItem.removeByLabel(id);
       }
     }
     return true;
@@ -36,9 +36,9 @@ export default {
 
       if (
         perms.includes(stripStr(label.name)) ||
-        label.aliases.some(alias => perms.includes(stripStr(alias)))
+        label.aliases.some((alias) => perms.includes(stripStr(alias)))
       ) {
-        const labels = (await Scene.getLabels(scene)).map(l => l._id);
+        const labels = (await Scene.getLabels(scene)).map((l) => l._id);
         labels.push(label._id);
         await Scene.setLabels(scene, labels);
         await updateSceneDoc(scene);
@@ -53,9 +53,9 @@ export default {
 
       if (
         perms.includes(stripStr(label.name)) ||
-        label.aliases.some(alias => perms.includes(stripStr(alias)))
+        label.aliases.some((alias) => perms.includes(stripStr(alias)))
       ) {
-        const labels = (await Image.getLabels(image)).map(l => l._id);
+        const labels = (await Image.getLabels(image)).map((l) => l._id);
         labels.push(label._id);
         await Image.setLabels(image, labels);
         await updateImageDoc(image);
@@ -92,5 +92,5 @@ export default {
     }
 
     return updatedLabels;
-  }
+  },
 };
