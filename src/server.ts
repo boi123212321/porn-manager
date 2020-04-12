@@ -59,6 +59,7 @@ async function tryStartProcessing() {
 async function scanFolders() {
   logger.warn("Scanning folders...");
   await checkVideoFolders();
+  logger.success("Scan done.");
   checkImageFolders();
 }
 
@@ -233,5 +234,5 @@ export default async () => {
     });
   }
 
-  setInterval(scanFolders, config.SCAN_INTERVAL);
+  if (config.SCAN_INTERVAL > 0) setInterval(scanFolders, config.SCAN_INTERVAL);
 };
