@@ -41,6 +41,7 @@ There's a Discord channel now! Join in to the discussion. https://discord.gg/t49
 - IMAGE_PATHS: Paths of image files that will be imported - subfolders will be searched recursively
 - BULK_IMPORT_PATHS: Paths of .json or .yaml files to import content from
 - SCAN_ON_STARTUP: Whether video and image paths should be scanned
+- DO_PROCESSING: Whether queued scenes should be processed
 - SCAN_INTERVAL: Rescan paths all X milliseconds - only works when SCAN_ON_STARTUP is enabled
 - LIBRARY_PATH: Path where the library (.db files & uploaded files & processed images) will be stored (default: working directory)
 - FFMPEG_PATH: Where the ffmpeg binary is located; will be placed in working directory when downloading using the setup
