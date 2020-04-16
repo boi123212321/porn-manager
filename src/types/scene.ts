@@ -182,22 +182,24 @@ export default class Scene {
       logger.error(error.message);
     }
 
-    const thumbnail = await Scene.generateSingleThumbnail(
-      scene._id,
-      videoPath,
-      // @ts-ignore
-      scene.meta.dimensions
-    );
-    const image = new Image(`${sceneName} (thumbnail)`);
-    image.path = thumbnail.path;
-    image.scene = scene._id;
-    image.meta.size = thumbnail.size;
-    await Image.setLabels(image, sceneLabels);
-    await Image.setActors(image, sceneActors);
-    logger.log(`Creating image with id ${image._id}...`);
-    await imageCollection.upsert(image._id, image);
+    if (!scene.thumbnail) {
+      const thumbnail = await Scene.generateSingleThumbnail(
+        scene._id,
+        videoPath,
+        // @ts-ignore
+        scene.meta.dimensions
+      );
+      const image = new Image(`${sceneName} (thumbnail)`);
+      image.path = thumbnail.path;
+      image.scene = scene._id;
+      image.meta.size = thumbnail.size;
+      await Image.setLabels(image, sceneLabels);
+      await Image.setActors(image, sceneActors);
+      logger.log(`Creating image with id ${image._id}...`);
+      await imageCollection.upsert(image._id, image);
+      scene.thumbnail = image._id;
+    }
 
-    scene.thumbnail = image._id;
     logger.log(`Creating scene with id ${scene._id}...`);
     await Scene.setLabels(scene, sceneLabels);
     await Scene.setActors(scene, sceneActors);
