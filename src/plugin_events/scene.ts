@@ -29,6 +29,7 @@ import {
 import Movie from "../types/movie";
 import { onMovieCreate } from "./movie";
 import { createMovieSearchDoc } from "../search/movie";
+import { createStudioSearchDoc } from "../search/studio";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -164,6 +165,7 @@ export async function onSceneCreate(
       const studio = new Studio(pluginResult.studio);
       scene.studio = studio._id;
       await database.insert(database.store.studios, studio);
+      indices.studios.add(await createStudioSearchDoc(studio));
       logger.log("Created studio " + studio.name);
     }
   }

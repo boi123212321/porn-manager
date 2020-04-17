@@ -11,6 +11,8 @@ import Movie from "../types/movie";
 import { imageCollection } from "../database/index";
 import Studio from "../types/studio";
 import * as database from "../database/index";
+import { createStudioSearchDoc } from "../search/studio";
+import { indices } from "../search";
 
 // This function has side effects
 export async function onMovieCreate(movie: Movie, event = "movieCreated") {
@@ -114,6 +116,7 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
       const studio = new Studio(pluginResult.studio);
       movie.studio = studio._id;
       await database.insert(database.store.studios, studio);
+      indices.studios.add(await createStudioSearchDoc(studio));
       logger.log("Created studio " + studio.name);
     }
   }
