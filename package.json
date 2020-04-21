@@ -72,7 +72,7 @@
     "@types/fluent-ffmpeg": "^2.1.14",
     "@types/graphql": "^14.5.0",
     "@types/inquirer": "^6.5.0",
-    "@types/mkdirp": "^0.5.2",
+    "@types/mkdirp": "^1.0.0",
     "@types/nedb": "^1.8.9",
     "@types/node": "^13.9.1",
     "@types/pug": "^2.0.4",
