@@ -8,7 +8,7 @@
       :search-input.sync="searchQuery"
       cache-items
       hide-no-data
-       hint="Search for actors by typing something"
+      hint="Search for actors by typing something"
       :label="multiple ? 'Select actors' : 'Select actor'"
       :multiple="multiple"
       item-text="name"
@@ -56,9 +56,12 @@ export default class ActorSelector extends Vue {
   }
 
   onInnerValueChange(newVal: string[]) {
-    this.$emit("input", newVal
-      .map(id => this.actors.find(a => a._id == id))
-      .filter(Boolean) as IActor[]);
+    this.$emit(
+      "input",
+      newVal
+        .map(id => this.actors.find(a => a._id == id))
+        .filter(Boolean) as IActor[]
+    );
   }
 
   thumbnail(actor: IActor) {
