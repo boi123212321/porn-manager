@@ -40,45 +40,46 @@ export async function onConfigLoad(config: IConfig) {
 
 printMaxMemory();
 
-(async () => {
-  await checkConfig();
-  const config = getConfig();
+if (!process.env.PREVENT_STARTUP)
+  (async () => {
+    await checkConfig();
+    const config = getConfig();
 
-  // TODO: validate config
+    // TODO: validate config
 
-  await onConfigLoad(config);
+    await onConfigLoad(config);
 
-  if (args["process-queue"] === true) {
-    await queueLoop(config);
-  } else {
-    if (config.PASSWORD && process.env.NODE_ENV != "development") {
-      let password;
-      do {
-        password = (
-          await inquirer.prompt([
-            {
-              type: "password",
-              name: "password",
-              message: "Enter password",
-            },
-          ])
-        ).password;
-      } while (sha(password) != config.PASSWORD);
-    }
-
-    try {
-      let downloadedBins = 0;
-      downloadedBins += await ensureTwigsExists();
-      downloadedBins += await ensureIzzyExists();
-      if (downloadedBins > 0) {
-        logger.success("Binaries downloaded. Please restart.");
-        process.exit(0);
+    if (args["process-queue"] === true) {
+      await queueLoop(config);
+    } else {
+      if (config.PASSWORD && process.env.NODE_ENV != "development") {
+        let password;
+        do {
+          password = (
+            await inquirer.prompt([
+              {
+                type: "password",
+                name: "password",
+                message: "Enter password",
+              },
+            ])
+          ).password;
+        } while (sha(password) != config.PASSWORD);
       }
-      startServer();
-    } catch (err) {
-      logger.log(err);
-      logger.error(err.message);
-      process.exit(1);
+
+      try {
+        let downloadedBins = 0;
+        downloadedBins += await ensureTwigsExists();
+        downloadedBins += await ensureIzzyExists();
+        if (downloadedBins > 0) {
+          logger.success("Binaries downloaded. Please restart.");
+          process.exit(0);
+        }
+        startServer();
+      } catch (err) {
+        logger.log(err);
+        logger.error(err.message);
+        process.exit(1);
+      }
     }
-  }
-})();
+  })();

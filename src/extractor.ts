@@ -6,26 +6,31 @@ import CustomField from "./types/custom_field";
 import Movie from "./types/movie";
 
 export function isSingleWord(str: string) {
-  return str.split(" ").length > 1;
+  return str.split(" ").length == 1;
 }
 
-function ignoreSingleNames(arr: string[]) {
+export function ignoreSingleNames(arr: string[]) {
   return arr.filter((str) => {
+    if (!str.length) return false;
+
     // Check if string is a viable name
     if (str.match(/^[a-z0-9']+$/i)) return !isSingleWord(str); // Cut it out if it's just one name
-    // Otherwise, it's probably a regex, so leave it be
+    // Otherwise, it's *probably* a regex, so leave it be
     return true;
   });
 }
 
-export function isMatchingActor(str: string, actor: Actor) {
+export function isMatchingItem(
+  str: string,
+  actor: { name: string; aliases?: string[] }
+) {
   if (isSingleWord(actor.name)) return false;
 
   const originalStr = stripStr(str);
 
   if (originalStr.includes(stripStr(actor.name))) return true;
 
-  return ignoreSingleNames(actor.aliases).some((alias) =>
+  return ignoreSingleNames(actor.aliases || []).some((alias) =>
     new RegExp(alias, "i").test(originalStr)
   );
 }
@@ -53,10 +58,7 @@ export async function extractLabels(str: string): Promise<string[]> {
   const allLabels = await Label.getAll();
 
   allLabels.forEach((label) => {
-    if (
-      stripStr(str).includes(stripStr(label.name)) ||
-      label.aliases.some((alias) => stripStr(str).includes(stripStr(alias)))
-    ) {
+    if (isMatchingItem(str, label)) {
       foundLabels.push(label._id);
     }
   });
@@ -69,7 +71,7 @@ export async function extractActors(str: string): Promise<string[]> {
   const allActors = await Actor.getAll();
 
   allActors.forEach((actor) => {
-    if (isMatchingActor(str, actor)) {
+    if (isMatchingItem(str, actor)) {
       foundActors.push(actor._id);
     }
   });
@@ -80,13 +82,7 @@ export async function extractActors(str: string): Promise<string[]> {
 export async function extractStudios(str: string): Promise<string[]> {
   const allStudios = await Studio.getAll();
   return allStudios
-    .filter(
-      (studio) =>
-        stripStr(str).includes(stripStr(studio.name)) ||
-        (studio.aliases || []).some((alias) =>
-          stripStr(str).includes(stripStr(alias))
-        )
-    )
+    .filter((studio) => isMatchingItem(str, studio))
     .sort((a, b) => b.name.length - a.name.length)
     .map((s) => s._id);
 }

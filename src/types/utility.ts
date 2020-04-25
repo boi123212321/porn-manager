@@ -69,8 +69,8 @@ export async function filterAsync<T>(
 export function isRegExp(regStr: string) {
   try {
     new RegExp(regStr);
+    return true;
   } catch (e) {
     return false;
   }
-  return true;
 }

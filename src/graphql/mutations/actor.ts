@@ -2,7 +2,7 @@ import Actor from "../../types/actor";
 import Scene from "../../types/scene";
 import Image from "../../types/image";
 import { Dictionary } from "../../types/utility";
-import { stripStr, isSingleWord, isMatchingActor } from "../../extractor";
+import { isSingleWord, isMatchingItem } from "../../extractor";
 import * as logger from "../../logger";
 import { getConfig } from "../../config/index";
 import { indices } from "../../search/index";
@@ -84,7 +84,7 @@ export default {
     if (isSingleWord(actor.name)) {
     } else {
       for (const scene of await Scene.getAll()) {
-        if (isMatchingActor(scene.path || scene.name, actor)) {
+        if (isMatchingItem(scene.path || scene.name, actor)) {
           if (config.APPLY_ACTOR_LABELS === true) {
             const sceneLabels = (await Scene.getLabels(scene)).map(
               (l) => l._id
@@ -107,7 +107,7 @@ export default {
 
       for (const image of await Image.getAll()) {
         if (isBlacklisted(image.name)) continue;
-        if (isMatchingActor(image.name, actor)) {
+        if (isMatchingItem(image.name, actor)) {
           if (config.APPLY_ACTOR_LABELS === true) {
             const imageLabels = (await Image.getLabels(image)).map(
               (l) => l._id
