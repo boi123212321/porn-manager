@@ -6,6 +6,7 @@ import * as logger from "../logger";
 import moment = require("moment");
 import { actorCollection, labelledItemCollection } from "../database";
 import LabelledItem from "./labelled_item";
+import SceneView from "./watch";
 
 export default class Actor {
   _id: string;
@@ -69,10 +70,14 @@ export default class Actor {
 
   static async getWatches(actor: Actor) {
     const scenes = await Scene.getByActor(actor._id);
-    return scenes
-      .map((s) => s.watches)
+
+    return (
+      await mapAsync(scenes, (scene) => {
+        return SceneView.getByScene(scene._id);
+      })
+    )
       .flat()
-      .sort();
+      .sort((a, b) => a.date - b.date);
   }
 
   static async getTopActors() {

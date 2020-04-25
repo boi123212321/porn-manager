@@ -10,9 +10,17 @@ export default gql`
     indexing: Boolean!
   }
 
+  type SceneView {
+    _id: String!
+    scene: Scene
+    date: Long!
+  }
+
   type Query {
     getQueueInfo: QueueInfo!
     twigs: IndexStatus
+
+    getWatches(min: Long, max: Long): [SceneView!]!
   }
 
   type Mutation {

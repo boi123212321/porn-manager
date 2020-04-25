@@ -20,8 +20,18 @@ import {
   actorCollection,
   movieCollection,
 } from "../../database/index";
+import SceneView from "../../types/watch";
 
 export default {
+  async getWatches(
+    _: void,
+    { min, max }: { min: number | null; max: number | null }
+  ) {
+    return (await SceneView.getAll()).filter(
+      (w) => w.date >= (min || 0) && w.date <= (max || 99999999999999)
+    );
+  },
+
   async twigs() {
     return {
       version: await twigsVersion(),

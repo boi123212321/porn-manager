@@ -27,10 +27,12 @@ import {
   actorCollection,
   labelledItemCollection,
   actorReferenceCollection,
+  viewCollection,
 } from "../database";
 import LabelledItem from "./labelled_item";
 import ActorReference from "./actor_reference";
 import MarkerReference from "./marker_reference";
+import SceneView from "./watch";
 
 export function runFFprobe(file: string): Promise<FfprobeData> {
   return new Promise((resolve, reject) => {
@@ -84,7 +86,7 @@ export default class Scene {
   actors?: string[]; // backwards compatibility
   path: string | null = null;
   streamLinks: string[] = [];
-  watches: number[] = []; // Array of timestamps of watches
+  watches?: number[]; // backwards compatibility, array of timestamps of watches
   meta = new SceneMeta();
   studio: string | null = null;
   processed?: boolean = false;
@@ -233,17 +235,32 @@ export default class Scene {
         scene.preview = null;
         await sceneCollection.upsert(scene._id, scene);
       }
+
+      if (scene.watches) {
+        logger.log("Moving scene watches to separate table");
+        for (const watch of scene.watches) {
+          const watchItem = new SceneView(scene._id, watch);
+          await viewCollection.upsert(watchItem._id, watchItem);
+        }
+        delete scene.watches;
+        await sceneCollection.upsert(scene._id, scene);
+      }
     }
   }
 
   static async watch(scene: Scene) {
-    scene.watches.push(Date.now());
-    await sceneCollection.upsert(scene._id, scene);
+    logger.log("Watch scene " + scene._id);
+    const watchItem = new SceneView(scene._id, +new Date());
+    await viewCollection.upsert(watchItem._id, watchItem);
   }
 
   static async unwatch(scene: Scene) {
-    scene.watches.pop();
-    await sceneCollection.upsert(scene._id, scene);
+    const watches = await SceneView.getByScene(scene._id);
+    const last = watches[watches.length - 1];
+    if (last) {
+      logger.log("Remove most recent view of scene " + scene._id);
+      await viewCollection.remove(last._id);
+    }
   }
 
   static async remove(scene: Scene) {

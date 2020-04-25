@@ -16,6 +16,7 @@ import Plugins from "../views/Plugins.vue";
 import Graph from "../views/Graph.vue";
 import Logs from "../views/Logs.vue";
 import Debug from "../views/Debug.vue";
+import Views from "../views/Views.vue";
 
 Vue.use(VueRouter);
 
@@ -23,97 +24,102 @@ const routes = [
   {
     path: "/",
     name: "home",
-    component: Home
+    component: Home,
+  },
+  {
+    path: "/views",
+    name: "views",
+    component: Views,
   },
   {
     path: "/debug",
     name: "debug",
-    component: Debug
+    component: Debug,
   },
   {
     path: "/logs",
     name: "logs",
-    component: Logs
+    component: Logs,
   },
   {
     path: "/home",
     name: "home",
-    component: Home
+    component: Home,
   },
   {
     path: "/plugins",
     name: "plugins",
-    component: Plugins
+    component: Plugins,
   },
   {
     path: "/graph",
     name: "graph",
-    component: Graph
+    component: Graph,
   },
   {
     path: "/about",
     name: "about",
-    component: About
+    component: About,
   },
   {
     path: "/settings",
     name: "settings",
-    component: About
+    component: About,
   },
   {
     path: "/scenes",
     name: "scenes",
-    component: Scenes
+    component: Scenes,
   },
   {
     path: "/actors",
     name: "actors",
-    component: Actors
+    component: Actors,
   },
   {
     path: "/movies",
     name: "movies",
-    component: Movies
+    component: Movies,
   },
   {
     path: "/studios",
     name: "studios",
-    component: Studios
+    component: Studios,
   },
   {
     path: "/scene/:id",
     name: "scene-details",
-    component: SceneDetails
+    component: SceneDetails,
   },
   {
     path: "/actor/:id",
     name: "actor-details",
-    component: ActorDetails
+    component: ActorDetails,
   },
   {
     path: "/movie/:id",
     name: "movie-details",
-    component: MovieDetails
+    component: MovieDetails,
   },
   {
     path: "/studio/:id",
     name: "studio-details",
-    component: StudioDetails
+    component: StudioDetails,
   },
   {
     path: "/labels",
     name: "labels",
-    component: Labels
+    component: Labels,
   },
   {
     path: "/images",
     name: "images",
-    component: Images
+    component: Images,
   },
   {
     path: "*",
-    redirect: "/"
-  }
+    redirect: "/",
+  },
 ];
 
 const router = new VueRouter({
@@ -124,7 +130,7 @@ const router = new VueRouter({
     } else {
       return { x: 0, y: 0 };
     }
-  }
+  },
 });
 
 export default router;

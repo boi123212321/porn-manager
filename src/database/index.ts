@@ -19,6 +19,7 @@ import ActorReference from "../types/actor_reference";
 import MarkerReference from "../types/marker_reference";
 import { existsAsync, unlinkAsync } from "../fs/async";
 import { convertCrossReferences } from "../compat";
+import SceneView from "../types/watch";
 
 mkdirp.sync("backups/");
 mkdirp.sync("tmp/");
@@ -31,6 +32,7 @@ export let labelledItemCollection!: Izzy.Collection<LabelledItem>;
 export let movieSceneCollection!: Izzy.Collection<MovieScene>;
 export let actorReferenceCollection!: Izzy.Collection<ActorReference>;
 export let markerReferenceCollection!: Izzy.Collection<MarkerReference>;
+export let viewCollection!: Izzy.Collection<SceneView>;
 
 let store = {} as {
   labels: DataStore;
@@ -98,6 +100,17 @@ export async function loadStores() {
   }
 
   const dbLoader = ora("Loading DB...").start();
+
+  viewCollection = await Izzy.createCollection(
+    "scene_views",
+    libraryPath("scene_views.db"),
+    [
+      {
+        key: "scene",
+        name: "scene-index",
+      },
+    ]
+  );
 
   markerReferenceCollection = await Izzy.createCollection(
     "marker-references",
@@ -226,6 +239,7 @@ export async function loadStores() {
     await markerReferenceCollection.compact();
     await actorCollection.compact();
     await movieCollection.compact();
+    await viewCollection.compact();
     compactLoader.succeed("Compacted DB");
   } else {
     logger.message("Skipping compaction");

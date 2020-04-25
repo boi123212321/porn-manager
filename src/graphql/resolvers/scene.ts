@@ -2,6 +2,7 @@ import Scene from "../../types/scene";
 import Image from "../../types/image";
 import Studio from "../../types/studio";
 import CustomField, { CustomFieldTarget } from "../../types/custom_field";
+import SceneView from "../../types/watch";
 
 export default {
   async actors(scene: Scene) {
@@ -30,11 +31,14 @@ export default {
   },
   async availableFields() {
     const fields = await CustomField.getAll();
-    return fields.filter(field =>
+    return fields.filter((field) =>
       field.target.includes(CustomFieldTarget.SCENES)
     );
   },
   async movies(scene: Scene) {
     return Scene.getMovies(scene);
-  }
+  },
+  async watches(scene: Scene) {
+    return (await SceneView.getByScene(scene._id)).map((v) => v.date);
+  },
 };

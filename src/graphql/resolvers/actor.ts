@@ -29,7 +29,7 @@ export default {
   },
   async watches(actor: Actor) {
     const watches = await Actor.getWatches(actor);
-    return watches;
+    return watches.map((w) => w.date);
   },
   async numScenes(actor: Actor) {
     return (await Scene.getByActor(actor._id)).length;

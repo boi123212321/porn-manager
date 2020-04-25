@@ -6,6 +6,7 @@ import Axios from "axios";
 import extractQueryOptions from "../query_extractor";
 import { ISearchResults } from "./index";
 import argv from "../args";
+import SceneView from "../types/watch";
 
 const PAGE_SIZE = 24;
 
@@ -126,7 +127,7 @@ export async function createSceneSearchDoc(
     rating: scene.rating,
     bookmark: scene.bookmark,
     favorite: scene.favorite,
-    num_watches: scene.watches.length,
+    num_watches: await SceneView.getCount(scene._id),
     duration: scene.meta.duration,
     release_date: scene.releaseDate,
     studio: scene.studio,

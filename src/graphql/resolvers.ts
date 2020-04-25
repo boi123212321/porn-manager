@@ -9,6 +9,8 @@ import MovieResolver from "./resolvers/movie";
 import StudioResolver from "./resolvers/studio";
 import CustomFieldResolver from "./resolvers/custom_field";
 import MarkerResolver from "./resolvers/marker";
+import SceneViewResolver from "./resolvers/scene_view";
+
 import { GraphQLJSONObject } from "graphql-type-json";
 
 const resolvers = {
@@ -24,7 +26,8 @@ const resolvers = {
   Movie: MovieResolver,
   Studio: StudioResolver,
   CustomField: CustomFieldResolver,
-  Marker: MarkerResolver
+  Marker: MarkerResolver,
+  SceneView: SceneViewResolver,
 };
 
 export default resolvers;
