@@ -25,11 +25,13 @@ import {
   imageCollection,
   actorCollection,
   movieCollection,
+  viewCollection,
 } from "../database/index";
 import Movie from "../types/movie";
 import { onMovieCreate } from "./movie";
 import { createMovieSearchDoc } from "../search/movie";
 import { createStudioSearchDoc } from "../search/studio";
+import SceneView from "../types/watch";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -79,6 +81,18 @@ export async function onSceneCreate(
       return img._id;
     },
   });
+
+  if (
+    event == "sceneCreated" &&
+    pluginResult.watches &&
+    Array.isArray(pluginResult.watches) &&
+    pluginResult.watches.every((v) => typeof v === "number")
+  ) {
+    for (const stamp of pluginResult.watches) {
+      const watchItem = new SceneView(scene._id, stamp);
+      await viewCollection.upsert(watchItem._id, watchItem);
+    }
+  }
 
   if (
     typeof pluginResult.thumbnail == "string" &&
