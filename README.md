@@ -7,7 +7,12 @@ There's a Discord channel now! Join in to the discussion. https://discord.gg/t49
 ## Support
 
 Bitcoin: 1Bw82zC5FnVtw93ZrcALQTeZBXgtVWH75n
+
 ![Bitcoin Link](/doc/img/btc.png)
+
+## Contribute
+
+- Fork & create a new branch, give it the name of your feature you're implementing (e.g. "my-new-feature") & submit a pull request
 
 ## Features
 
@@ -33,12 +38,6 @@ Bitcoin: 1Bw82zC5FnVtw93ZrcALQTeZBXgtVWH75n
   - Extend actor info with any kind of data (hair color, retired, etc.)
 - Automatic thumbnail generation on scene import
 - Optional password protection in LAN
-
-## Contribute
-
-- Open an issue!
-- Discuss!
-- Fork & create a new branch, give it the name of your feature you're implementing (e.g. "my-new-feature") & submit a pull request!
 
 ## Config
 
