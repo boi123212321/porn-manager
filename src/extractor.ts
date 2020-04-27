@@ -3,9 +3,36 @@ import Actor from "./types/actor";
 import Studio from "./types/studio";
 import Scene from "./types/scene";
 import CustomField from "./types/custom_field";
+import Movie from "./types/movie";
 
-function ignoreSingleNames(arr: string[]) {
-  return arr.filter(str => str.split(" ").length > 1);
+export function isSingleWord(str: string) {
+  return str.split(" ").length == 1;
+}
+
+export function ignoreSingleNames(arr: string[]) {
+  return arr.filter((str) => {
+    if (!str.length) return false;
+
+    // Check if string is a viable name
+    if (str.match(/^[a-z0-9']+$/i)) return !isSingleWord(str); // Cut it out if it's just one name
+    // Otherwise, it's *probably* a regex, so leave it be
+    return true;
+  });
+}
+
+export function isMatchingItem(
+  str: string,
+  actor: { name: string; aliases?: string[] }
+) {
+  if (isSingleWord(actor.name)) return false;
+
+  const originalStr = stripStr(str);
+
+  if (originalStr.includes(stripStr(actor.name))) return true;
+
+  return ignoreSingleNames(actor.aliases || []).some((alias) =>
+    new RegExp(alias, "i").test(originalStr)
+  );
 }
 
 export function stripStr(str: string) {
@@ -17,7 +44,7 @@ export async function extractFields(str: string): Promise<string[]> {
   const foundFields = [] as string[];
   const allFields = await CustomField.getAll();
 
-  allFields.forEach(field => {
+  allFields.forEach((field) => {
     if (stripStr(str).includes(stripStr(field.name))) {
       foundFields.push(field._id);
     }
@@ -30,11 +57,8 @@ export async function extractLabels(str: string): Promise<string[]> {
   const foundLabels = [] as string[];
   const allLabels = await Label.getAll();
 
-  allLabels.forEach(label => {
-    if (
-      stripStr(str).includes(stripStr(label.name)) ||
-      label.aliases.some(alias => stripStr(str).includes(stripStr(alias)))
-    ) {
+  allLabels.forEach((label) => {
+    if (isMatchingItem(str, label)) {
       foundLabels.push(label._id);
     }
   });
@@ -46,13 +70,8 @@ export async function extractActors(str: string): Promise<string[]> {
   const foundActors = [] as string[];
   const allActors = await Actor.getAll();
 
-  allActors.forEach(actor => {
-    if (
-      stripStr(str).includes(stripStr(actor.name)) ||
-      ignoreSingleNames(actor.aliases).some(alias =>
-        stripStr(str).includes(stripStr(alias))
-      )
-    ) {
+  allActors.forEach((actor) => {
+    if (isMatchingItem(str, actor)) {
       foundActors.push(actor._id);
     }
   });
@@ -63,22 +82,25 @@ export async function extractActors(str: string): Promise<string[]> {
 export async function extractStudios(str: string): Promise<string[]> {
   const allStudios = await Studio.getAll();
   return allStudios
-    .filter(
-      studio =>
-        stripStr(str).includes(stripStr(studio.name)) ||
-        (studio.aliases || []).some(alias =>
-          stripStr(str).includes(stripStr(alias))
-        )
-    )
+    .filter((studio) => isMatchingItem(str, studio))
     .sort((a, b) => b.name.length - a.name.length)
-    .map(s => s._id);
+    .map((s) => s._id);
 }
 
 // Returns IDs of extracted scenes
 export async function extractScenes(str: string): Promise<string[]> {
   const allScenes = await Scene.getAll();
   return allScenes
-    .filter(scene => stripStr(str).includes(stripStr(scene.name)))
+    .filter((scene) => stripStr(str).includes(stripStr(scene.name)))
     .sort((a, b) => b.name.length - a.name.length)
-    .map(s => s._id);
+    .map((s) => s._id);
+}
+
+// Returns IDs of extracted movies
+export async function extractMovies(str: string): Promise<string[]> {
+  const allMovies = await Movie.getAll();
+  return allMovies
+    .filter((movie) => stripStr(str).includes(stripStr(movie.name)))
+    .sort((a, b) => b.name.length - a.name.length)
+    .map((s) => s._id);
 }

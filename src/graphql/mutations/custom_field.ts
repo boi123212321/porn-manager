@@ -1,13 +1,8 @@
 import CustomField, {
   CustomFieldType,
-  CustomFieldTarget
+  CustomFieldTarget,
 } from "../../types/custom_field";
 import * as database from "../../database";
-import Actor from "../../types/actor";
-import Movie from "../../types/movie";
-import Scene from "../../types/scene";
-import Image from "../../types/image";
-import Marker from "../../types/marker";
 
 export default {
   async updateCustomField(
@@ -16,7 +11,7 @@ export default {
       id,
       name,
       values,
-      unit
+      unit,
     }: {
       id: string;
       name?: string | null;
@@ -47,12 +42,6 @@ export default {
   async removeCustomField(_, { id }: { id: string }) {
     await CustomField.remove(id);
 
-    await Actor.filterCustomField(id);
-    await Image.filterCustomField(id);
-    await Movie.filterCustomField(id);
-    await Scene.filterCustomField(id);
-    await Marker.filterCustomField(id);
-
     return true;
   },
   async createCustomField(
@@ -62,7 +51,7 @@ export default {
       target,
       type,
       values,
-      unit
+      unit,
     }: {
       name: string;
       target: CustomFieldTarget;
@@ -87,5 +76,5 @@ export default {
 
     await database.insert(database.store.customFields, field);
     return field;
-  }
+  },
 };

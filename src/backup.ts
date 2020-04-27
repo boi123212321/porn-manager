@@ -2,7 +2,7 @@ import {
   copyFileAsync,
   readdirAsync,
   rimrafAsync,
-  existsAsync
+  existsAsync,
 } from "./fs/async";
 import { join } from "path";
 import { libraryPath, mapAsync } from "./types/utility";
@@ -25,20 +25,23 @@ export async function createBackup(amount = 10) {
   log.warn("Creating backup in " + foldername + "...");
 
   const files = [
-    "cross_references.db",
     "actors.db",
     "images.db",
     "labels.db",
     "movies.db",
     "studios.db",
-    "scenes.db"
+    "scenes.db",
+    "actor_references.db",
+    "marker_references.db",
+    "movie_scenes.db",
+    "labelled_items.db",
   ];
 
   try {
-    const transfers = await mapAsync(files, async file => {
+    const transfers = await mapAsync(files, async (file) => {
       return {
         from: libraryPath(file),
-        to: join(foldername, file)
+        to: join(foldername, file),
       };
     });
 

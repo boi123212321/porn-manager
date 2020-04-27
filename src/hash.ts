@@ -1,5 +1,3 @@
-import checksum from "checksum";
-
 export function randomString(length = 8) {
   let result = "";
   const characters =
@@ -13,13 +11,4 @@ export function randomString(length = 8) {
 
 export function generateHash() {
   return new Date().valueOf().toString(36) + randomString();
-}
-
-export async function fileHash(file: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    checksum.file(file, (err, sum) => {
-      if (err) return reject(err);
-      resolve(sum);
-    });
-  });
 }

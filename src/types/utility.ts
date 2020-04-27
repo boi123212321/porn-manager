@@ -4,6 +4,12 @@ import * as logger from "../logger";
 
 export type Dictionary<T> = Record<string, T>;
 
+export function validRating(val: any) {
+  return (
+    typeof val === "number" && val >= 0 && val <= 10 && Number.isInteger(val)
+  );
+}
+
 export function removeExtension(file: string) {
   return file.replace(/\.[^/.]+$/, "");
 }
@@ -63,8 +69,8 @@ export async function filterAsync<T>(
 export function isRegExp(regStr: string) {
   try {
     new RegExp(regStr);
+    return true;
   } catch (e) {
     return false;
   }
-  return true;
 }

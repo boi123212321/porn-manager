@@ -4,6 +4,16 @@ Manage your ever-growing porn collection
 
 There's a Discord channel now! Join in to the discussion. https://discord.gg/t499hxK
 
+## Support
+
+Bitcoin: 1Bw82zC5FnVtw93ZrcALQTeZBXgtVWH75n
+
+![Bitcoin Link](/doc/img/btc.png)
+
+## Contribute
+
+- Fork & create a new branch, give it the name of your feature you're implementing (e.g. "my-new-feature") & submit a pull request
+
 ## Features
 
 - EASY, portable (no install) setup (see. [**How to run**](https://github.com/boi123212321/porn-manager#how-to-run))
@@ -29,12 +39,6 @@ There's a Discord channel now! Join in to the discussion. https://discord.gg/t49
 - Automatic thumbnail generation on scene import
 - Optional password protection in LAN
 
-## Contribute
-
-- Open an issue!
-- Discuss!
-- Fork & create a new branch, give it the name of your feature you're implementing (e.g. "my-new-feature") & submit a pull request!
-
 ## Config
 
 | Key | [Default](src/config/index.ts#L75) | Description |
@@ -43,14 +47,14 @@ There's a Discord channel now! Join in to the discussion. https://discord.gg/t49
 | `IMAGE_PATHS` | (empty) | Paths of image files that will be imported - subfolders will be searched recursively |
 | `BULK_IMPORT_PATHS` | (empty) | Paths of .json or .yaml files to import content from |
 | `SCAN_ON_STARTUP` | `false` | Whether video and image paths should be scanned |
+| `DO_PROCESSING` | `true` | Whether queued scenes should be processed |
 | `SCAN_INTERVAL` | 108000000 | Rescan paths all X milliseconds - only works when `SCAN_ON_STARTUP` is enabled |
 | `LIBRARY_PATH` | Current Working Directory | Path where the library (.db files & uploaded files & processed images) will be stored |
 | `FFMPEG_PATH` | (empty) | Where the ffmpeg binary is located; will be placed in working directory when downloading using the setup |
 | `FFPROBE_PATH` | (empty) | Where the ffprobe binary is located; will be placed in working directory when downloading using the setup |
-| `GENERATE_THUMBNAILS` | `true` | Whether thumbnails should be extracted from imported videos |
-| `GENERATE_MULTIPLE_THUMBNAILS` | `true` | Generate single or multiple thumbnails. If true, `THUMBNAIL_INTERVAL` will determine how many thumbnails are generated |
+| `GENERATE_SCREENSHOTS` | `true` | Whether thumbnails should be extracted from imported videos |
+| `SCREENSHOT_INTERVAL` | 120 | Seconds between thumbnail snapshots in seconds |
 | `GENERATE_PREVIEWS` | `true` | Whether video preview should be generated from imported videos (used in video player) |
-| `THUMBNAIL_INTERVAL` | 120 | Seconds between thumbnail snapshots in seconds |
 | `PORT` | 3000 | Port server is running on
 | `APPLY_ACTOR_LABELS` | `true` | Whether actor labels should be applied to scenes and images the actor is starring in. Example: Kali Roses has labels "blonde" & "tattoos". Importing a new video featuring Kali Roses (will be matched if "Kali Roses" is in the video title or path), the newly created scene will automatically inherit "blonde" & "tattoos" + other labels that have been extracted from the title or path|
 | `APPLY_STUDIO_LABELS` | `true` | Same as `APPLY_ACTOR_LABELS`, but for studios|
@@ -62,6 +66,15 @@ There's a Discord channel now! Join in to the discussion. https://discord.gg/t49
 | `CREATE_MISSING_ACTORS` | `false` | Create actors returned from plugins when not found in library |
 | `CREATE_MISSING_STUDIOS` | `false` | Create studio returned from plugins when not found in library |
 | `CREATE_MISSING_LABELS` | `false` | Create labels returned from plugins when not found in library |
+| `ALLOW_PLUGINS_OVERWRITE_SCENE_THUMBNAILS` | `false` | Allow plugins to overwrite scene thumbnail |
+| `ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS` | `false` | Allow plugins to overwrite actor images |
+| `ALLOW_PLUGINS_OVERWRITE_MOVIE_THUMBNAILS` | `false` | Allow plugins to overwrite movie images |
+| `MAX_LOG_SIZE` | `2500` | Max. amount of logs to store |
+| `COMPRESS_IMAGE_SIZE` | `720` | Max. image width to compress thumbnails etc to |
+| `CACHE_TIME` | `0` | Global cache time (requires restart when changed) |
+| `ENABLE_HTTPS` | `false` | Enable https instead of http |
+| `HTTPS_KEY` | (empty) | Path to the ssl key file used if ENABLE_HTTPS is activated  |
+| `HTTPS_CERT` | (empty) | Path to the ssl cert file used if ENABLE_HTTPS is activated |
 
 ## How to run
 
@@ -69,6 +82,14 @@ There's a Discord channel now! Join in to the discussion. https://discord.gg/t49
 - Unzip the file
 - Run the application in the terminal of your choice and follow the on-screen instructions
 - Once your app is setup you can visit it on http://localhost:3000 (or your LAN IP equivalent) in your web browser of choice
+
+## Enabling HTTPS
+
+- If you're on Windows you first need to download openssl, you can find the executables here https://wiki.openssl.org/index.php/Binaries
+- Generate a keypair using the command `openssl req -nodes -new -x509 -keyout server.key -out server.cert`
+- Set the `ENABLE_HTTPS` flag in your config to true
+- Change the `HTTPS_KEY` & `HTTPS_CERT` options to your generated key & cert file paths
+- Open https://localhost:3000, ignore the self-generated certificate warning and enjoy an encrypted experience
 
 ## Build from source
 

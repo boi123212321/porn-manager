@@ -16,34 +16,63 @@
 
     <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
-        <v-text-field clearable color="primary" v-model="query" label="Search query"></v-text-field>
+        <v-text-field
+          solo
+          flat
+          class="mb-2"
+          hide-details
+          clearable
+          color="primary"
+          v-model="query"
+          label="Search query"
+          single-line
+        ></v-text-field>
 
-        <v-subheader>
-          Labels
-          <span style="white-space: pre" class="hover" @click="resetLabels">{{ " (reset)" }}</span>
-        </v-subheader>
-        <div style="max-height: 30vh; overflow-y: scroll">
-          <div
-            @click="onLabelClick(label)"
-            :class="labelClasses(label)"
-            class="hover mb-1"
-            v-for="label in allLabels"
-            :key="label._id"
-          >{{ label.name }}</div>
+        <div class="d-flex align-center">
+          <v-btn
+            :color="favoritesOnly ? 'red' : undefined"
+            icon
+            @click="favoritesOnly = !favoritesOnly"
+          >
+            <v-icon>{{ favoritesOnly ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
+          </v-btn>
+
+          <v-btn
+            :color="bookmarksOnly ? 'primary' : undefined"
+            icon
+            @click="bookmarksOnly = !bookmarksOnly"
+          >
+            <v-icon>{{ bookmarksOnly ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}</v-icon>
+          </v-btn>
+
+          <v-spacer></v-spacer>
+
+          <Rating @input="ratingFilter = $event" :value="ratingFilter" />
         </div>
 
-        <v-subheader>Filter by actor(s)</v-subheader>
+        <Divider icon="mdi-label">Labels</Divider>
+
+        <LabelFilter class="mt-0" v-model="selectedLabels" :items="allLabels" />
+
+        <Divider icon="mdi-account">Actors</Divider>
+
         <ActorSelector v-model="selectedActors" :multiple="true" />
-        <v-subheader>Filter by duration</v-subheader>
+
+        <Divider icon="mdi-clock">Duration</Divider>
+
         <v-range-slider hide-details :max="durationMax" v-model="durationRange" color="primary"></v-range-slider>
-        <div class="med--text text-center">{{ durationRange[0] }} min - {{ durationRange[1] }} min</div>
+        <div class="body-1 med--text text-center">
+          <span class="font-weight-bold">{{ durationRange[0] }}</span>
+          min -
+          <span class="font-weight-bold">{{ durationRange[1] }}</span> min
+        </div>
 
-        <v-checkbox hide-details v-model="favoritesOnly" label="Show favorites only"></v-checkbox>
-        <v-checkbox hide-details v-model="bookmarksOnly" label="Show bookmarks only"></v-checkbox>
-
-        <Rating @input="ratingFilter = $event" :value="ratingFilter" class="pb-0 pa-2" />
+        <Divider icon="mdi-sort">Sort</Divider>
 
         <v-select
+          solo
+          flat
+          single-line
           hide-details
           color="primary"
           item-text="text"
@@ -51,8 +80,12 @@
           v-model="sortBy"
           placeholder="Sort by..."
           :items="sortByItems"
+          class="mt-0 pt-0 mb-2"
         ></v-select>
         <v-select
+          solo
+          flat
+          single-line
           :disabled="sortBy == 'relevance'"
           hide-details
           color="primary"
@@ -68,12 +101,6 @@
     <div v-if="!fetchLoader">
       <div class="d-flex align-center">
         <h1 class="font-weight-light mr-3">Scenes</h1>
-        <!--  <v-btn class="mr-3" @click="openCreateDialog" icon>
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>-->
-        <!-- <v-btn class="mr-3" @click="openUploadDialog" icon>
-          <v-icon>mdi-upload</v-icon>
-        </v-btn>-->
         <v-btn :loading="fetchingRandom" @click="getRandom" icon>
           <v-icon>mdi-shuffle-variant</v-icon>
         </v-btn>
@@ -262,12 +289,33 @@ export default class SceneList extends mixins(DrawerMixin) {
 
   waiting = false;
   allLabels = [] as ILabel[];
-  include = (localStorage.getItem("pm_sceneInclude") || "")
-    .split(",")
-    .filter(Boolean) as string[];
-  exclude = (localStorage.getItem("pm_sceneExclude") || "")
-    .split(",")
-    .filter(Boolean) as string[];
+
+  tryReadLabelsFromLocalStorage(key: string) {
+    return (localStorage.getItem(key) || "")
+      .split(",")
+      .filter(Boolean) as string[];
+  }
+
+  selectedLabels = {
+    include: this.tryReadLabelsFromLocalStorage("pm_sceneInclude"),
+    exclude: this.tryReadLabelsFromLocalStorage("pm_sceneExclude")
+  };
+
+  @Watch("selectedLabels", { deep: true })
+  onSelectedLabelsChange(val: any) {
+    localStorage.setItem(
+      "pm_sceneInclude",
+      this.selectedLabels.include.join(",")
+    );
+    localStorage.setItem(
+      "pm_sceneExclude",
+      this.selectedLabels.exclude.join(",")
+    );
+
+    this.page = 0;
+    this.scenes = [];
+    this.infiniteId++;
+  }
 
   validCreation = false;
   createSceneDialog = false;
@@ -360,9 +408,9 @@ export default class SceneList extends mixins(DrawerMixin) {
   selectedScenes = [] as string[];
   deleteSelectedScenesDialog = false;
 
-  resetLabels() {
-    this.include = [];
-    this.exclude = [];
+  /* resetLabels() {
+    this.selectedLabels.include = [];
+    this.selectedLabels.exclude = [];
 
     this.page = 0;
     this.scenes = [];
@@ -370,30 +418,12 @@ export default class SceneList extends mixins(DrawerMixin) {
 
     localStorage.removeItem("pm_sceneInclude");
     localStorage.removeItem("pm_sceneExclude");
-  }
-
-  onLabelClick(label: ILabel) {
-    if (this.exclude.includes(label._id))
-      this.exclude = this.exclude.filter(i => i !== label._id);
-    else if (this.include.includes(label._id)) {
-      this.exclude.push(label._id);
-      this.include = this.include.filter(i => i !== label._id);
-    } else {
-      this.include.push(label._id);
-    }
-
-    localStorage.setItem("pm_sceneInclude", this.include.join(","));
-    localStorage.setItem("pm_sceneExclude", this.exclude.join(","));
-
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
-  }
+  } */
 
   labelClasses(label: ILabel) {
-    if (this.include.includes(label._id))
+    if (this.selectedLabels.include.includes(label._id))
       return "font-weight-bold primary--text";
-    else if (this.exclude.includes(label._id))
+    else if (this.selectedLabels.exclude.includes(label._id))
       return "font-weight-bold error--text";
     return "";
   }
@@ -669,9 +699,11 @@ export default class SceneList extends mixins(DrawerMixin) {
       let exclude = "";
       let actors = "";
 
-      if (this.include.length) include = "include:" + this.include.join(",");
+      if (this.selectedLabels.include.length)
+        include = "include:" + this.selectedLabels.include.join(",");
 
-      if (this.exclude.length) exclude = "exclude:" + this.exclude.join(",");
+      if (this.selectedLabels.exclude.length)
+        exclude = "exclude:" + this.selectedLabels.exclude.join(",");
 
       if (this.selectedActorIds.length)
         actors = "actors:" + this.selectedActorIds.join(",");
@@ -729,6 +761,10 @@ export default class SceneList extends mixins(DrawerMixin) {
     })
       .then(res => {
         this.allLabels = res.data.getLabels;
+        if (!this.allLabels.length) {
+          this.selectedLabels.include = [];
+          this.selectedLabels.exclude = [];
+        }
       })
       .catch(err => {
         console.error(err);

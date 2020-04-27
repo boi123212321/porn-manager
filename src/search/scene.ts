@@ -6,6 +6,7 @@ import Axios from "axios";
 import extractQueryOptions from "../query_extractor";
 import { ISearchResults } from "./index";
 import argv from "../args";
+import SceneView from "../types/watch";
 
 const PAGE_SIZE = 24;
 
@@ -27,8 +28,8 @@ export async function searchScenes(query: string, random = 0) {
       actors: options.actors.join(","),
       studio: options.studios[0],
       duration_min: options.durationMin || undefined,
-      duration_max: options.durationMax || undefined
-    }
+      duration_max: options.durationMax || undefined,
+    },
   });
 }
 
@@ -113,20 +114,20 @@ export async function createSceneSearchDoc(
     id: scene._id,
     added_on: scene.addedOn,
     name: scene.name,
-    labels: labels.map(l => ({
+    labels: labels.map((l) => ({
       id: l._id,
       name: l.name,
-      aliases: l.aliases
+      aliases: l.aliases,
     })),
-    actors: actors.map(a => ({
+    actors: actors.map((a) => ({
       id: a._id,
       name: a.name,
-      aliases: a.aliases
+      aliases: a.aliases,
     })),
     rating: scene.rating,
     bookmark: scene.bookmark,
     favorite: scene.favorite,
-    num_watches: scene.watches.length,
+    num_watches: await SceneView.getCount(scene._id),
     duration: scene.meta.duration,
     release_date: scene.releaseDate,
     studio: scene.studio,
@@ -135,6 +136,6 @@ export async function createSceneSearchDoc(
     size: scene.meta.size,
     studio_name: scene.studio
       ? ((await Studio.getById(scene.studio)) || { name: null }).name
-      : null
+      : null,
   };
 }

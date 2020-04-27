@@ -6,8 +6,12 @@ import * as path from "path";
 import { checkPassword, passwordHandler } from "./password";
 import { getConfig, watchConfig } from "./config/index";
 import { checkVideoFolders, checkImageFolders } from "./queue/check";
-import { checkSceneSources, checkImageSources } from "./integrity";
-import { loadStores } from "./database/index";
+import {
+  loadStores,
+  actorCollection,
+  imageCollection,
+  sceneCollection,
+} from "./database/index";
 import { existsAsync } from "./fs/async";
 import { createBackup } from "./backup";
 import BROKEN_IMAGE from "./broken_image";
@@ -28,6 +32,9 @@ import queueRouter from "./queue_router";
 import { spawn } from "child_process";
 import { clearSceneIndex } from "./search/scene";
 import { clearImageIndex } from "./search/image";
+import { spawnIzzy, izzyVersion, resetIzzy } from "./izzy";
+import https from "https";
+import { fstat, readFile, readFileSync } from "fs";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-manager for discussion & updates"
@@ -37,7 +44,8 @@ let serverReady = false;
 let setupMessage = "Setting up...";
 
 async function tryStartProcessing() {
-  if ((await getLength()) > 0 && !isProcessing()) {
+  const queueLen = await getLength();
+  if (queueLen > 0 && !isProcessing()) {
     logger.message("Starting processing worker...");
     setProcessingStatus(true);
     spawn(process.argv[0], process.argv.slice(1).concat(["--process-queue"]), {
@@ -45,18 +53,20 @@ async function tryStartProcessing() {
       detached: false,
       stdio: "inherit",
     }).on("exit", (code) => {
-      logger.log("Processing process exited with code " + code);
+      logger.warn("Processing process exited with code " + code);
       setProcessingStatus(false);
     });
+  } else if (!queueLen) {
+    logger.success("No more videos to process.");
   }
 }
 
 async function scanFolders() {
-  logger.warn("Scanning folders...");
-
+  logger.message("Scanning folders...");
   await checkVideoFolders();
+  logger.success("Scan done.");
   checkImageFolders();
-
+  
   tryStartProcessing().catch((err) => {
     logger.error("Couldn't start processing...");
     logger.error(err.message);
@@ -69,6 +79,16 @@ export default async () => {
   app.use(cors);
 
   app.use(httpLog);
+
+  app.get("/debug/timings/scenes", async (req, res) => {
+    res.json(await sceneCollection.times());
+  });
+  app.get("/debug/timings/actors", async (req, res) => {
+    res.json(await actorCollection.times());
+  });
+  app.get("/debug/timings/images", async (req, res) => {
+    res.json(await imageCollection.times());
+  });
 
   app.get("/setup", (req, res) => {
     res.json({
@@ -103,9 +123,20 @@ export default async () => {
   const config = getConfig();
 
   const port = config.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on Port ${port}`);
-  });
+
+  if (config.ENABLE_HTTPS) {
+    https.createServer({
+      key: readFileSync(config.HTTPS_KEY),
+      cert: readFileSync(config.HTTPS_CERT)
+    }, app)
+    .listen(port, () => {
+      console.log(`Server running on Port ${port}`);
+    });
+  } else {
+    app.listen(port, () => {
+      console.log(`Server running on Port ${port}`);
+    });
+  }
 
   app.use("/js", express.static("./app/dist/js"));
   app.use("/css", express.static("./app/dist/css"));
@@ -136,16 +167,19 @@ export default async () => {
     const scene = await Scene.getById(req.params.scene);
 
     if (scene && scene.path) {
-      res.sendFile(scene.path);
+      const resolved = path.resolve(scene.path);
+      res.sendFile(resolved);
     } else next(404);
   });
 
   app.use("/image/:image", async (req, res, next) => {
     const image = await Image.getById(req.params.image);
 
-    if (image && image.path && (await existsAsync(image.path)))
-      res.sendFile(image.path);
-    else res.redirect("/broken");
+    if (image && image.path) {
+      const resolved = path.resolve(image.path);
+      if (!(await existsAsync(resolved))) res.redirect("/broken");
+      else res.sendFile(resolved);
+    } else res.redirect("/broken");
   });
 
   app.get("/log", async (req, res) => {
@@ -179,6 +213,12 @@ export default async () => {
   }
 
   setupMessage = "Loading database...";
+  if (await izzyVersion()) {
+    logger.log("Izzy already running, clearing...");
+    await resetIzzy();
+  } else {
+    await spawnIzzy();
+  }
   await loadStores();
 
   setupMessage = "Starting search engine...";
@@ -198,18 +238,24 @@ export default async () => {
 
   serverReady = true;
 
-  checkSceneSources();
-  checkImageSources();
   // checkPreviews();
 
   watchConfig();
 
   if (config.SCAN_ON_STARTUP) {
-    scanFolders();
-    setInterval(scanFolders, config.SCAN_INTERVAL);
+    await scanFolders();
   } else {
     logger.warn(
       "Scanning folders is currently disabled. Enable in config.json & restart."
     );
   }
+
+  if (config.DO_PROCESSING) {
+    tryStartProcessing().catch((err) => {
+      logger.error("Couldn't start processing...");
+      logger.error(err.message);
+    });
+  }
+
+  if (config.SCAN_INTERVAL > 0) setInterval(scanFolders, config.SCAN_INTERVAL);
 };

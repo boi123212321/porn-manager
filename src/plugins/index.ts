@@ -1,5 +1,5 @@
 import { IConfig } from "../config/index";
-import { readFileAsync, existsAsync } from "../fs/async";
+import { existsAsync } from "../fs/async";
 import axios from "axios";
 import cheerio from "cheerio";
 import debug from "debug";
@@ -11,6 +11,15 @@ import * as fs from "fs";
 import * as nodepath from "path";
 import ffmpeg from "fluent-ffmpeg";
 import jimp from "jimp";
+import YAML from "yaml";
+import inquirer from "inquirer";
+import readline from "readline";
+import * as os from "os";
+
+function requireUncached(module: string) {
+  delete require.cache[require.resolve(module)];
+  return require(module);
+}
 
 export async function runPluginsSerial(
   config: IConfig,
@@ -40,7 +49,7 @@ export async function runPluginsSerial(
       const pluginResult = await runPlugin(config, pluginName, {
         event,
         ...inject,
-        pluginArgs
+        pluginArgs,
       });
       Object.assign(result, pluginResult);
     } catch (error) {
@@ -77,8 +86,10 @@ export async function runPlugin(
     if (!(await existsAsync(path)))
       throw new Error(`${pluginName}: definition not found (missing file).`);
 
-    const fileContent = await readFileAsync(path, "utf-8");
-    const func = eval(fileContent);
+    const func = requireUncached(path);
+
+    if (typeof func != "function")
+      throw new Error(`${pluginName}: not a valid plugin.`);
 
     logger.log(plugin);
 
@@ -87,12 +98,8 @@ export async function runPlugin(
         $pluginPath: path,
         $cwd: process.cwd(),
         $library: libraryPath(""),
-        // TODO: cross plugin call?
-        /* $plugin: async (name: string, args?: Dictionary<any>) => {
-          logger.log(`Calling plugin ${name} from ${pluginName}`);
-          return await runPlugin(config, name, inject, args || {});
-        }, */
         /* $modules: {
+          ...
           fs: fs,
           path: nodepath,
           axios: axios,
@@ -100,6 +107,15 @@ export async function runPlugin(
           moment: moment
         }, */
         // TODO: deprecate at some point, replace with ^
+        $require: (partial: string) => {
+          if (typeof partial != "string")
+            throw new TypeError("$require: String required");
+          return requireUncached(nodepath.resolve(path, partial));
+        },
+        $os: os,
+        $readline: readline,
+        $inquirer: inquirer,
+        $yaml: YAML,
         $jimp: jimp,
         $ffmpeg: ffmpeg,
         $fs: fs,
@@ -112,13 +128,8 @@ export async function runPlugin(
         $throw: (str: string) => {
           throw new Error(str);
         },
-        // TODO: remove
-        /* $async: {
-          map: mapAsync,
-          filter: filterAsync
-        }, */
         args: args || plugin.args || {},
-        ...inject
+        ...inject,
       });
 
       if (typeof result !== "object")
