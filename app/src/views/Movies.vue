@@ -80,7 +80,7 @@
     <div v-if="!fetchLoader">
       <div class="d-flex align-center">
         <h1 class="font-weight-light mr-3">Movies</h1>
-        <v-btn class="mr-3" @click="openCreateDialog" icon>
+        <v-btn class="mr-2" @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
         <v-btn @click="bulkImportDialog = true" icon>

@@ -59,7 +59,7 @@
       </v-btn>
 
       <v-btn icon to="/settings">
-        <v-icon>mdi-settings</v-icon>
+        <v-icon>mdi-cog</v-icon>
       </v-btn>
 
       <template v-slot:extension v-if="showDetailsBar">
@@ -235,7 +235,7 @@ export default class App extends Vue {
       mobile: true
     },
     {
-      icon: "mdi-camcorder-box",
+      icon: "mdi-video-box",
       text: "Scenes",
       url: "/scenes"
     },
