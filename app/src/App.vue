@@ -58,6 +58,14 @@
         <v-icon>mdi-filter</v-icon>
       </v-btn>
 
+      <v-btn
+        @click="showSidenav = !showSidenav"
+        icon
+        v-if="showFilterButton && $vuetify.breakpoint.lgAndUp"
+      >
+        <v-icon>{{ showSidenav ? 'mdi-pin' : 'mdi-pin-off'}}</v-icon>
+      </v-btn>
+
       <v-btn icon to="/settings">
         <v-icon>mdi-cog</v-icon>
       </v-btn>
@@ -89,7 +97,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import { sceneModule } from "./store/scene";
 import { actorModule } from "./store/actor";
 import { movieModule } from "./store/movie";
@@ -171,6 +179,14 @@ export default class App extends Vue {
     );
   }
 
+  get showSidenav() {
+    return contextModule.showSidenav;
+  }
+
+  set showSidenav(val: boolean) {
+    contextModule.toggleSidenav(val);
+  }
+
   get filterDrawer() {
     return contextModule.showFilters;
   }
@@ -225,6 +241,16 @@ export default class App extends Vue {
     if (showCardLabelsLocalStorage) {
       contextModule.toggleCardLabels(showCardLabelsLocalStorage == "true");
     }
+
+    const showSidenavFromLocalStorage = localStorage.getItem("pm_showSidenav");
+    if (showSidenavFromLocalStorage) {
+      contextModule.toggleSidenav(showSidenavFromLocalStorage == "true");
+    }
+  }
+
+  @Watch("showSidenav")
+  onSideNavChange(value: boolean) {
+    localStorage.setItem("pm_showSidenav", value.toString());
   }
 
   navItems = [

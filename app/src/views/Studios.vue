@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <BindTitle value="Studios" />
-    <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
+    <v-navigation-drawer v-if="showSidenav" style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
         <v-text-field
           solo
@@ -175,6 +175,10 @@ import DrawerMixin from "../mixins/drawer";
   }
 })
 export default class StudioList extends mixins(DrawerMixin) {
+  get showSidenav() {
+    return contextModule.showSidenav;
+  }
+
   studios = [] as any[];
   fetchLoader = false;
 
