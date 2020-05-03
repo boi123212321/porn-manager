@@ -1,11 +1,8 @@
 <template>
-  <div
-    @click="close"
-    v-if="currentImage"
-    style="flex-direction: column; z-index: 999; position: fixed; top:0;left:0; width: 100%; height: 100%; background: #000000aa"
-    class="d-flex"
-  >
-    <div style="position: relative; width: 100%; height: 100%;">
+  <div v-if="currentImage" class="lightbox d-flex">
+    <div @click="close" class="lightbox-bg"></div>
+
+    <div class="image-container">
       <v-img
         v-touch="{
           left: incrementIndex,
@@ -17,56 +14,51 @@
         @click.native.stop
       ></v-img>
 
-      <v-btn
-        outlined
-        large
-        v-if="index > 0"
-        icon
-        class="thumb-btn left"
-        @click.stop="decrementIndex"
-      >
-        <v-icon color="white">mdi-chevron-left</v-icon>
-      </v-btn>
-      <v-btn
-        outlined
-        large
-        v-if="index < items.length - 1"
-        icon
-        class="thumb-btn right"
-        @click.stop="incrementIndex"
-      >
-        <v-icon color="white">mdi-chevron-right</v-icon>
-      </v-btn>
+      <v-card class="pa-2 actions-card">
+        <v-btn :disabled="index <= 0" icon @click.stop="decrementIndex">
+          <v-icon color="white">mdi-chevron-left</v-icon>
+        </v-btn>
+
+        <v-btn :disabled="index >= items.length - 1" icon @click.stop="incrementIndex">
+          <v-icon color="white">mdi-chevron-right</v-icon>
+        </v-btn>
+      </v-card>
     </div>
 
-    <div v-if="!showImageDetails" class="text-center py-3">
-      <v-btn @click.stop="showImageDetails = true" text color="white" class="text-none">Show details</v-btn>
-    </div>
-
-    <v-card tile style="align-self: flex-end; width: 100%;" @click.native.stop v-else>
-      <v-toolbar>
+    <v-card class="pa-2" :style="sidebarCss" tile v-if="showImageDetails">
+      <div class="d-flex align-center mb-2">
+        <span class="title text-truncate">{{ currentImage.name }}</span>
+        <v-spacer></v-spacer>
+        <v-btn :href="imageLink(currentImage)" target="_blank" class="mr-1" icon>
+          <v-icon>mdi-link</v-icon>
+        </v-btn>
+        <v-btn icon @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <div class="mt-2 d-flex align-center">
         <v-btn @click="favorite" class="mr-1" icon>
           <v-icon
             :color="currentImage.favorite ? 'red' : undefined"
           >{{ currentImage.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
         </v-btn>
-
         <v-btn @click="bookmark" icon>
           <v-icon>{{ currentImage.bookmark ? 'mdi-bookmark-check' : 'mdi-bookmark-outline' }}</v-icon>
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn @click="showImageDetails = false" class="mr-1" icon>
-          <v-icon>mdi-chevron-down</v-icon>
-        </v-btn>
-        <v-btn :href="imageLink(currentImage)" target="_blank" class="mr-1" icon>
-          <v-icon>mdi-link</v-icon>
-        </v-btn>
-        <v-btn @click="openRemoveDialog" icon>
-          <v-icon>mdi-delete-forever</v-icon>
-        </v-btn>
-      </v-toolbar>
-      <v-card-title class="pb-0 subtitle-1">{{ currentImage.name }}</v-card-title>
-      <v-card-text>
+        <Rating @change="rate" :value="currentImage.rating" />
+      </div>
+      <v-img
+        v-if="$vuetify.breakpoint.smAndDown"
+        v-touch="{
+          left: incrementIndex,
+          right: decrementIndex,
+        }"
+        contain
+        :src="imageLink(currentImage)"
+        @click.native.stop
+      ></v-img>
+      <div class="mt-2">
         <div v-if="currentImage.scene">
           Part of scene
           <a
@@ -75,25 +67,17 @@
           >{{ currentImage.scene.name }}</a>
         </div>
 
-        <div>
-          <SceneSelector
-            @input="editImageScene"
-            class="d-inline-block"
-            style="max-width: 200px"
-            v-model="editScene"
-          />
+        <div class="mb-2">
+          <SceneSelector @input="editImageScene" class="d-inline-block" v-model="editScene" />
         </div>
 
-        <div>
-          <Rating @change="rate" class="pa-2 pb-0" :value="currentImage.rating" />
-        </div>
         <div class="pa-2">
           <v-chip
             class="mr-1 mb-1"
             label
             small
             outlined
-            v-for="label in currentImage.labels"
+            v-for="label in currentImage.labels.slice().sort((a, b) => a.name.localeCompare(b.name))"
             :key="label._id"
           >{{ label.name }}</v-chip>
           <v-chip
@@ -105,24 +89,34 @@
             :class="`mr-1 mb-1 hover ${$vuetify.theme.dark ? 'black--text' : 'white--text'}`"
           >+ Add</v-chip>
         </div>
-        <div class="d-flex mt-2">
-          <div
-            class="d-inline-block mr-2 text-center"
-            v-for="actor in currentImage.actors"
-            :key="actor._id"
-          >
+
+        <v-row>
+          <v-col class="text-center" v-for="actor in currentImage.actors" :key="actor._id" cols="6">
             <a :href="`#/actor/${actor._id}`">
-              <v-avatar style="border: 2px solid white" size="80">
+              <v-avatar style="border: 2px solid white" size="120">
                 <v-img class="hover" v-ripple eager :src="avatar(actor)"></v-img>
               </v-avatar>
             </a>
             <div class="mt-2">{{ actor.name }}</div>
-          </div>
-          <v-row class="ml-2" align="center">
-            <v-btn small text @click="openEditActorsDialog">Edit actors</v-btn>
-          </v-row>
+          </v-col>
+        </v-row>
+        <div class="text-center mt-2">
+          <v-btn small text @click="openEditActorsDialog">Edit actors</v-btn>
         </div>
-      </v-card-text>
+
+        <v-divider class="mt-4"></v-divider>
+
+        <div class="mt-5 mb-3 text-center">
+          <v-btn
+            :class="$vuetify.theme.dark ? 'black--text' : ''"
+            color="error"
+            class="text-none"
+            @click="openRemoveDialog"
+          >
+            <v-icon>mdi-delete-forever</v-icon>Delete
+          </v-btn>
+        </div>
+      </div>
     </v-card>
 
     <v-dialog scrollable v-model="labelSelectorDialog" max-width="400px">
@@ -215,7 +209,7 @@ import hotkeys from "hotkeys-js";
 export default class Lightbox extends Vue {
   @Prop(Array) items!: IImage[];
   @Prop() index!: number | null;
-  showImageDetails = false;
+  showImageDetails = true;
 
   labelSelectorDialog = false;
   allLabels = [] as ILabel[];
@@ -229,6 +223,23 @@ export default class Lightbox extends Vue {
   removeDialog = false;
 
   labelSearchQuery = "";
+
+  get sidebarCss() {
+    return {
+      "overflow-x": "hidden",
+      "overflow-y": "scroll",
+      height: "100%",
+      "z-index": 999,
+      width: {
+        xs: "100%",
+        sm: "100%",
+        md: "300px",
+        lg: "300px",
+        xl: "300px"
+        // @ts-ignore
+      }[this.$vuetify.breakpoint.name]
+    };
+  }
 
   destroyed() {
     hotkeys.unbind("*");
@@ -538,6 +549,33 @@ export default class Lightbox extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.lightbox {
+  z-index: 997;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.lightbox-bg {
+  z-index: 998;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000000aa;
+}
+
+.image-container {
+  pointer-events: none !important;
+  position: relative;
+  height: 100%;
+  flex-grow: 1;
+  z-index: 999;
+}
+
 .image {
   position: absolute;
   left: 50%;
@@ -545,22 +583,13 @@ export default class Lightbox extends Vue {
   transform: translate(-50%, -50%);
   max-width: calc(100% - 150px);
   max-height: calc(100% - 20px);
+  pointer-events: initial;
 }
 
-.thumb-btn {
-  z-index: 1000;
-
-  &.left {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  &.right {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+.actions-card {
+  pointer-events: initial;
+  position: absolute;
+  right: 50%;
+  bottom: 5px;
 }
 </style>
