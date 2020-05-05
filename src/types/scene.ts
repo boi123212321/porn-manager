@@ -17,7 +17,12 @@ import Image from "./image";
 import Movie from "./movie";
 import { singleScreenshot } from "../ffmpeg/screenshot";
 import { indexScenes } from "../search/scene";
-import { extractStudios, extractActors, extractLabels } from "../extractor";
+import {
+  extractStudios,
+  extractActors,
+  extractLabels,
+  extractMovies,
+} from "../extractor";
 import Studio from "./studio";
 import { onSceneCreate } from "../plugin_events/scene";
 import { enqueueScene } from "../queue/processing";
@@ -180,6 +185,21 @@ export default class Scene {
             );
           }
         }
+      }
+    }
+
+    if (extractInfo) {
+      // Extract movie
+      const extractedMovies = await extractMovies(videoPath);
+
+      if (extractedMovies.length) {
+        logger.log("Found movie in scene path");
+
+        const movie = <Movie>await Movie.getById(extractedMovies[0]);
+        const scenes = (await Movie.getScenes(movie)).map((sc) => sc._id);
+        scenes.push(scene._id);
+        await Movie.setScenes(movie, scenes);
+        logger.log("Added scene to movie");
       }
     }
 
