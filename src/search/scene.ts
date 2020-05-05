@@ -52,7 +52,13 @@ export interface ISceneSearchDoc {
 }
 
 export async function clearSceneIndex() {
-  return Axios.delete("http://localhost:8000/scene");
+  try {
+    await Axios.delete("http://localhost:8000/scene");
+  } catch (error) {
+    logger.error("Error while resetting twigs scenes");
+    logger.log(error.message);
+    throw error;
+  }
 }
 
 export async function updateSceneDoc(scene: Scene) {

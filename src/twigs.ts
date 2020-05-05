@@ -1,10 +1,12 @@
-import { spawn } from "child_process";
+import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import { type, arch } from "os";
 import * as logger from "./logger";
 import { existsAsync } from "./fs/async";
 import Axios from "axios";
 import { downloadFile } from "./ffmpeg-download";
 import { chmodSync } from "fs";
+
+export let twigsProcess!: ChildProcessWithoutNullStreams;
 
 export const twigsPath = type() == "Windows_NT" ? "twigs.exe" : "twigs";
 
@@ -61,19 +63,19 @@ export async function ensureTwigsExists() {
 export function spawnTwigs() {
   return new Promise((resolve, reject) => {
     logger.log("Spawning Twigs");
-    const twigs = spawn("./" + twigsPath, []);
+    twigsProcess = spawn("./" + twigsPath, []);
     let responded = false;
-    twigs.on("error", (err) => {
+    twigsProcess.on("error", (err) => {
       reject(err);
     });
-    twigs.stdout.on("data", (data) => {
+    twigsProcess.stdout.on("data", (data) => {
       if (!responded) {
         logger.log("Twigs ready");
         responded = true;
         resolve();
       }
     });
-    twigs.stderr.on("data", (data) => {
+    twigsProcess.stderr.on("data", (data) => {
       logger.twigs(data.toString());
     });
   });

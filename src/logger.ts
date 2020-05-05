@@ -5,9 +5,11 @@ import { getConfig } from "./config/index";
 import { writeFileAsync } from "./fs/async";
 
 if (process.env.NODE_ENV == "development") {
-  debug.enable("porn:*");
+  debug.enable("vault:*");
 } else {
-  debug.enable("porn:success,porn:warn,porn:error,porn:message,porn:plugin");
+  debug.enable(
+    "vault:success,vault:warn,vault:error,vault:message,vault:plugin"
+  );
 }
 
 enum LogType {
@@ -19,7 +21,7 @@ enum LogType {
   MESSAGE = "message",
   SEARCH = "search",
   TWIGS = "twigs",
-  IZZY = "izzy"
+  IZZY = "izzy",
 }
 
 interface ILogData {
@@ -37,7 +39,7 @@ function createItem(type: LogType, text: string) {
   return {
     type,
     text,
-    date: +new Date()
+    date: +new Date(),
   } as ILogData;
 }
 
@@ -57,7 +59,7 @@ export async function logToFile() {
 
 function merge(...args: any[]) {
   return args
-    .map(a => {
+    .map((a) => {
       const str = JSON.stringify(a);
       if (str.startsWith('"') && str.endsWith('"')) return str.slice(1, -1);
       return str;
@@ -67,47 +69,47 @@ function merge(...args: any[]) {
 
 export const log = (...args: any) => {
   const text = merge(...args);
-  debug("porn:log")(text);
+  debug("vault:log")(text);
   appendToLog(createItem(LogType.LOG, text));
 };
 export const success = (...args: any) => {
   const text = merge(...args);
-  debug("porn:success")(text);
+  debug("vault:success")(text);
   appendToLog(createItem(LogType.SUCCESS, text));
 };
 export const http = (...args: any) => {
   const text = merge(...args);
-  debug("porn:http")(text);
+  debug("vault:http")(text);
   appendToLog(createItem(LogType.HTTP, text));
 };
 export const warn = (...args: any) => {
   const text = merge(...args);
-  debug("porn:warn")(text);
+  debug("vault:warn")(text);
   appendToLog(createItem(LogType.WARN, text));
 };
 export const error = (...args: any) => {
   const text = merge(...args);
-  debug("porn:error")(text);
+  debug("vault:error")(text);
   appendToLog(createItem(LogType.ERROR, text));
 };
 export const message = (...args: any) => {
   const text = merge(...args);
-  debug("porn:message")(text);
+  debug("vault:message")(text);
   appendToLog(createItem(LogType.MESSAGE, text));
 };
 export const search = (...args: any) => {
   const text = merge(...args);
-  debug("porn:twigs")(text);
+  debug("vault:twigs")(text);
   appendToLog(createItem(LogType.SEARCH, text));
 };
 export const twigs = (...args: any) => {
   const text = merge(...args);
-  debug("porn:twigs")(text);
+  debug("vault:twigs")(text);
   appendToLog(createItem(LogType.TWIGS, text));
 };
 export const izzy = (...args: any) => {
   const text = merge(...args);
-  debug("porn:izzy")(text);
+  debug("vault:izzy")(text);
   appendToLog(createItem(LogType.IZZY, text));
 };
 

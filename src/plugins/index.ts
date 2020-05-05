@@ -123,7 +123,7 @@ export async function runPlugin(
         $axios: axios,
         $cheerio: cheerio,
         $moment: moment,
-        $log: debug("porn:plugin"),
+        $log: debug("vault:plugin"),
         $loader: ora,
         $throw: (str: string) => {
           throw new Error(str);
