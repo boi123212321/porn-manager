@@ -50,7 +50,7 @@
     "graphql-type-long": "^0.1.1",
     "handlebars": "^4.7.6",
     "inquirer": "7.1.0",
-    "jimp": "^0.9.3",
+    "jimp": "^0.10.3",
     "js-sha512": "^0.8.0",
     "merge-img": "^2.1.3",
     "mkdirp": "^1.0.4",
