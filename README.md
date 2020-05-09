@@ -83,6 +83,10 @@ Bitcoin: 1Bw82zC5FnVtw93ZrcALQTeZBXgtVWH75n
 - Run the application in the terminal of your choice and follow the on-screen instructions
 - Once your app is setup you can visit it on http://localhost:3000 (or your LAN IP equivalent) in your web browser of choice
 
+### Docker
+
+See the [docker readme](doc/docker.md)
+
 ## Enabling HTTPS
 
 - If you're on Windows you first need to download openssl, you can find the executables here https://wiki.openssl.org/index.php/Binaries
