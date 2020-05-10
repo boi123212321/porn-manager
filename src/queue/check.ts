@@ -29,7 +29,7 @@ export async function checkVideoFolders() {
 
     await walk(folder, [".mp4", ".webm"], async (path) => {
       loader.text = `Scanned ${++numFiles} videos`;
-      if (!isImportableVideo) {
+      if (!isImportableVideo(path)) {
         logger.log(`Ignoring file ${path}`);
       } else {
         logger.log(`Found matching file ${path}`);
