@@ -1,10 +1,10 @@
 import queue, { AsyncQueue } from "async/queue";
 import { basename, extname } from "path";
 
-import { getConfig, IConfig } from "../config";
-import * as logger from "../logger";
-import Scene from "../types/scene";
-import { fileIsExcluded } from "../types/utility";
+import { getConfig, IConfig } from "../../config";
+import * as logger from "../../logger";
+import Scene from "../../types/scene";
+import { fileIsExcluded } from "../../types/utility";
 
 export default class VideoWatcher {
   private config: IConfig;

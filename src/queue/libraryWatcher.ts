@@ -1,7 +1,7 @@
 import { getConfig, IConfig } from "../config";
 import * as logger from "../logger";
-import ImageWatcher from "./imageWatcher";
-import VideoWatcher from "./videoWatcher";
+import ImageWatcher from "./image/imageWatcher";
+import VideoWatcher from "./video/videoWatcher";
 import Watcher from "./watcher";
 
 export default class LibraryWatcher {

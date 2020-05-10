@@ -5,7 +5,6 @@ import Scene from "./types/scene";
 import * as path from "path";
 import { checkPassword, passwordHandler } from "./password";
 import { getConfig, watchConfig } from "./config/index";
-import { checkVideoFolders, checkImageFolders } from "./queue/check";
 import {
   loadStores,
   actorCollection,

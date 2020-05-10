@@ -1,15 +1,18 @@
 import queue, { AsyncQueue } from "async/queue";
 import Jimp from "jimp";
-import { basename, extname } from "path";
+import { basename } from "path";
 
-import { getConfig, IConfig } from "../config";
-import { imageCollection } from "../database";
-import { extractActors, extractLabels, extractScenes } from "../extractor";
-import * as logger from "../logger";
-import { indexImages } from "../search/image";
-import Image from "../types/image";
-import { fileIsExcluded } from "../types/utility";
-import { imageWithPathExists } from "./utility";
+import { getConfig, IConfig } from "../../config";
+import { imageCollection } from "../../database";
+import { extractActors, extractLabels, extractScenes } from "../../extractor";
+import * as logger from "../../logger";
+import { indexImages } from "../../search/image";
+import Image from "../../types/image";
+import {
+  imageWithPathExists,
+  isImportableImage,
+  processImage,
+} from "./utility";
 
 export default class ImageWatcher {
   private config: IConfig;
@@ -50,11 +53,7 @@ export default class ImageWatcher {
    * folders
    */
   public async tryProcessImage(path: string) {
-    if (
-      ![".jpg", ".jpeg", ".png", ".gif"].includes(extname(path)) ||
-      basename(path).startsWith(".") ||
-      fileIsExcluded(this.config.EXCLUDE_FILES, path)
-    ) {
+    if (!isImportableImage(path)) {
       logger.log(`[imageWatcher]: Ignoring file ${path}`);
       return;
     }
@@ -80,44 +79,19 @@ export default class ImageWatcher {
    * @param callback - callback to execute once the path is processed
    */
   private async processImagePath(imagePath: string, callback: () => void) {
+    const readImage =
+      this.getDidInitialScanComplete() ||
+      this.readImageDimensionsBeforeInitialScanComplete;
+
     try {
-      const imageName = basename(imagePath);
-      const image = new Image(imageName);
-      image.path = imagePath;
-
-      if (
-        this.getDidInitialScanComplete() ||
-        this.readImageDimensionsBeforeInitialScanComplete
-      ) {
-        const jimpImage = await Jimp.read(imagePath);
-        image.meta.dimensions.width = jimpImage.bitmap.width;
-        image.meta.dimensions.height = jimpImage.bitmap.height;
-        image.hash = jimpImage.hash();
-      }
-
-      // Extract scene
-      const extractedScenes = await extractScenes(imagePath);
-      logger.log(`Found ${extractedScenes.length} scenes in image path.`);
-      image.scene = extractedScenes[0] || null;
-
-      // Extract actors
-      const extractedActors = await extractActors(imagePath);
-      logger.log(`Found ${extractedActors.length} actors in image path.`);
-      await Image.setActors(image, [...new Set(extractedActors)]);
-
-      // Extract labels
-      const extractedLabels = await extractLabels(imagePath);
-      logger.log(`Found ${extractedLabels.length} labels in image path.`);
-      await Image.setLabels(image, [...new Set(extractedLabels)]);
-
-      // await database.insert(database.store.images, image);
-      await imageCollection.upsert(image._id, image);
-      await indexImages([image]);
-      logger.success(`Image '${imageName}' done.`);
+      await processImage(imagePath, readImage);
     } catch (error) {
-      logger.error(error);
-      logger.error(`Failed to add image '${imagePath}'.`);
+      logger.log(error.stack);
+      logger.error("[imageWatcher]: Error when importing " + imagePath);
+      logger.warn(error.message);
     }
+
+    callback();
   }
 
   private onProcessingQueueEmptied() {
