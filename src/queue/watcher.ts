@@ -2,11 +2,19 @@ import chokidar, { FSWatcher, WatchOptions } from "chokidar";
 
 import * as logger from "../logger";
 
+interface WatcherOptions {
+  pollingInterval?: number;
+}
+
+const DEFAULT_OPTIONS = {
+  pollingInterval: 2 * 1000,
+};
+
 /**
  * Watches paths for any changes
  */
 export default class Watcher {
-  private watcher: FSWatcher | null;
+  private watcher: FSWatcher;
   private watchOptions: WatchOptions;
 
   /**
@@ -19,19 +27,23 @@ export default class Watcher {
     watch: string[],
     exclude: string[],
     onPathAdded: (path: string) => void,
-    onReadyCallback?: () => void
+    onReadyCallback: () => void,
+    options: WatcherOptions
   ) {
     // Clone arrays to prevent mutation on original
     const watchPaths = [...watch];
     const excludePaths = [...exclude];
 
-    this.watcher = null;
+    const mergedOptions = {
+      ...DEFAULT_OPTIONS,
+      ...options,
+    };
 
     this.watchOptions = {
       ignored: excludePaths,
-      usePolling: true, // Necessary to avoid overloading network. TODO: get from config ?
-      interval: 1000 * 2, // TODO: get from config?
-      binaryInterval: 1000 * 2, // TODO: get from config?
+      usePolling: mergedOptions.pollingInterval > 0, // Helps to avoid overloading a network device
+      interval: mergedOptions.pollingInterval,
+      binaryInterval: mergedOptions.pollingInterval,
       awaitWriteFinish: true,
     };
 
@@ -49,9 +61,19 @@ export default class Watcher {
     this.watcher.on("ready", () => {
       logger.log(`[watcher]: initial scan complete for ${watchPaths}`);
 
-      if (onReadyCallback) {
-        onReadyCallback();
-      }
+      onReadyCallback();
     });
+  }
+
+  /**
+   * Stops watching what was passed in the constructor
+   * of this instance
+   *
+   * @returns resolves once all the files are unwatched
+   */
+  public async stopWatching(): Promise<void> {
+    logger.log("[watcher]: Stopping watch");
+    await this.watcher.close();
+    logger.log("[watcher]: Did stop watching");
   }
 }

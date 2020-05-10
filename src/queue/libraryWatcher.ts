@@ -41,11 +41,23 @@ export default class LibraryWatcher {
         if (onInitialScanCompleted) {
           onInitialScanCompleted();
         }
-      }
+      },
+      { pollingInterval: this.config.WATCH_POLLING_INTERVAL }
     );
   }
+  /**
+   * Stops watching what was passed in the constructor
+   * of this instance
+   *
+   * @returns resolves once all the files are unwatched
+   */
+  public async stopWatching() {
+    logger.log("[libraryWatcher]: Stopping watch");
+    await this.watcher.stopWatching();
+    logger.log("[libraryWatcher]: Did stop watching");
+  }
 
-  onPathAdded(path) {
+  private onPathAdded(path) {
     logger.log(`[libraryWatcher]: found path ${path}`);
 
     // No need to await these
@@ -53,7 +65,7 @@ export default class LibraryWatcher {
     this.imageWatcher.tryProcessImage(path);
   }
 
-  didInitialScanComplete() {
+  private didInitialScanComplete() {
     return this.completedInitialScan;
   }
 }
