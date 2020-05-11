@@ -77,10 +77,17 @@ async function tryStartProcessing(currentAttemptCount = 1) {
         }
       );
 
-      processingWorker.on("exit", (code, signal) => {
+      processingWorker.on("exit", async (code, signal) => {
         logger.warn(
           `Processing process exited (potentially finished queue) with code ${code} and signal ${signal}`
         );
+
+        const queueLen = await getLength();
+        if (!queueLen) {
+          logger.message(
+            "Queue length is 0, assuming that process exited correctly"
+          );
+        }
 
         setProcessingStatus(false);
 
