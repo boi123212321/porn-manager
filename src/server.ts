@@ -36,6 +36,7 @@ import https from "https";
 import { fstat, readFile, readFileSync } from "fs";
 import LibraryWatcher from "./queue/libraryWatcher";
 import { checkImageFolders, checkVideoFolders } from "./queue/check";
+import debounce from "lodash.debounce";
 
 logger.message(
   "Check https://github.com/boi123212321/porn-vault for discussion & updates"
@@ -46,6 +47,9 @@ let setupMessage = "Setting up...";
 
 let libraryWatcher: LibraryWatcher | null;
 let scheduledScanTimeout: NodeJS.Timeout | null;
+
+let isManualScanningLibrary = false;
+let isProcessingLibrary = false;
 
 async function tryStartProcessing() {
   const queueLen = await getLength();
@@ -65,32 +69,52 @@ async function tryStartProcessing() {
   }
 }
 
+async function processLibrary() {
+  if (isProcessingLibrary) {
+    logger.message("Is already processing library, will skip this one");
+  }
+
+  isProcessingLibrary = true;
+  try {
+    logger.message("Starting processing...");
+    await tryStartProcessing();
+    logger.message("Processing done");
+  } catch (err) {
+    logger.error("Couldn't start processing...");
+    logger.error(err.message);
+  }
+  isProcessingLibrary = false;
+
+  // When this round of processing is done, we assume
+  // it's because the whole library is already scanned.
+  // So only now, we can schedule another scan
+  scheduleManualScan();
+}
+
+// Debounce the processing call to ensure that we only start processing
+// once all videos are imported
+const debouncedProcessLibrary = debounce(processLibrary, 10 * 1000, {
+  trailing: true,
+});
+
 /**
- * @param forceManualScan - if should force a manual scan,
+ * @param forceManualScan - if should scan via manual scan,
  * even if we are in watch mode
  */
 async function scanFolders(forceManualScan = false) {
+  if (isManualScanningLibrary) {
+    logger.message(
+      "Received request to scan, but a scan is already in progress. Will skip this one"
+    );
+  }
+
   if (forceManualScan) {
-    logger.message("Scheduled library scan starting...");
+    logger.message("Scheduled manual library scan starting...");
   } else {
     logger.message("Scanning library folders...");
   }
 
   const config = getConfig();
-
-  const processLibrary = async () => {
-    try {
-      await tryStartProcessing();
-    } catch (err) {
-      logger.error("Couldn't start processing...");
-      logger.error(err.message);
-    }
-
-    // When this round of processing is done, we assume
-    // it's because the whole library is already scanned.
-    // So only now, we can schedule another scan
-    scheduleManualScan();
-  };
 
   if (!forceManualScan && config.WATCH_LIBRARY) {
     logger.message("Scanning library via file watching");
@@ -98,16 +122,15 @@ async function scanFolders(forceManualScan = false) {
     if (libraryWatcher) {
       logger.message("Already watching library, will not recreate watcher");
     } else {
-      libraryWatcher = new LibraryWatcher(
-        processLibrary, // TODO: debounce?
-        () => {
-          logger.message("Finished library watch initialization");
-        }
-      );
+      libraryWatcher = new LibraryWatcher(debouncedProcessLibrary, () => {
+        logger.message("Finished library watch initialization");
+      });
     }
 
     return;
   }
+
+  isManualScanningLibrary = true;
 
   logger.message("Scanning library via manual scan");
 
@@ -128,32 +151,31 @@ async function scanFolders(forceManualScan = false) {
       });
   }
 
-  logger.message("Launching manual video library scan");
-  checkVideoFolders()
-    .then(() => {
-      logger.success("Manual video library scan done.");
-    })
-    .catch((err) => {
-      logger.error("Manual video library scan failed");
-      logger.error(err);
-    })
-    .finally(() => {
-      // If the video import failed halfway through, we still want to
-      // process the videos that did import
-      logger.message("Will now start processing the imported videos");
-      processLibrary(); // Do not await
+  try {
+    logger.message("Launching manual video library scan");
+    await checkVideoFolders();
+    logger.success("Manual video library scan done.");
+  } catch (err) {
+    logger.error("Manual video library scan failed");
+    logger.error(err);
+  }
 
-      // Launch image import AFTER the video succeeds/fails
-      logger.message("Launching manual image library scan");
-      checkImageFolders(config.READ_IMAGES_ON_IMPORT)
-        .then(() => {
-          logger.success("Manual image library scan done.");
-        })
-        .catch((err) => {
-          logger.error("Manual image library scan failed");
-          logger.error(err);
-        });
-    });
+  // If the video import failed halfway through, we still want to
+  // process the videos that did import
+  logger.message("Will now start processing the imported videos");
+  debouncedProcessLibrary(); // Do not await
+
+  // Launch image import AFTER the video succeeds/fails
+  try {
+    logger.message("Launching manual image library scan");
+    await checkImageFolders(config.READ_IMAGES_ON_IMPORT);
+    logger.success("Manual image library scan done.");
+  } catch (err) {
+    logger.error("Manual image library scan failed");
+    logger.error(err);
+  }
+
+  isManualScanningLibrary = false;
 }
 
 function scheduleManualScan() {
@@ -307,8 +329,12 @@ export default async () => {
   app.use("/queue", queueRouter);
 
   app.get("/force-scan", (req, res) => {
-    scanFolders();
-    res.json("Started scan.");
+    if (isManualScanningLibrary) {
+      res.json("Scan already in progress.");
+    } else {
+      scanFolders(true);
+      res.json("Started scan.");
+    }
   });
 
   if (config.BACKUP_ON_STARTUP === true) {
