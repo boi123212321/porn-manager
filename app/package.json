@@ -10,7 +10,7 @@
   "dependencies": {
     "@mdi/font": "^5.1.45",
     "apollo-cache-inmemory": "^1.6.5",
-    "apollo-client": "^2.6.8",
+    "apollo-client": "^2.6.9",
     "apollo-link-context": "^1.0.19",
     "apollo-upload-client": "^12.1.0",
     "chart.js": "^2.9.3",
