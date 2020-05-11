@@ -1,4 +1,4 @@
-import queue from "async/queue";
+import { queue } from "async";
 
 import * as logger from "../../logger";
 import Scene from "../../types/scene";
@@ -69,4 +69,12 @@ function onImportQueueEmptied() {
 function onImportQueueError(error: Error, task: string) {
   logger.error("[videoQueue]: path processing encountered an error");
   logger.error(error);
+}
+
+export function getVideoImportQueueLength() {
+  return videoProcessingQueue.length();
+}
+
+export function isVideoImportQueueRunning() {
+  return videoProcessingQueue.running();
 }

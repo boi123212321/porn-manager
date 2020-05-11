@@ -1,29 +1,42 @@
-import Actor from "../../types/actor";
-import Label from "../../types/label";
-import Scene from "../../types/scene";
-import Movie from "../../types/movie";
-import { mapAsync, filterAsync } from "../../types/utility";
-import Studio from "../../types/studio";
-import Image from "../../types/image";
-import * as database from "../../database/index";
-import CustomField from "../../types/custom_field";
-import { getImages } from "./search/image";
-import { getScenes } from "./search/scene";
-import { getActors } from "./search/actor";
-import { getStudios } from "./search/studio";
-import { getMovies } from "./search/movie";
-import { twigsVersion } from "../../search/index";
+import {
+  actorCollection,
+  imageCollection,
+  labelCollection,
+  movieCollection,
+  sceneCollection,
+  studioCollection,
+} from "../../database";
+import {
+  getImageImportQueueLength,
+  isImageImportQueueRunning,
+} from "../../queue/image/imageQueue";
+import {
+  getFoundImagesCount,
+  getFoundVideosCount,
+  getOldFoundImagesCount,
+  getOldFoundVideosCount,
+} from "../../queue/importManager";
 import { getLength, isProcessing } from "../../queue/processing";
 import {
-  sceneCollection,
-  imageCollection,
-  actorCollection,
-  movieCollection,
-  labelCollection,
-  studioCollection,
-} from "../../database/index";
-import SceneView from "../../types/watch";
+  getVideoImportQueueLength,
+  isVideoImportQueueRunning,
+} from "../../queue/video/videoQueue";
+import { twigsVersion } from "../../search";
+import Actor from "../../types/actor";
+import CustomField from "../../types/custom_field";
+import Image from "../../types/image";
+import Label from "../../types/label";
 import LabelledItem from "../../types/labelled_item";
+import Movie from "../../types/movie";
+import Scene from "../../types/scene";
+import Studio from "../../types/studio";
+import { filterAsync, mapAsync } from "../../types/utility";
+import SceneView from "../../types/watch";
+import { getActors } from "./search/actor";
+import { getImages } from "./search/image";
+import { getMovies } from "./search/movie";
+import { getScenes } from "./search/scene";
+import { getStudios } from "./search/studio";
 
 export default {
   async getWatches(
@@ -100,6 +113,23 @@ export default {
 
   async topActors(_, { num }: { num: number }) {
     return (await Actor.getTopActors()).slice(0, num || 12);
+  },
+
+  getImportInfo() {
+    return {
+      videos: {
+        currentFoundCount: getFoundVideosCount(),
+        oldFoundCount: getOldFoundVideosCount(),
+        importQueueLength: getVideoImportQueueLength(),
+        running: isVideoImportQueueRunning(),
+      },
+      images: {
+        currentFoundCount: getFoundImagesCount(),
+        oldFoundCount: getOldFoundImagesCount(),
+        importQueueLength: getImageImportQueueLength(),
+        running: isImageImportQueueRunning(),
+      },
+    };
   },
 
   async getQueueInfo() {

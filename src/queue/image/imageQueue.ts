@@ -1,4 +1,4 @@
-import queue from "async/queue";
+import { queue } from "async";
 
 import { getConfig } from "../../config";
 import * as logger from "../../logger";
@@ -74,4 +74,12 @@ export async function addImagePathToQueue(path: string) {
     imageProcessingQueue.push(path);
     logger.log(`[imageQueue]: Added image to processing queue '${path}'.`);
   }
+}
+
+export function getImageImportQueueLength() {
+  return imageProcessingQueue.length();
+}
+
+export function isImageImportQueueRunning() {
+  return imageProcessingQueue.running();
 }

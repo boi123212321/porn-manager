@@ -17,6 +17,7 @@ export default gql`
   }
 
   type Query {
+    getImportInfo: ImportInfo!
     getQueueInfo: QueueInfo!
     twigs: IndexStatus
 
@@ -32,6 +33,18 @@ export default gql`
     top: Int!
     width: Int!
     height: Int!
+  }
+
+  type LibraryCategoryImportInfo {
+    currentFoundCount: Int!
+    oldFoundCount: Int!
+    importQueueLength: Int!
+    running: Boolean!
+  }
+
+  type ImportInfo {
+    videos: LibraryCategoryImportInfo!
+    images: LibraryCategoryImportInfo!
   }
 
   type QueueInfo {
