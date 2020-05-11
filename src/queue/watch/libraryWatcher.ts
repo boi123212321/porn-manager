@@ -4,8 +4,8 @@ import {
   SUPPORTED_IMAGE_EXTENSIONS,
   SUPPORTED_VIDEO_EXTENSIONS,
 } from "../constants";
+import { importPaths } from "../importManager";
 import Watcher from "./watcher";
-import ImportManager from "../importManager";
 
 /**
  * Generates an array of glob paths to watch for the library
@@ -30,50 +30,53 @@ const createWatchPaths = (videoPaths, imagePaths) => {
   return [...new Set([...videoGlobs, ...imageGlobs])];
 };
 
-export default class LibraryWatcher {
-  private watcher: Watcher;
+let watcher: Watcher | null = null;
 
-  /**
-   *
-   * @param importManager - manager to handle newly found paths
-   * @param onInitialScanCompleted - Called when the initial scan of the library
-   * is complete
-   */
-  constructor(
-    importManager: ImportManager,
-    onInitialScanCompleted?: () => void
-  ) {
-    const config = getConfig();
+/**
+ *
+ * @param onInitialScanCompleted - Called when the initial scan of the library
+ * is complete
+ */
+export function initLibraryWatcher(onInitialScanCompleted?: () => void) {
+  if (watcher) {
+    logger.message("Already watching library, will not recreate watcher");
+  }
 
-    const watchPaths = createWatchPaths(config.VIDEO_PATHS, config.IMAGE_PATHS);
+  const config = getConfig();
 
-    this.watcher = new Watcher(
-      {
-        includePaths: watchPaths,
-        excludePaths: config.EXCLUDE_FILES,
-        pollingInterval: config.WATCH_POLLING_INTERVAL,
-      },
-      (addedPath) => {
-        logger.log(`[libraryWatcher]: found path ${addedPath}`);
+  const watchPaths = createWatchPaths(config.VIDEO_PATHS, config.IMAGE_PATHS);
 
-        importManager.importPaths(addedPath);
-      },
-      () => {
-        if (onInitialScanCompleted) {
-          onInitialScanCompleted();
-        }
+  watcher = new Watcher(
+    {
+      includePaths: watchPaths,
+      excludePaths: config.EXCLUDE_FILES,
+      pollingInterval: config.WATCH_POLLING_INTERVAL,
+    },
+    (addedPath) => {
+      logger.log(`[libraryWatcher]: found path ${addedPath}`);
+
+      importPaths(addedPath);
+    },
+    () => {
+      if (onInitialScanCompleted) {
+        onInitialScanCompleted();
       }
-    );
-  }
-  /**
-   * Stops watching what was passed in the constructor
-   * of this instance
-   *
-   * @returns resolves once all the files are unwatched
-   */
-  public async stopWatching() {
-    logger.log("[libraryWatcher]: Stopping watch");
-    await this.watcher.stopWatching();
-    logger.log("[libraryWatcher]: Did stop watching");
-  }
+    }
+  );
+}
+/**
+ * Stops watching what was passed in the constructor
+ * of this instance
+ *
+ * @returns resolves once all the files are unwatched
+ */
+export async function stopWatchingLibrary() {
+  logger.log("[libraryWatcher]: Stopping watch");
+  await watcher?.stopWatching();
+  logger.log("[libraryWatcher]: Did stop watching");
+  watcher = null;
+}
+
+export function isWatchingLibrary() {
+  return !!watcher;
 }

@@ -11,9 +11,14 @@ import {
   SUPPORTED_IMAGE_EXTENSIONS,
   SUPPORTED_VIDEO_EXTENSIONS,
 } from "../constants";
-import ImportManager from "../importManager";
+import {
+  getFoundImagesCount,
+  importImagePaths,
+  importVideoPaths,
+  resetFoundImagesCount,
+} from "../importManager";
 
-export async function checkVideoFolders(importManager: ImportManager) {
+export async function checkVideoFolders() {
   const config = getConfig();
 
   const unknownVideos = [] as string[];
@@ -40,15 +45,15 @@ export async function checkVideoFolders(importManager: ImportManager) {
     `Queued ${unknownVideos.length} new videos for further processing.`
   );
 
-  importManager.importVideoPaths(...unknownVideos);
+  importVideoPaths(...unknownVideos);
 }
 
-export async function checkImageFolders(importManager: ImportManager) {
+export async function checkImageFolders() {
   const config = getConfig();
 
   logger.log("Checking image folders...");
 
-  importManager.resetFoundImagesCount();
+  resetFoundImagesCount();
 
   if (!config.READ_IMAGES_ON_IMPORT)
     logger.warn("Reading images on import is disabled.");
@@ -63,13 +68,13 @@ export async function checkImageFolders(importManager: ImportManager) {
 
     await walk(folder, SUPPORTED_IMAGE_EXTENSIONS, async (path) => {
       loader.text = `Scanned ${++numFolderFiles} images`;
-      importManager.importImagePaths(path);
+      importImagePaths(path);
     });
 
     loader.succeed(`${folder} done (${numFolderFiles} images)`);
   }
 
-  logger.warn(`Added ${importManager.getFoundImagesCount()} new images`);
+  logger.warn(`Added ${getFoundImagesCount()} new images`);
 }
 export async function checkPreviews() {
   const config = getConfig();

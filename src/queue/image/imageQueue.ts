@@ -1,6 +1,6 @@
-import queue, { AsyncQueue } from "async/queue";
+import queue from "async/queue";
 
-import { getConfig, IConfig } from "../../config";
+import { getConfig } from "../../config";
 import * as logger from "../../logger";
 import {
   imageWithPathExists,
@@ -8,81 +8,70 @@ import {
   processImage,
 } from "./utility";
 
-export default class ImageQueue {
-  private config: IConfig;
-  private imageProcessingQueue: AsyncQueue<string>;
+const onImageQueueEmptiedListeners: (() => void)[] = [];
 
-  private onQueueEmptiedCb?: () => void;
+export function onImageQueueEmptied(fn: () => void) {
+  onImageQueueEmptiedListeners.push(fn);
+}
 
-  /**
-   * @param onQueueEmptiedCb - called once the image processing is complete
-   * @param onInitialScanCompleted - called once the initial scan of the image
-   * folders is complete
-   */
-  constructor(onQueueEmptiedCb?: () => void) {
-    this.config = getConfig();
+const imageProcessingQueue = queue(importImageFromPath, 1);
+imageProcessingQueue.drain(onImportQueueEmptied);
+imageProcessingQueue.error(onImportQueueError);
 
-    this.onQueueEmptiedCb = onQueueEmptiedCb;
-
-    this.imageProcessingQueue = queue(this.importImageFromPath, 1);
-    this.imageProcessingQueue.drain(this.onImportQueueEmptied.bind(this));
-    this.imageProcessingQueue.error(this.onImportQueueError.bind(this));
+/**
+ * Processes a path in the queue by importing the image
+ *
+ * @param path - the path to process
+ * @param callback - callback to execute once the path is processed
+ */
+async function importImageFromPath(imagePath: string, callback: () => void) {
+  try {
+    const config = getConfig();
+    await processImage(imagePath, config.READ_IMAGES_ON_IMPORT);
+  } catch (error) {
+    logger.log(error.stack);
+    logger.error("[imageQueue]: Error when importing " + imagePath);
+    logger.warn(error.message);
   }
 
-  /**
-   * Handles a new path in the image folders.
-   * If it is a supported image, adds it to the processing queue
-   *
-   * @param path - the path newly added to the watch image
-   * folders
-   */
-  public async addPathToQueue(path: string) {
-    if (!isImportableImage(path)) {
-      logger.log(`[imageQueue]: Ignoring file ${path}`);
-      return;
-    }
+  callback();
+}
 
-    logger.log(`[imageQueue]: Found matching file ${path}`);
+function onImportQueueEmptied() {
+  logger.log("[imageQueue]: Processing queue empty");
 
-    const existingImage = await imageWithPathExists(path);
-    logger.log(
-      "[imageQueue]: Scene with that path exists already ?: " + !!existingImage
-    );
+  for (const listener of onImageQueueEmptiedListeners) {
+    listener();
+  }
+}
 
-    if (!existingImage) {
-      this.imageProcessingQueue.push(path);
-      logger.log(`[imageQueue]: Added image to processing queue '${path}'.`);
-    }
+function onImportQueueError(error: Error, task: string) {
+  logger.error("[imageQueue]: path processing encountered an error");
+  logger.error(error);
+}
+
+/**
+ * Handles a new path in the image folders.
+ * If it is a supported image, adds it to the processing queue
+ *
+ * @param path - the path newly added to the watch image
+ * folders
+ */
+export async function addImagePathToQueue(path: string) {
+  if (!isImportableImage(path)) {
+    logger.log(`[imageQueue]: Ignoring file ${path}`);
+    return;
   }
 
-  /**
-   * Processes a path in the queue by importing the image
-   *
-   * @param path - the path to process
-   * @param callback - callback to execute once the path is processed
-   */
-  private async importImageFromPath(imagePath: string, callback: () => void) {
-    try {
-      await processImage(imagePath, this.config.READ_IMAGES_ON_IMPORT);
-    } catch (error) {
-      logger.log(error.stack);
-      logger.error("[imageQueue]: Error when importing " + imagePath);
-      logger.warn(error.message);
-    }
+  logger.log(`[imageQueue]: Found matching file ${path}`);
 
-    callback();
-  }
+  const existingImage = await imageWithPathExists(path);
+  logger.log(
+    "[imageQueue]: Scene with that path exists already ?: " + !!existingImage
+  );
 
-  private onImportQueueEmptied() {
-    logger.log("[imageQueue]: Processing queue empty");
-
-    if (this.onQueueEmptiedCb) {
-      this.onQueueEmptiedCb();
-    }
-  }
-
-  private onImportQueueError(error: Error, task: string) {
-    logger.error("[imageQueue]: path processing encountered an error");
-    logger.error(error);
+  if (!existingImage) {
+    imageProcessingQueue.push(path);
+    logger.log(`[imageQueue]: Added image to processing queue '${path}'.`);
   }
 }

@@ -1,93 +1,69 @@
 import * as logger from "../logger";
-import ImageQueue from "./image/imageQueue";
-import VideoQueue from "./video/videoQueue";
+import { addImagePathToQueue } from "./image/imageQueue";
+import { addVideoPathToQueue } from "./video/videoQueue";
 
 export type onQueueEmptied = () => void;
 
-export default class ImportManager {
-  private oldNumFoundVideoPaths: number;
-  private numFoundVideoPaths: number;
-  private videoQueue: VideoQueue;
+let oldNumFoundVideoPaths = 0;
+let numFoundVideoPaths = 0;
 
-  private oldNumFoundImagePaths: number;
-  private numFoundImagePaths: number;
-  private imageQueue: ImageQueue;
+let oldNumFoundImagePaths = 0;
+let numFoundImagePaths = 0;
 
-  /**
-   *
-   * @param onVideoProcesingQueueEmpty - Called every time the video import
-   * queue is emptied
-   * @param onImageProcesingQueueEmpty - Called every time the image import
-   * queue is emptied
-   */
-  constructor(
-    onVideoProcesingQueueEmpty?: onQueueEmptied,
-    onImageProcesingQueueEmpty?: onQueueEmptied
-  ) {
-    this.oldNumFoundVideoPaths = 0;
-    this.numFoundVideoPaths = 0;
-    this.videoQueue = new VideoQueue(onVideoProcesingQueueEmpty);
+/**
+ * @param paths - the image and/or video paths to import
+ */
+export function importPaths(...paths: string[]) {
+  importVideoPaths(...paths);
+  importImagePaths(...paths);
+}
 
-    this.oldNumFoundImagePaths = 0;
-    this.numFoundImagePaths = 0;
-    this.imageQueue = new ImageQueue(onImageProcesingQueueEmpty);
+/**
+ * @param paths - the video paths to import
+ */
+export function importVideoPaths(...addedPaths: string[]) {
+  for (const addedPath of addedPaths) {
+    logger.log(`[importManager]: handling new video path ${addedPath}`);
+
+    numFoundVideoPaths++;
+    addVideoPathToQueue(addedPath);
   }
+}
 
-  /**
-   * @param paths - the image and/or video paths to import
-   */
-  public importPaths(...paths: string[]) {
-    this.importVideoPaths(...paths);
-    this.importImagePaths(...paths);
+/**
+ * @param paths - the image paths to import
+ */
+export function importImagePaths(...addedPaths: string[]) {
+  for (const addedPath of addedPaths) {
+    logger.log(`[importManager]: handling new image path ${addedPath}`);
+
+    numFoundImagePaths++;
+    addImagePathToQueue(addedPath);
   }
+}
 
-  /**
-   * @param paths - the video paths to import
-   */
-  public importVideoPaths(...addedPaths: string[]) {
-    for (const addedPath of addedPaths) {
-      logger.log(`[processingManager]: handling new video path ${addedPath}`);
+export function resetFoundVideosCount() {
+  oldNumFoundVideoPaths = numFoundVideoPaths;
+  numFoundVideoPaths = 0;
+}
 
-      this.numFoundVideoPaths++;
-      this.videoQueue.addPathToQueue(addedPath);
-    }
-  }
+export function getFoundVideosCount() {
+  return numFoundVideoPaths;
+}
 
-  /**
-   * @param paths - the image paths to import
-   */
-  public importImagePaths(...addedPaths: string[]) {
-    for (const addedPath of addedPaths) {
-      logger.log(`[processingManager]: handling new image path ${addedPath}`);
+export function getOldFoundVideosCount() {
+  return oldNumFoundVideoPaths;
+}
 
-      this.numFoundImagePaths++;
-      this.imageQueue.addPathToQueue(addedPath);
-    }
-  }
+export function resetFoundImagesCount() {
+  oldNumFoundImagePaths = numFoundVideoPaths;
+  numFoundImagePaths = 0;
+}
 
-  public resetFoundVideosCount() {
-    this.oldNumFoundVideoPaths = this.numFoundVideoPaths;
-    this.numFoundVideoPaths = 0;
-  }
+export function getFoundImagesCount() {
+  return numFoundImagePaths;
+}
 
-  public getFoundVideosCount() {
-    return this.numFoundVideoPaths;
-  }
-
-  public getOldFoundVideosCount() {
-    return this.oldNumFoundVideoPaths;
-  }
-
-  public resetFoundImagesCount() {
-    this.oldNumFoundImagePaths = this.numFoundVideoPaths;
-    this.numFoundImagePaths = 0;
-  }
-
-  public getFoundImagesCount() {
-    return this.numFoundImagePaths;
-  }
-
-  public getOldFoundImagesCount() {
-    return this.oldNumFoundImagePaths;
-  }
+export function getOldFoundImagesCount() {
+  return oldNumFoundImagePaths;
 }

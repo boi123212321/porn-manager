@@ -2,7 +2,6 @@ import { spawn } from "child_process";
 
 import { getConfig } from "../config";
 import * as logger from "../logger";
-import ImportManager from "./importManager";
 import { checkImageFolders, checkVideoFolders } from "./manual/check";
 import {
   getHead,
@@ -10,9 +9,12 @@ import {
   isProcessing,
   setProcessingStatus,
 } from "./processing";
-import LibraryWatcher from "./watch/libraryWatcher";
-
-let importManager: ImportManager | null;
+import { onVideoQueueEmptied } from "./video/videoQueue";
+import {
+  initLibraryWatcher,
+  isWatchingLibrary,
+  stopWatchingLibrary,
+} from "./watch/libraryWatcher";
 
 /**
  * How many times to attempt to start the processing
@@ -22,10 +24,11 @@ const MAX_START_PROCESSING_WORKER_TRIES = 3;
 
 let oldProcessingHead: { _id: string } | null = null;
 
-let libraryWatcher: LibraryWatcher | null;
 let scheduledScanTimeout: NodeJS.Timeout | null;
 
 let isManualScanningLibrary = false;
+
+onVideoQueueEmptied(processLibrary);
 
 export function getIsManualScanningLibrary() {
   return isManualScanningLibrary;
@@ -150,19 +153,6 @@ export async function processLibrary() {
   }
 }
 
-function initImportManager() {
-  if (!importManager) {
-    importManager = new ImportManager(
-      () => {
-        logger.message("Scan: video importing finished");
-      },
-      () => {
-        logger.message("Scan: image importing finished");
-      }
-    );
-  }
-}
-
 /**
  * Triggers a scan of the library. Will use the current
  * config to either do a manual scan or watch the library files.
@@ -179,9 +169,6 @@ export async function scanFolders(isScheduledManualScan = false) {
     return;
   }
 
-  // Initialize the manager if not already created
-  initImportManager();
-
   if (isScheduledManualScan) {
     logger.message("Scheduled manual library scan starting...");
   } else {
@@ -193,10 +180,10 @@ export async function scanFolders(isScheduledManualScan = false) {
   if (!isScheduledManualScan && config.WATCH_LIBRARY) {
     logger.message("Scanning library via file watching");
 
-    if (libraryWatcher) {
+    if (isWatchingLibrary()) {
       logger.message("Already watching library, will not recreate watcher");
     } else {
-      libraryWatcher = new LibraryWatcher(<ImportManager>importManager, () => {
+      initLibraryWatcher(() => {
         logger.message("Finished library watch initialization");
       });
     }
@@ -209,25 +196,18 @@ export async function scanFolders(isScheduledManualScan = false) {
   logger.message("Scanning library via manual scan");
 
   // If we switched to manual scans: destroy the watcher
-  if (libraryWatcher) {
+  if (isWatchingLibrary()) {
     logger.message("File watcher was previously active, will destroy...");
     // Do not await
-    libraryWatcher
-      .stopWatching()
-      .then(() => {
-        libraryWatcher = null;
-      })
-      .catch((err) => {
-        logger.error(
-          "Error stopping file watch while switching to manual scan"
-        );
-        logger.error(err);
-      });
+    stopWatchingLibrary().catch((err) => {
+      logger.error("Error stopping file watch while switching to manual scan");
+      logger.error(err);
+    });
   }
 
   try {
     logger.message("Launching manual video library scan");
-    await checkVideoFolders(<ImportManager>importManager);
+    await checkVideoFolders();
     logger.success("Manual video library scan done.");
   } catch (err) {
     logger.error("Manual video library scan failed");
@@ -244,7 +224,7 @@ export async function scanFolders(isScheduledManualScan = false) {
   // Launch image import AFTER the video succeeds/fails
   try {
     logger.message("Launching manual image library scan");
-    await checkImageFolders(<ImportManager>importManager);
+    await checkImageFolders();
     logger.success("Manual image library scan done.");
   } catch (err) {
     logger.error("Manual image library scan failed");
@@ -281,10 +261,10 @@ export function scheduleManualScan() {
  */
 export async function destroyImporter() {
   try {
-    if (libraryWatcher) {
+    if (isWatchingLibrary()) {
       logger.message("File watcher was previously active, will destroy...");
 
-      await libraryWatcher.stopWatching();
+      await stopWatchingLibrary();
     }
   } catch (err) {
     logger.error("Error cleaning up server resourced");
