@@ -178,10 +178,10 @@ export default async () => {
 
   app.get("/force-scan", (req, res) => {
     if (getIsManualScanningLibrary()) {
-      res.json("Scan already in progress.");
+      res.status(409).json("Scan already in progress.");
     } else {
       scanFolders(true);
-      res.json("Started scan.");
+      res.status(200).json("Started scan.");
     }
   });
 
