@@ -30,7 +30,7 @@ import https from "https";
 import { readFileSync } from "fs";
 import {
   destroyImporter,
-  debouncedProcessLibrary,
+  processLibrary,
   scheduleManualScan,
   scanFolders,
   getIsManualScanningLibrary,
@@ -234,7 +234,7 @@ export default async () => {
 
   if (config.DO_PROCESSING) {
     logger.message("Server start: will start processing");
-    debouncedProcessLibrary();
+    processLibrary();
   }
 
   if (!willAutoIntervalScan) {
