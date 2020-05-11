@@ -115,20 +115,21 @@ export default {
     return (await Actor.getTopActors()).slice(0, num || 12);
   },
 
-  getImportInfo() {
+  getVideoImportInfo() {
     return {
-      videos: {
-        currentFoundCount: getFoundVideosCount(),
-        oldFoundCount: getOldFoundVideosCount(),
-        importQueueLength: getVideoImportQueueLength(),
-        running: isVideoImportQueueRunning(),
-      },
-      images: {
-        currentFoundCount: getFoundImagesCount(),
-        oldFoundCount: getOldFoundImagesCount(),
-        importQueueLength: getImageImportQueueLength(),
-        running: isImageImportQueueRunning(),
-      },
+      currentFoundCount: getFoundVideosCount(),
+      oldFoundCount: getOldFoundVideosCount(),
+      importQueueLength: getVideoImportQueueLength(),
+      running: isVideoImportQueueRunning(),
+    };
+  },
+
+  getImageImportInfo() {
+    return {
+      currentFoundCount: getFoundImagesCount(),
+      oldFoundCount: getOldFoundImagesCount(),
+      importQueueLength: getImageImportQueueLength(),
+      running: isImageImportQueueRunning(),
     };
   },
 

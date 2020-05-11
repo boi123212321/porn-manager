@@ -98,7 +98,8 @@
           </v-card>-->
         </v-col>
         <v-col cols="12" sm="6">
-          <ImportInfo />
+          <VideoImportInfo />
+          <ImageImportInfo />
           <QueueInfo />
 
           <!-- <v-card v-if="topActors.length" class="mb-3" style="border-radius: 10px">
@@ -142,7 +143,8 @@ import sceneFragment from "../fragments/scene";
 import ActorCard from "../components/ActorCard.vue";
 import IActor from "../types/actor";
 import IScene from "../types/scene";
-import ImportInfo from "../components/ImportInfo.vue";
+import ImageImportInfo from "../components/ImageImportInfo.vue";
+import VideoImportInfo from "../components/VideoImportInfo.vue";
 import QueueInfo from "../components/QueueInfo.vue";
 import ActorGrid from "../components/ActorGrid.vue";
 import { contextModule } from "../store/context";
@@ -150,7 +152,8 @@ import { contextModule } from "../store/context";
 @Component({
   components: {
     ActorCard,
-    ImportInfo,
+    ImageImportInfo,
+    VideoImportInfo,  
     QueueInfo,
     ActorGrid
   }
