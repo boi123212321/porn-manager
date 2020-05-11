@@ -1,13 +1,13 @@
 import { extname } from "path";
 
-import { getConfig, IConfig } from "../config";
-import * as logger from "../logger";
+import { getConfig, IConfig } from "../../config";
+import * as logger from "../../logger";
 import {
   SUPPORTED_IMAGE_EXTENSIONS,
   SUPPORTED_VIDEO_EXTENSIONS,
-} from "./constants";
-import ImageQueue from "./image/imageQueue";
-import VideoQueue from "./video/videoQueue";
+} from "../constants";
+import ImageQueue from "../image/imageQueue";
+import VideoQueue from "../video/videoQueue";
 import Watcher from "./watcher";
 
 /**

@@ -1,6 +1,6 @@
 import chokidar, { FSWatcher, WatchOptions } from "chokidar";
 
-import * as logger from "../logger";
+import * as logger from "../../logger";
 
 interface WatcherOptions {
   includePaths?: string[];
