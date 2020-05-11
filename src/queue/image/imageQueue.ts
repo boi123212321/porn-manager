@@ -38,21 +38,20 @@ export default class ImageQueue {
    */
   public async addPathToQueue(path: string) {
     if (!isImportableImage(path)) {
-      logger.log(`[imageWatcher]: Ignoring file ${path}`);
+      logger.log(`[imageQueue]: Ignoring file ${path}`);
       return;
     }
 
-    logger.log(`[imageWatcher]: Found matching file ${path}`);
+    logger.log(`[imageQueue]: Found matching file ${path}`);
 
     const existingImage = await imageWithPathExists(path);
     logger.log(
-      "[imageWatcher]: Scene with that path exists already ?: " +
-        !!existingImage
+      "[imageQueue]: Scene with that path exists already ?: " + !!existingImage
     );
 
     if (!existingImage) {
       this.imageProcessingQueue.push(path);
-      logger.log(`Added image to processing queue '${path}'.`);
+      logger.log(`[imageQueue]: Added image to processing queue '${path}'.`);
     }
   }
 
@@ -67,7 +66,7 @@ export default class ImageQueue {
       await processImage(imagePath, this.config.READ_IMAGES_ON_IMPORT);
     } catch (error) {
       logger.log(error.stack);
-      logger.error("[imageWatcher]: Error when importing " + imagePath);
+      logger.error("[imageQueue]: Error when importing " + imagePath);
       logger.warn(error.message);
     }
 
@@ -75,7 +74,7 @@ export default class ImageQueue {
   }
 
   private onImportQueueEmptied() {
-    logger.log("[imageWatcher]: Processing queue empty");
+    logger.log("[imageQueue]: Processing queue empty");
 
     if (this.onQueueEmptiedCb) {
       this.onQueueEmptiedCb();
@@ -83,7 +82,7 @@ export default class ImageQueue {
   }
 
   private onImportQueueError(error: Error, task: string) {
-    logger.error("[imageWatcher]: path processing encountered an error");
+    logger.error("[imageQueue]: path processing encountered an error");
     logger.error(error);
   }
 }

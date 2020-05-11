@@ -33,21 +33,20 @@ export default class VideoQueue {
    */
   public async addPathToQueue(path: string) {
     if (!isImportableVideo(path)) {
-      logger.log(`[videoWatcher]: Ignoring file ${path}`);
+      logger.log(`[videoQueue]: Ignoring file ${path}`);
       return;
     }
 
-    logger.log(`[videoWatcher]: Found matching file ${path}`);
+    logger.log(`[videoQueue]: Found matching file ${path}`);
 
     const existingScene = await Scene.getSceneByPath(path);
     logger.log(
-      "[videoWatcher]: Scene with that path exists already ?: " +
-        !!existingScene
+      "[videoQueue]: Scene with that path exists already ?: " + !!existingScene
     );
 
     if (!existingScene) {
       this.videoProcessingQueue.push(path);
-      logger.log(`Added video to processing queue '${path}'.`);
+      logger.log(`[videoQueue]: Added video to processing queue '${path}'.`);
     }
   }
 
@@ -62,7 +61,7 @@ export default class VideoQueue {
       await Scene.onImport(path);
     } catch (error) {
       logger.log(error.stack);
-      logger.error("[videoWatcher]:Error when importing " + path);
+      logger.error("[videoQueue]:Error when importing " + path);
       logger.warn(error.message);
     }
 
@@ -70,7 +69,7 @@ export default class VideoQueue {
   }
 
   private onImportQueueEmptied() {
-    logger.log("[videoWatcher]: Processing queue empty");
+    logger.log("[videoQueue]: Processing queue empty");
 
     if (this.onQueueEmptiedCb) {
       this.onQueueEmptiedCb();
@@ -78,7 +77,7 @@ export default class VideoQueue {
   }
 
   private onImportQueueError(error: Error, task: string) {
-    logger.error("[videoWatcher]: path processing encountered an error");
+    logger.error("[videoQueue]: path processing encountered an error");
     logger.error(error);
   }
 }

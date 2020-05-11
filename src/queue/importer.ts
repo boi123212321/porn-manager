@@ -2,14 +2,17 @@ import { spawn } from "child_process";
 
 import { getConfig } from "../config";
 import * as logger from "../logger";
+import ImportManager from "./importManager";
 import { checkImageFolders, checkVideoFolders } from "./manual/check";
-import LibraryWatcher from "./watch/libraryWatcher";
 import {
+  getHead,
   getLength,
   isProcessing,
   setProcessingStatus,
-  getHead,
 } from "./processing";
+import LibraryWatcher from "./watch/libraryWatcher";
+
+let importManager: ImportManager | null;
 
 /**
  * How many times to attempt to start the processing
@@ -147,6 +150,19 @@ export async function processLibrary() {
   }
 }
 
+function initImportManager() {
+  if (!importManager) {
+    importManager = new ImportManager(
+      () => {
+        logger.message("Scan: video importing finished");
+      },
+      () => {
+        logger.message("Scan: image importing finished");
+      }
+    );
+  }
+}
+
 /**
  * Triggers a scan of the library. Will use the current
  * config to either do a manual scan or watch the library files.
@@ -163,6 +179,9 @@ export async function scanFolders(isScheduledManualScan = false) {
     return;
   }
 
+  // Initialize the manager if not already created
+  initImportManager();
+
   if (isScheduledManualScan) {
     logger.message("Scheduled manual library scan starting...");
   } else {
@@ -177,7 +196,7 @@ export async function scanFolders(isScheduledManualScan = false) {
     if (libraryWatcher) {
       logger.message("Already watching library, will not recreate watcher");
     } else {
-      libraryWatcher = new LibraryWatcher(processLibrary, () => {
+      libraryWatcher = new LibraryWatcher(<ImportManager>importManager, () => {
         logger.message("Finished library watch initialization");
       });
     }
@@ -208,7 +227,7 @@ export async function scanFolders(isScheduledManualScan = false) {
 
   try {
     logger.message("Launching manual video library scan");
-    await checkVideoFolders();
+    await checkVideoFolders(<ImportManager>importManager);
     logger.success("Manual video library scan done.");
   } catch (err) {
     logger.error("Manual video library scan failed");
@@ -225,7 +244,7 @@ export async function scanFolders(isScheduledManualScan = false) {
   // Launch image import AFTER the video succeeds/fails
   try {
     logger.message("Launching manual image library scan");
-    await checkImageFolders();
+    await checkImageFolders(<ImportManager>importManager);
     logger.success("Manual image library scan done.");
   } catch (err) {
     logger.error("Manual image library scan failed");

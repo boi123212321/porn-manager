@@ -1,14 +1,11 @@
-import { extname } from "path";
-
-import { getConfig, IConfig } from "../../config";
+import { getConfig } from "../../config";
 import * as logger from "../../logger";
 import {
   SUPPORTED_IMAGE_EXTENSIONS,
   SUPPORTED_VIDEO_EXTENSIONS,
 } from "../constants";
-import ImageQueue from "../image/imageQueue";
-import VideoQueue from "../video/videoQueue";
 import Watcher from "./watcher";
+import ImportManager from "../importManager";
 
 /**
  * Generates an array of glob paths to watch for the library
@@ -34,42 +31,33 @@ const createWatchPaths = (videoPaths, imagePaths) => {
 };
 
 export default class LibraryWatcher {
-  private config: IConfig;
-
-  private videoQueue: VideoQueue;
-  private imageQueue: ImageQueue;
-
   private watcher: Watcher;
 
   /**
    *
-   * @param onVideoProcesingQueueEmpty - Called every time the video import
-   * queue is emptied
+   * @param importManager - manager to handle newly found paths
    * @param onInitialScanCompleted - Called when the initial scan of the library
    * is complete
    */
   constructor(
-    onVideoProcesingQueueEmpty: () => void,
+    importManager: ImportManager,
     onInitialScanCompleted?: () => void
   ) {
-    this.config = getConfig();
+    const config = getConfig();
 
-    this.videoQueue = new VideoQueue(onVideoProcesingQueueEmpty);
-
-    this.imageQueue = new ImageQueue();
-
-    const watchPaths = createWatchPaths(
-      this.config.VIDEO_PATHS,
-      this.config.IMAGE_PATHS
-    );
+    const watchPaths = createWatchPaths(config.VIDEO_PATHS, config.IMAGE_PATHS);
 
     this.watcher = new Watcher(
       {
         includePaths: watchPaths,
-        excludePaths: this.config.EXCLUDE_FILES,
-        pollingInterval: this.config.WATCH_POLLING_INTERVAL,
+        excludePaths: config.EXCLUDE_FILES,
+        pollingInterval: config.WATCH_POLLING_INTERVAL,
       },
-      this.onPathAdded.bind(this),
+      (addedPath) => {
+        logger.log(`[libraryWatcher]: found path ${addedPath}`);
+
+        importManager.importPaths(addedPath);
+      },
       () => {
         if (onInitialScanCompleted) {
           onInitialScanCompleted();
@@ -87,20 +75,5 @@ export default class LibraryWatcher {
     logger.log("[libraryWatcher]: Stopping watch");
     await this.watcher.stopWatching();
     logger.log("[libraryWatcher]: Did stop watching");
-  }
-
-  private onPathAdded(addedPath) {
-    logger.log(
-      `[libraryWatcher]: found path ${addedPath}, passing to appropriate queues`
-    );
-
-    // No need to await these
-    if (SUPPORTED_VIDEO_EXTENSIONS.includes(extname(addedPath))) {
-      this.videoQueue.addPathToQueue(addedPath);
-    }
-
-    if (SUPPORTED_IMAGE_EXTENSIONS.includes(extname(addedPath))) {
-      this.imageQueue.addPathToQueue(addedPath);
-    }
   }
 }

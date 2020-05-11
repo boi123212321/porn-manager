@@ -8,13 +8,12 @@ import { indexImages } from "../../search/image";
 import Image from "../../types/image";
 import Scene from "../../types/scene";
 import {
-  imageWithPathExists,
-  isImportableImage,
-  processImage,
-} from "../image/utility";
-import { isImportableVideo } from "../video/utility";
+  SUPPORTED_IMAGE_EXTENSIONS,
+  SUPPORTED_VIDEO_EXTENSIONS,
+} from "../constants";
+import ImportManager from "../importManager";
 
-export async function checkVideoFolders() {
+export async function checkVideoFolders(importManager: ImportManager) {
   const config = getConfig();
 
   const unknownVideos = [] as string[];
@@ -24,47 +23,32 @@ export async function checkVideoFolders() {
 
   for (const folder of config.VIDEO_PATHS) {
     logger.message(`Scanning ${folder} for videos...`);
-    let numFiles = 0;
-    const loader = ora(`Scanned ${numFiles} videos`).start();
+    let numFolderFiles = 0;
+    const loader = ora(`Scanned ${numFolderFiles} videos`).start();
 
-    await walk(folder, [".mp4", ".webm"], async (path) => {
-      loader.text = `Scanned ${++numFiles} videos`;
-      if (!isImportableVideo(path)) {
-        logger.log(`Ignoring file ${path}`);
-      } else {
-        logger.log(`Found matching file ${path}`);
-        const existingScene = await Scene.getSceneByPath(path);
-        logger.log("Scene with that path exists already: " + !!existingScene);
-        if (!existingScene) unknownVideos.push(path);
-      }
+    await walk(folder, SUPPORTED_VIDEO_EXTENSIONS, async (path) => {
+      loader.text = `Scanned ${++numFolderFiles} videos`;
+      unknownVideos.push(path);
     });
 
-    loader.succeed(`${folder} done (${numFiles} videos)`);
+    loader.succeed(`${folder} done (${numFolderFiles} videos)`);
   }
 
   logger.log(`Found ${unknownVideos.length} new videos.`);
 
-  for (const videoPath of unknownVideos) {
-    try {
-      await Scene.onImport(videoPath);
-    } catch (error) {
-      logger.log(error.stack);
-      logger.error("Error when importing " + videoPath);
-      logger.warn(error.message);
-    }
-  }
-
   logger.warn(
     `Queued ${unknownVideos.length} new videos for further processing.`
   );
+
+  importManager.importVideoPaths(...unknownVideos);
 }
 
-export async function checkImageFolders() {
+export async function checkImageFolders(importManager: ImportManager) {
   const config = getConfig();
 
   logger.log("Checking image folders...");
 
-  let numAddedImages = 0;
+  importManager.resetFoundImagesCount();
 
   if (!config.READ_IMAGES_ON_IMPORT)
     logger.warn("Reading images on import is disabled.");
@@ -74,28 +58,19 @@ export async function checkImageFolders() {
 
   for (const folder of config.IMAGE_PATHS) {
     logger.message(`Scanning ${folder} for images...`);
-    let numFiles = 0;
-    const loader = ora(`Scanned ${numFiles} images`).start();
+    let numFolderFiles = 0;
+    const loader = ora(`Scanned ${numFolderFiles} images`).start();
 
-    await walk(folder, [".jpg", ".jpeg", ".png", ".gif"], async (path) => {
-      loader.text = `Scanned ${++numFiles} images`;
-      if (!isImportableImage(path)) return;
-
-      if (!(await imageWithPathExists(path))) {
-        await processImage(path, config.READ_IMAGES_ON_IMPORT);
-        numAddedImages++;
-        logger.log(`Added image '${path}'.`);
-      } else {
-        logger.log(`Image '${path}' already exists`);
-      }
+    await walk(folder, SUPPORTED_IMAGE_EXTENSIONS, async (path) => {
+      loader.text = `Scanned ${++numFolderFiles} images`;
+      importManager.importImagePaths(path);
     });
 
-    loader.succeed(`${folder} done`);
+    loader.succeed(`${folder} done (${numFolderFiles} images)`);
   }
 
-  logger.warn(`Added ${numAddedImages} new images`);
+  logger.warn(`Added ${importManager.getFoundImagesCount()} new images`);
 }
-
 export async function checkPreviews() {
   const config = getConfig();
 
