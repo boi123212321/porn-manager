@@ -24,7 +24,7 @@ export function getLength(): Promise<number> {
   return processingCollection.count();
 }
 
-export async function getHead(): Promise<{ _id: string } | null> {
+export async function getHead(): Promise<ISceneProcessingItem | null> {
   const items = await processingCollection.getAll();
   return items[0] || null;
 }
