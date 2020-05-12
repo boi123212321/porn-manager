@@ -164,3 +164,7 @@ You can do everything you can do with scenes (e.g. rate/favorite/bookmark/label)
 ### Mobile
 
 ![Dark mode](https://raw.githubusercontent.com/boi123212321/porn-vault/master/doc/img/mobile.jpg)
+
+### Bulk import
+
+See the [bulk import doc](doc/import.md)
