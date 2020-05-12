@@ -3,6 +3,7 @@ import Image from "../../types/image";
 import Actor from "../../types/actor";
 import CustomField, { CustomFieldTarget } from "../../types/custom_field";
 import { createObjectSet } from "../../types/utility";
+import { getNationality } from "../../types/countries";
 
 export default {
   async scenes(actor: Actor) {
@@ -50,5 +51,9 @@ export default {
     const collabs = await Actor.getCollabs(actor);
     const actors = collabs.map((c) => c.actors).flat();
     return createObjectSet(actors, "_id");
+  },
+  nationality(actor: Actor) {
+    if (!actor.nationality) return null;
+    return getNationality(actor.nationality);
   },
 };

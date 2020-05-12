@@ -19,5 +19,10 @@ export default gql`
       values
       unit
     }
+    nationality {
+      name
+      alpha2
+      nationality
+    }
   }
 `;
