@@ -49,13 +49,15 @@
     </v-hover>
 
     <v-card-title>
-      <span
+      <Flag v-if="value.nationality" :width="25" :value="value.nationality.alpha2" />
+      <div
+        class="ml-1"
         :title="value.name"
         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
       >
         {{ value.name }}
         <span class="subtitle-1 med--text" v-if="value.bornOn">({{ value.age }})</span>
-      </span>
+      </div>
     </v-card-title>
     <v-card-subtitle
       class="pb-0"

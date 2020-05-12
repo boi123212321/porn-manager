@@ -5,6 +5,11 @@ class ActorModule extends VuexModule {
   current = null as IActor | null;
 
   @Mutation
+  setNationality(nation: any) {
+    if (this.current) this.current.nationality = nation;
+  }
+
+  @Mutation
   setName(name: string) {
     if (this.current) this.current.name = name;
   }

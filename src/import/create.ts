@@ -173,6 +173,9 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       let actor = new Actor(actorToCreate.name, actorToCreate.aliases || []);
 
+      if (isString(actorToCreate.nationality))
+        actor.nationality = actorToCreate.nationality;
+
       if (isNumber(actorToCreate.bookmark))
         actor.bookmark = <number>actorToCreate.bookmark;
 
