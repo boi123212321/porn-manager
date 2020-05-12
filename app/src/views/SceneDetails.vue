@@ -65,9 +65,7 @@
               <v-icon>mdi-calendar</v-icon>
               <v-subheader>Release Date</v-subheader>
             </div>
-            <div
-              class="med--text pa-2"
-            >{{ new Date(currentScene.releaseDate).toLocaleDateString() }}</div>
+            <div class="med--text pa-2">{{ new Date(currentScene.releaseDate).toDateString() }}</div>
           </div>
 
           <div v-if="currentScene.description">
