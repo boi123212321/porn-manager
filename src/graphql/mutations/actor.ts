@@ -13,6 +13,7 @@ import { updateImageDoc, isBlacklisted } from "../../search/image";
 import { actorCollection } from "../../database";
 import LabelledItem from "../../types/labelled_item";
 import ActorReference from "../../types/actor_reference";
+import { isValidCountryCode } from "../../types/countries";
 
 type IActorUpdateOpts = Partial<{
   name: string;
@@ -28,6 +29,7 @@ type IActorUpdateOpts = Partial<{
   bookmark: number | null;
   bornOn: number;
   customFields: Dictionary<string[] | boolean | string | null>;
+  nationality: string | null;
 }>;
 
 async function runActorPlugins(ids: string[]) {
@@ -149,6 +151,17 @@ export default {
 
         if (Array.isArray(opts.labels))
           await Actor.setLabels(actor, opts.labels);
+
+        if (typeof opts.nationality !== undefined) {
+          if (
+            typeof opts.nationality === "string" &&
+            isValidCountryCode(opts.nationality)
+          ) {
+            actor.nationality = opts.nationality;
+          } else if (opts.nationality === null) {
+            actor.nationality = opts.nationality;
+          }
+        }
 
         if (typeof opts.bookmark == "number" || opts.bookmark === null)
           actor.bookmark = opts.bookmark;

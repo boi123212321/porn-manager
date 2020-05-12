@@ -42,6 +42,7 @@ export interface IImportedActor {
   bookmark?: number | null;
   rating?: number | null;
   thumbnail?: string | null;
+  nationality?: string | null;
 }
 
 export interface IImportedLabel {

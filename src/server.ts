@@ -119,6 +119,10 @@ export default async () => {
   app.use("/assets", express.static("./assets"));
   app.get("/dvd-renderer/:id", dvdRenderer);
 
+  app.get("/flag/:code", async (req, res) => {
+    res.redirect(`/assets/flags/${req.params.code.toLowerCase()}.svg`);
+  });
+
   app.get("/password", checkPassword);
 
   app.use(passwordHandler);

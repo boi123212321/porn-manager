@@ -6,11 +6,12 @@ import { getConfig } from "../config";
 import { extname } from "path";
 import { downloadFile } from "../ffmpeg-download";
 import Image from "../types/image";
-import * as database from "../database/index";
 import * as logger from "../logger";
 import { indexImages } from "../search/image";
 import Label from "../types/label";
 import { imageCollection, labelCollection } from "../database/index";
+import { isValidCountryCode } from "../types/countries";
+import countries from "../data/countries";
 
 // This function has side effects
 export async function onActorCreate(
@@ -23,6 +24,7 @@ export async function onActorCreate(
   const pluginResult = await runPluginsSerial(config, event, {
     actor: JSON.parse(JSON.stringify(actor)),
     actorName: actor.name,
+    countries: JSON.parse(JSON.stringify(countries)),
     $createLocalImage: async (
       path: string,
       name: string,
@@ -117,6 +119,17 @@ export async function onActorCreate(
 
   if (typeof pluginResult.bookmark === "number")
     actor.bookmark = pluginResult.bookmark;
+
+  if (pluginResult.nationality !== undefined) {
+    if (
+      typeof pluginResult.nationality === "string" &&
+      isValidCountryCode(pluginResult.nationality)
+    ) {
+      actor.nationality = pluginResult.nationality.toUpperCase();
+    } else if (pluginResult.nationality === null) {
+      actor.nationality = pluginResult.nationality;
+    }
+  }
 
   if (pluginResult.labels && Array.isArray(pluginResult.labels)) {
     const labelIds = [] as string[];

@@ -47,4 +47,9 @@ export default interface IActor {
     type: string;
     unit: string | null;
   }[];
+  nationality: {
+    name: string;
+    alpha2: string;
+    nationality: string;
+  };
 }

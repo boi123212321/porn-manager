@@ -25,6 +25,7 @@ export default class Actor {
   labels?: string[]; // backwards compatibility
   studio?: string | null; // backwards compatibility
   description?: string | null = null;
+  nationality?: string | null = null;
 
   static getAge(actor: Actor) {
     if (actor.bornOn) return moment().diff(actor.bornOn, "years");

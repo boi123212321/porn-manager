@@ -1,6 +1,12 @@
 import { gql } from "apollo-server-express";
 
 export default gql`
+  type Nationality {
+    name: String!
+    alpha2: String!
+    nationality: String!
+  }
+
   type Actor {
     _id: String!
     name: String!
@@ -26,6 +32,7 @@ export default gql`
     hero: Image
     movies: [Movie!]!
     collabs: [Actor!]!
+    nationality: Nationality
   }
 
   type ActorGraph {
@@ -58,6 +65,7 @@ export default gql`
     bookmark: Long
     bornOn: Long
     customFields: Object
+    nationality: String
   }
 
   extend type Mutation {
