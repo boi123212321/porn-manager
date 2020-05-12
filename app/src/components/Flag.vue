@@ -1,10 +1,12 @@
 <template>
-  <v-tooltip bottom>
-    <template v-slot:activator="{ on }">
-      <img v-on="on" :src="url" :width="width" :height="width/1.5" />
-    </template>
-    <span>{{ name }}</span>
-  </v-tooltip>
+  <div class="d-flex align-center">
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <img v-on="on" :src="url" :width="width" :height="width/1.5" />
+      </template>
+      <span>{{ name }}</span>
+    </v-tooltip>
+  </div>
 </template>
 
 <script lang="ts">

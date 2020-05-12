@@ -4,8 +4,8 @@
       <v-icon>mdi-chevron-left</v-icon>
     </v-btn>
     <v-toolbar-title v-if="$vuetify.breakpoint.smAndUp" class="d-flex align-center mr-1 title">
-      <Flag v-if="currentActor.nationality" :value="currentActor.nationality.alpha2" />
-      <div class="ml-1">{{ currentActor.name }}</div>
+      <Flag class="mr-1" v-if="currentActor.nationality" :value="currentActor.nationality.alpha2" />
+      <div class="mr-1">{{ currentActor.name }}</div>
       <div class="subtitle-1 med--text" v-if="currentActor.bornOn">({{ age }})</div>
     </v-toolbar-title>
 
@@ -63,7 +63,7 @@
             <v-autocomplete
               v-model="editNationality"
               item-value="alpha2"
-              item-text="nationality"
+              item-text="name"
               placeholder="Nationality"
               :items="countries"
             ></v-autocomplete>
@@ -219,7 +219,9 @@ export default class ActorToolbar extends Vue {
     this.editDialog = true;
     this.editBirthDate = this.currentActor.bornOn;
     this.editDescription = this.currentActor.description || "";
-    this.editNationality = this.currentActor.nationality || null;
+    this.editNationality = this.currentActor.nationality
+      ? this.currentActor.nationality.alpha2
+      : null;
   }
 
   favorite() {

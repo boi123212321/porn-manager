@@ -3,11 +3,14 @@
     <v-col :cols="cols" :sm="sm" :md="md" :lg="lg" :xl="xl" v-for="actor in value" :key="actor._id">
       <router-link :to="`/actor/${actor._id}`">
         <v-img style="border-radius: 8px" v-ripple height="100%" cover :src="thumbnail(actor)">
+          <Flag
+            style="position: absolute; left: 2px; top: 2px;"
+            v-if="actor.nationality"
+            :width="35"
+            :value="actor.nationality.alpha2"
+          />
           <div class="white--text py-1 bottom-bar text-center">
-            <div class="font-weight-bold">
-              {{ actor.name }}
-              <Flag v-if="actor.nationality" :width="20" :value="actor.nationality.alpha2" />
-            </div>
+            <div class="subtitle-2 font-weight-bold">{{ actor.name }}</div>
             <div v-if="sceneDate && actor.bornOn" class="text-center body-2">
               <div class="mr-1 d-inline-block font-weight-bold">{{ calculateAge(actor) }}</div>
               <div class="d-inline-block caption">y/o in this scene</div>
