@@ -3,45 +3,51 @@ import {
   stringArray,
   limitRating,
   isValidDate,
-  validCustomFields
+  validCustomFields,
 } from "./common";
+import { isValidCountryCode } from "../../types/countries";
 
 export const actorSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   aliases: stringArray(false),
   description: {
     type: String,
-    required: false
+    required: false,
   },
   bornOn: {
     type: Number,
     required: false,
-    use: { isValidDate }
+    use: { isValidDate },
   },
   thumbnail: {
     type: String,
-    required: false
+    required: false,
   },
   rating: {
     type: Number,
     required: false,
-    use: { limitRating }
+    use: { limitRating },
   },
   labels: stringArray(false),
   customFields: {
     required: false,
     type: Object,
-    use: { validCustomFields }
+    use: { validCustomFields },
   },
   bookmark: {
     required: false,
-    type: Number
+    type: Number,
   },
   favorite: {
     required: false,
-    type: Boolean
-  }
+    type: Boolean,
+  },
+  nationality: {
+    required: false,
+    type: String,
+    use: { isValidCountryCode },
+  },
 });

@@ -46,7 +46,13 @@ export interface IImageSearchDoc {
 }
 
 export async function clearImageIndex() {
-  return Axios.delete("http://localhost:8000/image");
+  try {
+    await Axios.delete("http://localhost:8000/image");
+  } catch (error) {
+    logger.error("Error while resetting twigs images");
+    logger.log(error.message);
+    throw error;
+  }
 }
 
 export async function updateImageDoc(image: Image) {

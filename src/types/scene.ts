@@ -17,7 +17,12 @@ import Image from "./image";
 import Movie from "./movie";
 import { singleScreenshot } from "../ffmpeg/screenshot";
 import { indexScenes } from "../search/scene";
-import { extractStudios, extractActors, extractLabels } from "../extractor";
+import {
+  extractStudios,
+  extractActors,
+  extractLabels,
+  extractMovies,
+} from "../extractor";
 import Studio from "./studio";
 import { onSceneCreate } from "../plugin_events/scene";
 import { enqueueScene } from "../queue/processing";
@@ -183,6 +188,21 @@ export default class Scene {
       }
     }
 
+    if (extractInfo) {
+      // Extract movie
+      const extractedMovies = await extractMovies(videoPath);
+
+      if (extractedMovies.length) {
+        logger.log("Found movie in scene path");
+
+        const movie = <Movie>await Movie.getById(extractedMovies[0]);
+        const scenes = (await Movie.getScenes(movie)).map((sc) => sc._id);
+        scenes.push(scene._id);
+        await Movie.setScenes(movie, scenes);
+        logger.log("Added scene to movie");
+      }
+    }
+
     try {
       scene = await onSceneCreate(scene, sceneLabels, sceneActors);
     } catch (error) {
@@ -252,6 +272,7 @@ export default class Scene {
     logger.log("Watch scene " + scene._id);
     const watchItem = new SceneView(scene._id, +new Date());
     await viewCollection.upsert(watchItem._id, watchItem);
+    await indexScenes([scene]);
   }
 
   static async unwatch(scene: Scene) {
@@ -261,6 +282,7 @@ export default class Scene {
       logger.log("Remove most recent view of scene " + scene._id);
       await viewCollection.remove(last._id);
     }
+    await indexScenes([scene]);
   }
 
   static async remove(scene: Scene) {
@@ -295,10 +317,11 @@ export default class Scene {
   }
 
   static async getMarkers(scene: Scene) {
-    const references = await MarkerReference.getByScene(scene._id);
+    return Marker.getByScene(scene._id);
+    /* const references = await MarkerReference.getByScene(scene._id);
     return (await mapAsync(references, (r) => Marker.getById(r.marker))).filter(
       Boolean
-    ) as Marker[];
+    ) as Marker[]; */
   }
 
   static async getMovies(scene: Scene) {
@@ -329,26 +352,11 @@ export default class Scene {
   }
 
   static async setLabels(scene: Scene, labelIds: string[]) {
-    const references = await LabelledItem.getByItem(scene._id);
-
-    const oldLabelReferences = references.map((r) => r._id);
-
-    for (const id of oldLabelReferences) {
-      await labelledItemCollection.remove(id);
-    }
-
-    for (const id of [...new Set(labelIds)]) {
-      const labelledItem = new LabelledItem(scene._id, id, "scene");
-      logger.log("Adding label to scene: " + JSON.stringify(labelledItem));
-      await labelledItemCollection.upsert(labelledItem._id, labelledItem);
-    }
+    return Label.setForItem(scene._id, labelIds, "scene");
   }
 
   static async getLabels(scene: Scene) {
-    const references = await LabelledItem.getByItem(scene._id);
-    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
-      Boolean
-    ) as Label[];
+    return Label.getForItem(scene._id);
   }
 
   static async getSceneByPath(path: string) {

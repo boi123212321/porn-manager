@@ -6,6 +6,7 @@ import {
   IImportedMovie,
   IImportedStudio,
   IImportedCustomField,
+  IImportedMarker,
 } from "./types";
 import Label from "../types/label";
 import Scene from "../types/scene";
@@ -27,10 +28,17 @@ import {
   imageCollection,
   actorCollection,
   actorReferenceCollection,
+  //markerReferenceCollection,
+  labelCollection,
+  customFieldCollection,
+  markerCollection,
+  studioCollection,
 } from "../database/index";
 import ActorReference from "../types/actor_reference";
 import { existsAsync } from "../fs/async";
 import { onSceneCreate } from "../plugin_events/scene";
+import Marker from "../types/marker";
+import MarkerReference from "../types/marker_reference";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -39,6 +47,7 @@ export interface ICreateOptions {
   movies?: Dictionary<IImportedMovie>;
   studios?: Dictionary<IImportedStudio>;
   customFields?: Dictionary<IImportedCustomField>;
+  markers?: Dictionary<IImportedMarker>;
 }
 
 function normalizeCustomFields(
@@ -79,6 +88,7 @@ export async function createFromFileData(opts: ICreateOptions) {
   const createdScenes = {} as Dictionary<Scene>;
   const createdMovies = {} as Dictionary<Movie>;
   const createdStudios = {} as Dictionary<Studio>;
+  const createdMarkers = {} as Dictionary<Marker>;
 
   if (opts.labels) {
     for (const labelId in opts.labels) {
@@ -99,7 +109,7 @@ export async function createFromFileData(opts: ICreateOptions) {
             logger.log(`Updated labels of ${scene._id}.`);
           }
         }
-        await database.insert(database.store.labels, label);
+        await labelCollection.upsert(label._id, label);
       }
       createdLabels[labelId] = label;
     }
@@ -118,7 +128,7 @@ export async function createFromFileData(opts: ICreateOptions) {
       field.values = [...new Set(fieldToCreate.values || [])];
 
       if (args["commit-import"])
-        await database.insert(database.store.customFields, field);
+        await customFieldCollection.upsert(field._id, field);
       createdFields[fieldId] = field;
     }
   }
@@ -150,8 +160,9 @@ export async function createFromFileData(opts: ICreateOptions) {
           await imageCollection.upsert(image._id, image);
       }
 
-      if (args["commit-import"])
-        await database.insert(database.store.studios, studio);
+      if (args["commit-import"]) {
+        await studioCollection.upsert(studio._id, studio);
+      }
       createdStudios[studioId] = studio;
     }
   }
@@ -161,6 +172,9 @@ export async function createFromFileData(opts: ICreateOptions) {
       const actorToCreate = opts.actors[actorId];
 
       let actor = new Actor(actorToCreate.name, actorToCreate.aliases || []);
+
+      if (isString(actorToCreate.nationality))
+        actor.nationality = actorToCreate.nationality;
 
       if (isNumber(actorToCreate.bookmark))
         actor.bookmark = <number>actorToCreate.bookmark;
@@ -345,10 +359,52 @@ export async function createFromFileData(opts: ICreateOptions) {
     }
   }
 
+  if (opts.markers) {
+    for (const markerId in opts.markers) {
+      const markerToCreate = opts.markers[markerId];
+
+      let marker = new Marker(
+        markerToCreate.name,
+        markerToCreate.scene,
+        markerToCreate.time
+      );
+
+      if (isNumber(markerToCreate.bookmark))
+        marker.bookmark = <number>markerToCreate.bookmark;
+
+      if (isBoolean(markerToCreate.favorite))
+        marker.favorite = <boolean>markerToCreate.favorite;
+
+      if (isNumber(markerToCreate.rating))
+        marker.rating = <number>markerToCreate.rating;
+
+      let labels = [] as string[];
+
+      if (markerToCreate.labels) {
+        labels = normalizeCreatedObjects(markerToCreate.labels, createdLabels);
+      }
+
+      if (args["commit-import"]) {
+        await Marker.setLabels(marker, labels);
+
+        /* const reference = new MarkerReference(
+          markerToCreate.scene,
+          marker._id,
+          "marker"
+        );
+        await markerReferenceCollection.upsert(reference._id, reference); */
+
+        await markerCollection.upsert(marker._id, marker);
+      }
+      createdMarkers[markerId] = marker;
+    }
+  }
+
   if (!args["commit-import"]) {
     console.log(
       inspect(
         {
+          createdMarkers,
           createdFields,
           createdLabels,
           createdScenes,

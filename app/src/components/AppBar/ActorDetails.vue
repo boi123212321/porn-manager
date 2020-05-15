@@ -3,15 +3,13 @@
     <v-btn class="mr-1" icon @click="$router.go(-1)">
       <v-icon>mdi-chevron-left</v-icon>
     </v-btn>
-    <v-toolbar-title v-if="$vuetify.breakpoint.smAndUp" class="mr-1 title">
-      {{ currentActor.name }}
-      <span
-        class="subtitle-1 med--text"
-        v-if="currentActor.bornOn"
-      >({{ age }})</span>
+    <v-toolbar-title v-if="$vuetify.breakpoint.smAndUp" class="d-flex align-center mr-1 title">
+      <Flag class="mr-1" v-if="currentActor.nationality" :value="currentActor.nationality.alpha2" />
+      <div class="mr-1">{{ currentActor.name }}</div>
+      <div class="subtitle-1 med--text" v-if="currentActor.bornOn">({{ age }})</div>
     </v-toolbar-title>
 
-    <v-btn @click="favorite" class="mr-1" icon>
+    <v-btn @click="favorite" class="mx-1" icon>
       <v-icon
         :color="currentActor.favorite ? 'error' : undefined"
       >{{ currentActor.favorite ? 'mdi-heart' : 'mdi-heart-outline' }}</v-icon>
@@ -61,6 +59,15 @@
               v-model="editAliases"
               placeholder="Alias names"
             />
+
+            <v-autocomplete
+              v-model="editNationality"
+              item-value="alpha2"
+              item-text="name"
+              placeholder="Nationality"
+              :items="countries"
+              clearable
+            ></v-autocomplete>
           </v-form>
         </v-card-text>
         <v-divider></v-divider>
@@ -98,6 +105,7 @@ import gql from "graphql-tag";
 import IActor from "../../types/actor";
 import moment from "moment";
 import CustomFieldSelector from "../CustomFieldSelector.vue";
+import countries from "../../util/countries";
 
 @Component({
   components: {
@@ -111,11 +119,16 @@ export default class ActorToolbar extends Vue {
   editAliases = [] as string[];
   editBirthDate = null as number | null;
   editDescription = "";
+  editNationality = null as string | null;
 
   actorNameRules = [v => (!!v && !!v.length) || "Invalid actor name"];
 
   removeDialog = false;
   removeLoader = false;
+
+  get countries() {
+    return countries;
+  }
 
   get age() {
     if (this.currentActor && this.currentActor.bornOn) {
@@ -168,6 +181,11 @@ export default class ActorToolbar extends Vue {
         mutation($ids: [String!]!, $opts: ActorUpdateOpts!) {
           updateActors(ids: $ids, opts: $opts) {
             name
+            nationality {
+              name
+              alpha2
+              nationality
+            }
           }
         }
       `,
@@ -177,7 +195,8 @@ export default class ActorToolbar extends Vue {
           name: this.editName,
           description: this.editDescription,
           aliases: this.editAliases,
-          bornOn: this.editBirthDate
+          bornOn: this.editBirthDate,
+          nationality: this.editNationality
         }
       }
     })
@@ -186,6 +205,7 @@ export default class ActorToolbar extends Vue {
         actorModule.setDescription(this.editDescription.trim());
         actorModule.setAliases(this.editAliases);
         actorModule.setBornOn(this.editBirthDate);
+        actorModule.setNationality(res.data.updateActors[0].nationality);
         this.editDialog = false;
       })
       .catch(err => {
@@ -200,6 +220,9 @@ export default class ActorToolbar extends Vue {
     this.editDialog = true;
     this.editBirthDate = this.currentActor.bornOn;
     this.editDescription = this.currentActor.description || "";
+    this.editNationality = this.currentActor.nationality
+      ? this.currentActor.nationality.alpha2
+      : null;
   }
 
   favorite() {

@@ -14,7 +14,7 @@ if [ ! -d /videos ]
 then
 	mkdir /videos
 fi
-if [ ! -d images ]
+if [ ! -d /images ]
 then
 	mkdir /images
 fi

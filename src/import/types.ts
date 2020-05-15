@@ -42,11 +42,22 @@ export interface IImportedActor {
   bookmark?: number | null;
   rating?: number | null;
   thumbnail?: string | null;
+  nationality?: string | null;
 }
 
 export interface IImportedLabel {
   name: string;
   aliases?: string[] | null;
+}
+
+export interface IImportedMarker {
+  name: string;
+  scene: string;
+  rating?: number | null;
+  bookmark?: number | null;
+  favorite?: boolean | null;
+  labels?: string[] | null;
+  time: number;
 }
 
 export interface IImportedStudio {

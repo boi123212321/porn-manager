@@ -25,6 +25,7 @@ export default class Actor {
   labels?: string[]; // backwards compatibility
   studio?: string | null; // backwards compatibility
   description?: string | null = null;
+  nationality?: string | null = null;
 
   static getAge(actor: Actor) {
     if (actor.bornOn) return moment().diff(actor.bornOn, "years");
@@ -38,26 +39,11 @@ export default class Actor {
   }
 
   static async setLabels(actor: Actor, labelIds: string[]) {
-    const references = await LabelledItem.getByItem(actor._id);
-
-    const oldLabelReferences = references.map((r) => r._id);
-
-    for (const id of oldLabelReferences) {
-      await labelledItemCollection.remove(id);
-    }
-
-    for (const id of [...new Set(labelIds)]) {
-      const labelledItem = new LabelledItem(actor._id, id, "actor");
-      logger.log("Adding label to actor: " + JSON.stringify(labelledItem));
-      await labelledItemCollection.upsert(labelledItem._id, labelledItem);
-    }
+    return Label.setForItem(actor._id, labelIds, "actor");
   }
 
   static async getLabels(actor: Actor) {
-    const references = await LabelledItem.getByItem(actor._id);
-    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
-      Boolean
-    ) as Label[];
+    return Label.getForItem(actor._id);
   }
 
   static async getById(_id: string) {

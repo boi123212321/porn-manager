@@ -57,7 +57,7 @@ export async function checkVideoFolders() {
   }
 
   logger.warn(
-    `Queued ${unknownVideos.length} new videos for futher processing.`
+    `Queued ${unknownVideos.length} new videos for further processing.`
   );
 }
 

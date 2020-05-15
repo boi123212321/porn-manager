@@ -14,7 +14,7 @@
       </template>
     </v-banner>
 
-    <v-navigation-drawer style="z-index: 14" v-model="drawer" clipped app>
+    <v-navigation-drawer v-if="showSidenav" style="z-index: 14" v-model="drawer" clipped app>
       <v-container>
         <v-text-field
           solo
@@ -207,6 +207,10 @@ import { mixins } from "vue-class-component";
   }
 })
 export default class ImagesView extends mixins(DrawerMixin) {
+  get showSidenav() {
+    return contextModule.showSidenav;
+  }
+
   images = [] as IImage[];
   lightboxIndex = null as number | null;
 

@@ -7,11 +7,36 @@ import ffmpeg from "fluent-ffmpeg";
 import { validatePlugins, checkUnusedPlugins } from "./plugins/validate";
 import { printMaxMemory } from "./mem";
 import { validateFFMPEGPaths } from "./config/validate";
-import { ensureTwigsExists } from "./twigs";
+import { ensureTwigsExists, twigsProcess } from "./twigs";
 const sha = require("js-sha512").sha512;
 import args from "./args";
-import { ensureIzzyExists } from "./izzy";
+import { ensureIzzyExists, izzyProcess } from "./izzy";
 import { queueLoop } from "./queue_loop";
+
+function killProcess(code = 0) {
+  return () => {
+    if (twigsProcess) {
+      logger.log("Killing twigs...");
+      twigsProcess.kill();
+    }
+    if (twigsProcess) {
+      logger.log("Killing izzy...");
+      izzyProcess.kill();
+    }
+    process.exit(code);
+  };
+}
+
+process.on("exit", killProcess(0));
+process.on("SIGTERM", killProcess(0));
+process.on("SIGINT", killProcess(0));
+process.on("SIGUSR1", killProcess(0));
+process.on("SIGUSR2", killProcess(0));
+process.on("uncaughtException", (e) => {
+  console.log("Uncaught Exception...");
+  console.log(e.stack);
+  killProcess(99)();
+});
 
 export async function onConfigLoad(config: IConfig) {
   validatePlugins(config);

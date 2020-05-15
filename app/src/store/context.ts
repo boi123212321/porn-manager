@@ -11,6 +11,13 @@ class ContextModule extends VuexModule {
 
   fillActorCards = true;
 
+  showSidenav = true; // TODO: store and load from localStorage
+
+  @Mutation
+  toggleSidenav(bool: boolean) {
+    this.showSidenav = bool;
+  }
+
   @Mutation
   toggleActorCardStyle(bool: boolean) {
     this.fillActorCards = bool;

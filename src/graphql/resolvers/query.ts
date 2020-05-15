@@ -19,6 +19,8 @@ import {
   imageCollection,
   actorCollection,
   movieCollection,
+  labelCollection,
+  studioCollection,
 } from "../../database/index";
 import SceneView from "../../types/watch";
 import LabelledItem from "../../types/labelled_item";
@@ -40,8 +42,7 @@ export default {
   },
 
   async getScenesWithoutStudios(_, { num }: { num: number }) {
-    const numStudios = await database.count(database.store.studios, {});
-
+    const numStudios = await studioCollection.count();
     if (numStudios == 0) return [];
 
     return (await Scene.getAll())
@@ -140,8 +141,7 @@ export default {
     return await Label.getById(id);
   },
   async getCustomFields() {
-    const fields = await CustomField.getAll();
-    return fields.sort((a, b) => a.name.localeCompare(b.name));
+    return await CustomField.getAll();
   },
   async getLabels(_, { type }: { type?: string | null }) {
     let labels = await Label.getAll();
@@ -165,10 +165,10 @@ export default {
     return movieCollection.count();
   },
   async numLabels() {
-    return await database.count(database.store.labels, {});
+    return labelCollection.count();
   },
   async numStudios() {
-    return await database.count(database.store.studios, {});
+    return studioCollection.count();
   },
   async numImages() {
     return await imageCollection.count();

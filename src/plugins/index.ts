@@ -47,6 +47,7 @@ export async function runPluginsSerial(
     logger.message(`Running plugin ${pluginName}:`);
     try {
       const pluginResult = await runPlugin(config, pluginName, {
+        data: JSON.parse(JSON.stringify(result)),
         event,
         ...inject,
         pluginArgs,
@@ -123,7 +124,7 @@ export async function runPlugin(
         $axios: axios,
         $cheerio: cheerio,
         $moment: moment,
-        $log: debug("porn:plugin"),
+        $log: debug("vault:plugin"),
         $loader: ora,
         $throw: (str: string) => {
           throw new Error(str);

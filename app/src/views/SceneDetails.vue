@@ -67,7 +67,7 @@
             </div>
             <div
               class="med--text pa-2"
-            >{{ new Date(currentScene.releaseDate).toLocaleDateString() }}</div>
+            >{{ new Date(currentScene.releaseDate).toDateString(undefined, { timeZone: "UTC" }) }}</div>
           </div>
 
           <div v-if="currentScene.description">
