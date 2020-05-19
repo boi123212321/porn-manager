@@ -20,8 +20,8 @@ enum LogType {
   HTTP = "http",
   MESSAGE = "message",
   SEARCH = "search",
-  TWIGS = "twigs",
   IZZY = "izzy",
+  GIANNA = "gianna",
 }
 
 interface ILogData {
@@ -97,20 +97,15 @@ export const message = (...args: any) => {
   debug("vault:message")(text);
   appendToLog(createItem(LogType.MESSAGE, text));
 };
-export const search = (...args: any) => {
-  const text = merge(...args);
-  debug("vault:twigs")(text);
-  appendToLog(createItem(LogType.SEARCH, text));
-};
-export const twigs = (...args: any) => {
-  const text = merge(...args);
-  debug("vault:twigs")(text);
-  appendToLog(createItem(LogType.TWIGS, text));
-};
 export const izzy = (...args: any) => {
   const text = merge(...args);
   debug("vault:izzy")(text);
   appendToLog(createItem(LogType.IZZY, text));
+};
+export const gianna = (...args: any) => {
+  const text = merge(...args);
+  debug("vault:gianna")(text);
+  appendToLog(createItem(LogType.GIANNA, text));
 };
 
 export const httpLog = (

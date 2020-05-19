@@ -1,18 +1,23 @@
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import { type, arch } from "os";
 import * as logger from "./logger";
-import { existsAsync } from "./fs/async";
+import { existsAsync, unlinkAsync } from "./fs/async";
 import Axios from "axios";
 import { downloadFile } from "./ffmpeg-download";
 import { chmodSync } from "fs";
+import { getConfig } from "./config/index";
 
 export let izzyProcess!: ChildProcessWithoutNullStreams;
 
 export const izzyPath = type() == "Windows_NT" ? "izzy.exe" : "izzy";
 
+export async function deleteIzzy() {
+  await unlinkAsync(izzyPath);
+}
+
 export async function resetIzzy() {
   try {
-    await Axios.delete(`http://localhost:7999/collection`);
+    await Axios.delete(`http://localhost:${getConfig().IZZY_PORT}/collection`);
   } catch (error) {
     logger.error("Error while resetting izzy");
     logger.log(error.message);
@@ -22,7 +27,7 @@ export async function resetIzzy() {
 
 export async function izzyVersion() {
   try {
-    const res = await Axios.get(`http://localhost:7999/`);
+    const res = await Axios.get(`http://localhost:${getConfig().IZZY_PORT}/`);
     return res.data.version as string;
   } catch (error) {
     return null;
@@ -82,14 +87,17 @@ export async function ensureIzzyExists() {
 export function spawnIzzy() {
   return new Promise((resolve, reject) => {
     logger.log("Spawning Izzy");
-    izzyProcess = spawn("./" + izzyPath, []);
+
+    const port = getConfig().IZZY_PORT;
+
+    izzyProcess = spawn("./" + izzyPath, ["--port", port.toString()]);
     let responded = false;
     izzyProcess.on("error", (err) => {
       reject(err);
     });
     izzyProcess.stdout.on("data", (data) => {
       if (!responded) {
-        logger.log("Izzy ready");
+        logger.log("Izzy ready on port " + port);
         responded = true;
         resolve();
       }

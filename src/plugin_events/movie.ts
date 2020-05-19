@@ -10,8 +10,7 @@ import { indexImages } from "../search/image";
 import Movie from "../types/movie";
 import { imageCollection, studioCollection } from "../database/index";
 import Studio from "../types/studio";
-import { createStudioSearchDoc } from "../search/studio";
-import { indices } from "../search";
+import { createStudioSearchDoc, indexStudios } from "../search/studio";
 
 // This function has side effects
 export async function onMovieCreate(movie: Movie, event = "movieCreated") {
@@ -115,7 +114,7 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
       const studio = new Studio(pluginResult.studio);
       movie.studio = studio._id;
       await studioCollection.upsert(studio._id, studio);
-      indices.studios.add(await createStudioSearchDoc(studio));
+      await indexStudios([studio]);
       logger.log("Created studio " + studio.name);
     }
   }

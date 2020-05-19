@@ -17,8 +17,7 @@ import Studio from "../types/studio";
 import Label from "../types/label";
 import Actor from "../types/actor";
 import { onActorCreate } from "./actor";
-import { indices } from "../search/index";
-import { createActorSearchDoc } from "../search/actor";
+import { indexActors } from "../search/actor";
 import { indexImages } from "../search/image";
 import {
   imageCollection,
@@ -30,8 +29,8 @@ import {
 } from "../database/index";
 import Movie from "../types/movie";
 import { onMovieCreate } from "./movie";
-import { createMovieSearchDoc } from "../search/movie";
-import { createStudioSearchDoc } from "../search/studio";
+import { indexMovies } from "../search/movie";
+import { indexStudios } from "../search/studio";
 import SceneView from "../types/watch";
 
 // This function has side effects
@@ -143,7 +142,7 @@ export async function onSceneCreate(
           logger.error(error.message);
         }
         await actorCollection.upsert(actor._id, actor);
-        indices.actors.add(await createActorSearchDoc(actor));
+        await indexActors([actor]);
         logger.log("Created actor " + actor.name);
       }
     }
@@ -180,7 +179,7 @@ export async function onSceneCreate(
       const studio = new Studio(pluginResult.studio);
       scene.studio = studio._id;
       await studioCollection.upsert(studio._id, studio);
-      indices.studios.add(await createStudioSearchDoc(studio));
+      await indexStudios([studio]);
       logger.log("Created studio " + studio.name);
     }
   }
@@ -192,7 +191,7 @@ export async function onSceneCreate(
       const movie = <Movie>await Movie.getById(movieId);
       const sceneIds = (await Movie.getScenes(movie)).map((sc) => sc._id);
       await Movie.setScenes(movie, sceneIds.concat(scene._id));
-      indices.movies.update(movie._id, await createMovieSearchDoc(movie));
+      await indexMovies([movie]);
     } else if (config.CREATE_MISSING_MOVIES) {
       let movie = new Movie(pluginResult.movie);
 
@@ -207,7 +206,7 @@ export async function onSceneCreate(
       logger.log("Created movie " + movie.name);
       await Movie.setScenes(movie, [scene._id]);
       logger.log(`Attached ${scene.name} to movie ${movie.name}`);
-      indices.movies.add(await createMovieSearchDoc(movie));
+      await indexMovies([movie]);
     }
   }
 

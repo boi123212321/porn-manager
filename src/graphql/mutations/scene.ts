@@ -8,14 +8,13 @@ import { Dictionary, mapAsync } from "../../types/utility";
 import { getConfig } from "../../config/index";
 import Studio from "../../types/studio";
 import Marker from "../../types/marker";
-import { removeSceneDoc, updateSceneDoc } from "../../search/scene";
 import { onSceneCreate } from "../../plugin_events/scene";
 import { sceneCollection } from "../../database";
 import { removeSceneFromQueue } from "../../queue/processing";
 import LabelledItem from "../../types/labelled_item";
 import ActorReference from "../../types/actor_reference";
-import MarkerReference from "../../types/marker_reference";
 import MovieScene from "../../types/movie_scene";
+import { updateScenes, index as sceneIndex } from "../../search/scene";
 
 type ISceneUpdateOpts = Partial<{
   favorite: boolean;
@@ -33,7 +32,7 @@ type ISceneUpdateOpts = Partial<{
 }>;
 
 async function runScenePlugins(ids: string[]) {
-  const changedScenes = [] as Scene[];
+  const updatedScenes = [] as Scene[];
   for (const id of ids) {
     let scene = await Scene.getById(id);
 
@@ -47,12 +46,13 @@ async function runScenePlugins(ids: string[]) {
       await Scene.setLabels(scene, labels);
       await Scene.setActors(scene, actors);
       await sceneCollection.upsert(scene._id, scene);
-      await updateSceneDoc(scene);
 
-      changedScenes.push(scene);
+      updatedScenes.push(scene);
     }
+
+    await updateScenes(updatedScenes);
   }
-  return changedScenes;
+  return updatedScenes;
 }
 
 export default {
@@ -239,8 +239,9 @@ export default {
 
         await sceneCollection.upsert(scene._id, scene);
         updatedScenes.push(scene);
-        await updateSceneDoc(scene);
       }
+
+      await updateScenes(updatedScenes);
     }
 
     return updatedScenes;
@@ -255,7 +256,7 @@ export default {
 
       if (scene) {
         await Scene.remove(scene);
-        await removeSceneDoc(scene._id);
+        await sceneIndex.remove([scene._id]);
         await Image.filterScene(scene._id);
 
         if (deleteImages === true) {

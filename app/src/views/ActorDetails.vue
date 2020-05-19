@@ -907,12 +907,14 @@ export default class ActorDetails extends Vue {
         query: gql`
           query($query: String) {
             getScenes(query: $query) {
-              ...SceneFragment
-              actors {
-                ...ActorFragment
-              }
-              studio {
-                ...StudioFragment
+              items {
+                ...SceneFragment
+                actors {
+                  ...ActorFragment
+                }
+                studio {
+                  ...StudioFragment
+                }
               }
             }
           }
@@ -925,7 +927,7 @@ export default class ActorDetails extends Vue {
         }
       });
 
-      return result.data.getScenes;
+      return result.data.getScenes.items;
     } catch (err) {
       throw err;
     }
@@ -1371,24 +1373,26 @@ export default class ActorDetails extends Vue {
         query: gql`
           query($query: String, $auto: Boolean) {
             getImages(query: $query, auto: $auto) {
-              ...ImageFragment
-              labels {
-                _id
-                name
-              }
-              studio {
-                _id
-                name
-              }
-              actors {
-                ...ActorFragment
-                avatar {
+              items {
+                  ...ImageFragment
+                labels {
                   _id
+                  name
                 }
-              }
-              scene {
-                _id
-                name
+                studio {
+                  _id
+                  name
+                }
+                actors {
+                  ...ActorFragment
+                  avatar {
+                    _id
+                  }
+                }
+                scene {
+                  _id
+                  name
+                }
               }
             }
           }
@@ -1401,7 +1405,7 @@ export default class ActorDetails extends Vue {
         }
       });
 
-      return result.data.getImages;
+      return result.data.getImages.items;
     } catch (err) {
       throw err;
     }
@@ -1773,6 +1777,9 @@ export default class ActorDetails extends Vue {
         id: (<any>this).$route.params.id
       }
     }).then(res => {
+      /* console.log(this.$store.state);
+      console.log(actorModule); */
+      // this.$store.commit("actor/setCurrent", res.data.getActorById);
       actorModule.setCurrent(res.data.getActorById);
       this.editCustomFields = res.data.getActorById.customFields;
     });

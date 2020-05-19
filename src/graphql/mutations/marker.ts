@@ -1,7 +1,4 @@
 import Marker from "../../types/marker";
-import * as database from "../../database";
-// import MarkerReference from "../../types/marker_reference";
-// import { markerReferenceCollection } from "../../database";
 import LabelledItem from "../../types/labelled_item";
 import { markerCollection } from "../../database";
 

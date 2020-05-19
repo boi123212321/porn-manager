@@ -1,9 +1,15 @@
 import { gql } from "apollo-server-express";
 
 export default gql`
+  type StudioSearchResults {
+    numItems: Int!
+    numPages: Int!
+    items: [Studio!]!
+  }
+
   extend type Query {
     numStudios: Int!
-    getStudios(query: String): [Studio!]!
+    getStudios(query: String, seed: String): StudioSearchResults!
     getStudioById(id: String!): Studio
   }
 

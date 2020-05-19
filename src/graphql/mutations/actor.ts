@@ -5,14 +5,17 @@ import { Dictionary } from "../../types/utility";
 import { isSingleWord, isMatchingItem } from "../../extractor";
 import * as logger from "../../logger";
 import { getConfig } from "../../config/index";
-import { indices } from "../../search/index";
-import { createActorSearchDoc } from "../../search/actor";
+import {
+  indexActors,
+  updateActors,
+  index as actorIndex,
+} from "../../search/actor";
 import { onActorCreate } from "../../plugin_events/actor";
-import { updateSceneDoc } from "../../search/scene";
-import { updateImageDoc, isBlacklisted } from "../../search/image";
+import { isBlacklisted, updateImages } from "../../search/image";
 import { actorCollection } from "../../database";
 import LabelledItem from "../../types/labelled_item";
 import ActorReference from "../../types/actor_reference";
+import { updateScenes } from "../../search/scene";
 import { isValidCountryCode } from "../../types/countries";
 
 type IActorUpdateOpts = Partial<{
@@ -33,7 +36,7 @@ type IActorUpdateOpts = Partial<{
 }>;
 
 async function runActorPlugins(ids: string[]) {
-  const changedActors = [] as Actor[];
+  const updatedActors = [] as Actor[];
   for (const id of ids) {
     let actor = await Actor.getById(id);
 
@@ -45,14 +48,15 @@ async function runActorPlugins(ids: string[]) {
 
       await Actor.setLabels(actor, labels);
       await actorCollection.upsert(actor._id, actor);
-      indices.actors.update(actor._id, await createActorSearchDoc(actor));
 
-      changedActors.push(actor);
+      updatedActors.push(actor);
     } else {
       logger.warn(`Actor ${id} not found`);
     }
+
+    await updateActors(updatedActors);
   }
-  return changedActors;
+  return updatedActors;
 }
 
 export default {
@@ -100,7 +104,7 @@ export default {
             (await Scene.getActors(scene)).map((l) => l._id).concat(actor._id)
           );
           try {
-            await updateSceneDoc(scene);
+            await updateScenes([scene]);
           } catch (error) {
             logger.error(error.message);
           }
@@ -123,7 +127,7 @@ export default {
             (await Image.getActors(image)).map((l) => l._id).concat(actor._id)
           );
           try {
-            await updateImageDoc(image);
+            await updateImages([image]);
           } catch (error) {
             logger.error(error.message);
           }
@@ -132,7 +136,7 @@ export default {
       }
     }
 
-    indices.actors.add(await createActorSearchDoc(actor));
+    await indexActors([actor]);
     return actor;
   },
 
@@ -202,11 +206,12 @@ export default {
         }
 
         await actorCollection.upsert(actor._id, actor);
-        indices.actors.update(actor._id, await createActorSearchDoc(actor));
         updatedActors.push(actor);
       } else {
         throw new Error(`Actor ${id} not found`);
       }
+
+      await updateActors(updatedActors);
     }
 
     return updatedActors;
@@ -218,7 +223,7 @@ export default {
 
       if (actor) {
         await Actor.remove(actor);
-        indices.actors.remove(actor._id);
+        await actorIndex.remove([actor._id]);
         await LabelledItem.removeByItem(actor._id);
         await ActorReference.removeByActor(actor._id);
       }

@@ -7,6 +7,44 @@ import IMovie from "@/types/movie";
 class MovieModule extends VuexModule {
   current = null as IMovie | null;
 
+  page = 1;
+  numResults = 0;
+  numPages = 0;
+  // items = [] as IMovie[];
+
+  /* @Mutation
+  unshift(items: IMovie[]) {
+    this.items.unshift(...items);
+  } */
+
+  @Mutation
+  resetPagination() {
+    // this.items = [];
+    this.numPages = 0;
+    this.numResults = 0;
+    this.page = 1;
+  }
+
+  @Mutation
+  setPage(num: number) {
+    this.page = num;
+  }
+
+  @Mutation
+  setPagination({
+    // items,
+    numResults,
+    numPages,
+  }: {
+    // items: IMovie[];
+    numResults: number;
+    numPages: number;
+  }) {
+    // this.items = items;
+    this.numResults = numResults;
+    this.numPages = numPages;
+  }
+
   @Mutation
   setName(name: string) {
     if (this.current) this.current.name = name;
@@ -99,4 +137,4 @@ class MovieModule extends VuexModule {
 }
 
 import store from "./index";
-export const movieModule = new MovieModule({ store, name: "movie" });
+export const movieModule = new MovieModule({ store, name: "movies" });

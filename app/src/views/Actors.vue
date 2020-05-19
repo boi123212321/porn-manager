@@ -65,7 +65,7 @@
           solo
           flat
           single-line
-          :disabled="sortBy == 'relevance'"
+          :disabled="sortBy == 'relevance' || sortBy == '$shuffle'"
           hide-details
           color="primary"
           item-text="text"
@@ -74,20 +74,40 @@
           placeholder="Sort direction"
           :items="sortDirItems"
         ></v-select>
+
+        <!-- <CustomFieldFilter :fields="fields" /> -->
       </v-container>
     </v-navigation-drawer>
 
-    <div v-if="!fetchLoader">
-      <div class="d-flex align-center">
-        <h1 class="font-weight-light mr-3">Actors</h1>
-        <v-btn class="mr-2" @click="openCreateDialog" icon>
+    <div class="text-center" v-if="fetchError">
+      <div>There was an error</div>
+      <v-btn class="mt-2" @click="loadPage(page)">Try again</v-btn>
+    </div>
+    <div v-else>
+      <div class="mb-2 d-flex align-center">
+        <div class="mr-3">
+          <span class="display-1 font-weight-bold mr-2">{{ fetchLoader ? "-" : numResults }}</span>
+          <span class="title font-weight-regular">actors found</span>
+        </div>
+        <v-btn @click="openCreateDialog" icon>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
         <v-btn @click="bulkImportDialog = true" icon>
           <v-icon>mdi-file-import</v-icon>
         </v-btn>
+        <v-btn :loading="fetchingRandom" @click="getRandom" icon>
+          <v-icon>mdi-shuffle-variant</v-icon>
+        </v-btn>
+        <v-tooltip right>
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on" :disabled="sortBy != '$shuffle'" @click="rerollSeed" icon>
+              <v-icon>mdi-dice-3-outline</v-icon>
+            </v-btn>
+          </template>
+          <span>Reshuffle</span>
+        </v-tooltip>
       </div>
-      <v-row>
+      <v-row v-if="!fetchLoader && numResults">
         <v-col
           class="pa-1"
           v-for="(actor, i) in actors"
@@ -101,11 +121,17 @@
           <actor-card :showLabels="showCardLabels" v-model="actors[i]" style="height: 100%" />
         </v-col>
       </v-row>
+      <NoResults v-else-if="!fetchLoader && !numResults" />
+      <Loading v-else />
     </div>
-
-    <div v-else class="text-center">
-      <p>Loading...</p>
-      <v-progress-circular indeterminate></v-progress-circular>
+    <div class="mt-3" v-if="numResults && numPages > 1">
+      <v-pagination
+        @input="loadPage"
+        v-model="page"
+        :total-visible="7"
+        :disabled="fetchLoader"
+        :length="numPages"
+      ></v-pagination>
     </div>
 
     <v-dialog v-model="createActorDialog" max-width="400px">
@@ -207,23 +233,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <infinite-loading :identifier="infiniteId" @infinite="infiniteHandler">
-      <div slot="no-results">
-        <v-icon large>mdi-close</v-icon>
-        <div>Nothing found!</div>
-      </div>
-
-      <div slot="spinner">
-        <v-progress-circular indeterminate></v-progress-circular>
-        <div>Loading...</div>
-      </div>
-
-      <div slot="no-more">
-        <v-icon large>mdi-emoticon-wink</v-icon>
-        <div>That's all!</div>
-      </div>
-    </infinite-loading>
   </v-container>
 </template>
 
@@ -240,21 +249,35 @@ import IActor from "../types/actor";
 import ILabel from "../types/label";
 import DrawerMixin from "../mixins/drawer";
 import { mixins } from "vue-class-component";
+import { actorModule } from "../store/actor";
+import CustomFieldFilter from "../components/CustomFieldFilter.vue";
 
 @Component({
   components: {
     ActorCard,
     LabelSelector,
-    InfiniteLoading
+    InfiniteLoading,
+    CustomFieldFilter
   }
 })
-export default class SceneList extends mixins(DrawerMixin) {
+export default class ActorList extends mixins(DrawerMixin) {
   get showSidenav() {
     return contextModule.showSidenav;
   }
 
+  rerollSeed() {
+    const seed = Math.random().toString(36);
+    localStorage.setItem("pm_seed", seed);
+    if (this.sortBy === "$shuffle") this.loadPage(this.page);
+    return seed;
+  }
+
   actors = [] as IActor[];
+
+  fields = [] as any[];
   fetchLoader = false;
+  fetchError = false;
+  fetchingRandom = false;
 
   actorsBulkText = "" as string | null;
   bulkImportDialog = false;
@@ -302,10 +325,7 @@ export default class SceneList extends mixins(DrawerMixin) {
   onSelectedLabelsChange(val: any) {
     localStorage.setItem("pm_actorInclude", val.include.join(","));
     localStorage.setItem("pm_actorExclude", val.exclude.join(","));
-
-    this.page = 0;
-    this.actors = [];
-    this.infiniteId++;
+    actorModule.resetPagination();
   }
 
   validCreation = false;
@@ -319,7 +339,22 @@ export default class SceneList extends mixins(DrawerMixin) {
   actorNameRules = [v => (!!v && !!v.length) || "Invalid actor name"];
 
   query = localStorage.getItem("pm_actorQuery") || "";
-  page = 0;
+
+  set page(page: number) {
+    actorModule.setPage(page);
+  }
+
+  get page() {
+    return actorModule.page;
+  }
+
+  get numResults() {
+    return actorModule.numResults;
+  }
+
+  get numPages() {
+    return actorModule.numPages;
+  }
 
   sortDir = localStorage.getItem("pm_actorSortDir") || "desc";
   sortDirItems = [
@@ -341,7 +376,7 @@ export default class SceneList extends mixins(DrawerMixin) {
     },
     {
       text: "A-Z",
-      value: "alpha"
+      value: "name"
     },
     {
       text: "Added to collection",
@@ -353,19 +388,23 @@ export default class SceneList extends mixins(DrawerMixin) {
     },
     {
       text: "# scenes",
-      value: "scenes"
+      value: "numScenes"
     },
     {
       text: "Views",
-      value: "views"
+      value: "numViews"
     },
     {
       text: "Age",
-      value: "date"
+      value: "age"
     },
     {
       text: "Bookmarked",
       value: "bookmark"
+    },
+    {
+      text: "Random",
+      value: "$shuffle"
     }
   ];
 
@@ -373,7 +412,6 @@ export default class SceneList extends mixins(DrawerMixin) {
   bookmarksOnly = localStorage.getItem("pm_actorBookmark") == "true";
   ratingFilter = parseInt(localStorage.getItem("pm_actorRating") || "0");
 
-  infiniteId = 0;
   resetTimeout = null as NodeJS.Timeout | null;
 
   createActorWithName(name: string) {
@@ -505,41 +543,42 @@ export default class SceneList extends mixins(DrawerMixin) {
   @Watch("ratingFilter", {})
   onRatingChange(newVal: number) {
     localStorage.setItem("pm_actorRating", newVal.toString());
-    this.page = 0;
-    this.actors = [];
-    this.infiniteId++;
+    actorModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("favoritesOnly")
   onFavoriteChange(newVal: boolean) {
     localStorage.setItem("pm_actorFavorite", "" + newVal);
-    this.page = 0;
-    this.actors = [];
-    this.infiniteId++;
+    actorModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("bookmarksOnly")
   onBookmarkChange(newVal: boolean) {
     localStorage.setItem("pm_actorBookmark", "" + newVal);
-    this.page = 0;
-    this.actors = [];
-    this.infiniteId++;
+    actorModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("sortDir")
   onSortDirChange(newVal: string) {
     localStorage.setItem("pm_actorSortDir", newVal);
-    this.page = 0;
-    this.actors = [];
-    this.infiniteId++;
+    actorModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("sortBy")
   onSortChange(newVal: string) {
     localStorage.setItem("pm_actorSortBy", newVal);
-    this.page = 0;
-    this.actors = [];
-    this.infiniteId++;
+    actorModule.resetPagination();
+    this.loadPage(this.page);
+  }
+
+  @Watch("selectedLabels")
+  onLabelChange() {
+    actorModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("query")
@@ -551,32 +590,27 @@ export default class SceneList extends mixins(DrawerMixin) {
     localStorage.setItem("pm_actorQuery", newVal || "");
 
     this.waiting = true;
-    this.page = 0;
-    this.actors = [];
+    actorModule.resetPagination();
 
     this.resetTimeout = setTimeout(() => {
       this.waiting = false;
-      this.infiniteId++;
+      this.loadPage(this.page);
     }, 500);
   }
 
-  infiniteHandler($state) {
-    this.fetchPage()
-      .then(items => {
-        if (items.length) {
-          this.page++;
-          this.actors.push(...items);
-          $state.loaded();
-        } else {
-          $state.complete();
-        }
+  getRandom() {
+    this.fetchingRandom = true;
+    this.fetchPage(1, 1, true, Math.random().toString())
+      .then(result => {
+        // @ts-ignore
+        this.$router.push(`/actor/${result.items[0]._id}`);
       })
       .catch(err => {
-        $state.error();
+        this.fetchingRandom = false;
       });
   }
 
-  async fetchPage() {
+  async fetchPage(page: number, take = 24, random?: boolean, seed?: string) {
     try {
       let include = "";
       let exclude = "";
@@ -587,9 +621,10 @@ export default class SceneList extends mixins(DrawerMixin) {
       if (this.selectedLabels.exclude.length)
         exclude = "exclude:" + this.selectedLabels.exclude.join(",");
 
-      const query = `query:'${this.query || ""}' ${include} ${exclude} page:${
-        this.page
-      } sortDir:${this.sortDir} sortBy:${this.sortBy} favorite:${
+      const query = `query:'${this.query ||
+        ""}' ${include} ${exclude} take:${take} page:${page - 1} sortDir:${
+        this.sortDir
+      } sortBy:${random ? "$shuffle" : this.sortBy} favorite:${
         this.favoritesOnly ? "true" : "false"
       } bookmark:${this.bookmarksOnly ? "true" : "false"} rating:${
         this.ratingFilter
@@ -597,27 +632,32 @@ export default class SceneList extends mixins(DrawerMixin) {
 
       const result = await ApolloClient.query({
         query: gql`
-          query($query: String) {
-            getActors(query: $query) {
-              ...ActorFragment
-              labels {
-                _id
-                name
+          query($query: String, $seed: String) {
+            getActors(query: $query, seed: $seed) {
+              items {
+                ...ActorFragment
+                labels {
+                  _id
+                  name
+                }
+                thumbnail {
+                  _id
+                  color
+                }
+                altThumbnail {
+                  _id
+                }
+                numScenes
               }
-              thumbnail {
-                _id
-                color
-              }
-              altThumbnail {
-                _id
-              }
-              numScenes
+              numItems
+              numPages
             }
           }
           ${actorFragment}
         `,
         variables: {
-          query
+          query,
+          seed: seed || localStorage.getItem("pm_seed") || "default"
         }
       });
 
@@ -625,6 +665,35 @@ export default class SceneList extends mixins(DrawerMixin) {
     } catch (err) {
       throw err;
     }
+  }
+
+  refreshPage() {
+    this.loadPage(actorModule.page);
+  }
+
+  loadPage(page: number) {
+    this.fetchLoader = true;
+
+    this.fetchPage(page)
+      .then(result => {
+        this.fetchError = false;
+        actorModule.setPagination({
+          numResults: result.numItems,
+          numPages: result.numPages
+        });
+        this.actors = result.items;
+      })
+      .catch(err => {
+        console.error(err);
+        this.fetchError = true;
+      })
+      .finally(() => {
+        this.fetchLoader = false;
+      });
+  }
+
+  mounted() {
+    if (!this.actors.length) this.refreshPage();
   }
 
   beforeMount() {
@@ -636,10 +705,19 @@ export default class SceneList extends mixins(DrawerMixin) {
             name
             aliases
           }
+          getCustomFields {
+            _id
+            name
+            type
+            values
+            unit
+            target
+          }
         }
       `
     })
       .then(res => {
+        this.fields = res.data.getCustomFields;
         this.allLabels = res.data.getLabels;
         if (!this.allLabels.length) {
           this.selectedLabels.include = [];

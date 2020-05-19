@@ -16,10 +16,9 @@ import { existsAsync } from "./fs/async";
 import { createBackup } from "./backup";
 import BROKEN_IMAGE from "./broken_image";
 import { mountApolloServer } from "./apollo";
-import { buildIndices, twigsVersion } from "./search";
+import { buildIndices } from "./search";
 import { checkImportFolders } from "./import/index";
 import cors from "./middlewares/cors";
-import { spawnTwigs } from "./twigs";
 import { httpLog } from "./logger";
 import { renderHandlebars } from "./render";
 import { dvdRenderer } from "./dvd_renderer";
@@ -30,15 +29,10 @@ import {
 } from "./queue/processing";
 import queueRouter from "./queue_router";
 import { spawn } from "child_process";
-import { clearSceneIndex } from "./search/scene";
-import { clearImageIndex } from "./search/image";
 import { spawnIzzy, izzyVersion, resetIzzy } from "./izzy";
+import { spawnGianna, giannaVersion, resetGianna } from "./gianna";
 import https from "https";
-import { fstat, readFile, readFileSync } from "fs";
-
-logger.message(
-  "Check https://github.com/boi123212321/porn-vault for discussion & updates"
-);
+import { readFileSync } from "fs";
 
 let serverReady = false;
 let setupMessage = "Setting up...";
@@ -74,6 +68,10 @@ async function scanFolders() {
 }
 
 export default async () => {
+  logger.message(
+    "Check https://github.com/boi123212321/porn-vault for discussion & updates"
+  );
+
   const app = express();
   app.use(express.json());
   app.use(cors);
@@ -229,13 +227,12 @@ export default async () => {
   }
   await loadStores();
 
-  setupMessage = "Starting search engine...";
-  if (await twigsVersion()) {
-    logger.log("Twigs already running, clearing indices...");
-    await clearSceneIndex();
-    await clearImageIndex();
+  setupMessage = "Loading search engine...";
+  if (await giannaVersion()) {
+    logger.log("Gianna already running, clearing...");
+    await resetGianna();
   } else {
-    await spawnTwigs();
+    await spawnGianna();
   }
 
   setupMessage = "Checking imports...";

@@ -42,11 +42,25 @@
       <v-text-field
         style="width:100%"
         solo
+        v-else-if="field.type == 'STRING'"
         flat
         single-line
-        v-else
         :placeholder="field.name"
         v-model="innerValue[field._id]"
+        @input="onInnerValueChange"
+        hide-details
+        color="primary"
+        :suffix="field.unit"
+      />
+
+      <v-text-field
+        style="width:100%"
+        solo
+        v-else-if="field.type == 'NUMBER'"
+        flat
+        single-line
+        :placeholder="field.name"
+        v-model.number="innerValue[field._id]"
         @input="onInnerValueChange"
         hide-details
         color="primary"
@@ -70,10 +84,6 @@ export default class CustomFieldSelector extends Vue {
   @Prop({ default: 4 }) md!: number;
   @Prop({ default: 3 }) lg!: number;
   @Prop({ default: 3 }) xl!: number;
-
-  getField(id: string) {
-    return this.fields.find(f => f._id == id);
-  }
 
   innerValue = JSON.parse(JSON.stringify(this.value));
 

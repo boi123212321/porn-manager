@@ -5,7 +5,7 @@ import Image from "./types/image";
 import { indexImages } from "./search/image";
 import { imageCollection, sceneCollection } from "./database/index";
 import * as logger from "./logger";
-import { updateSceneDoc } from "./search/scene";
+import { updateScenes } from "./search/scene";
 
 const router = Router();
 
@@ -23,7 +23,7 @@ router.post("/:id", async (req, res) => {
       Object.assign(scene, req.body.scene);
       logger.log("Merging scene data:", req.body.scene);
       await sceneCollection.upsert(req.params.id, scene);
-      await updateSceneDoc(scene);
+      await updateScenes([scene]);
     }
     if (req.body.images) {
       for (const image of req.body.images) {

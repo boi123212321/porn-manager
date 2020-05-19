@@ -102,12 +102,14 @@ export default class ActorSelector extends Vue {
         query: gql`
           query($query: String) {
             getActors(query: $query) {
-              ...ActorFragment
-              avatar {
-                _id
-              }
-              thumbnail {
-                _id
+              items {
+                ...ActorFragment
+                avatar {
+                  _id
+                }
+                thumbnail {
+                  _id
+                }
               }
             }
           }
@@ -119,7 +121,7 @@ export default class ActorSelector extends Vue {
       });
 
       this.loading = false;
-      this.actors.push(...result.data.getActors);
+      this.actors.push(...result.data.getActors.items);
 
       const ids = [...new Set(this.actors.map(a => a._id))];
 

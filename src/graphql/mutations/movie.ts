@@ -1,8 +1,7 @@
 import Movie from "../../types/movie";
 import { Dictionary } from "../../types/utility";
 import * as logger from "../../logger";
-import { indices } from "../../search/index";
-import { createMovieSearchDoc } from "../../search/movie";
+import { index as movieIndex, indexMovies } from "../../search/movie";
 import { onMovieCreate } from "../../plugin_events/movie";
 import { movieCollection } from "../../database";
 import MovieScene from "../../types/movie_scene";
@@ -39,7 +38,7 @@ export default {
     }
 
     await movieCollection.upsert(movie._id, movie);
-    indices.movies.add(await createMovieSearchDoc(movie));
+    await indexMovies([movie]);
 
     return movie;
   },
@@ -50,7 +49,7 @@ export default {
 
       if (movie) {
         await Movie.remove(movie._id);
-        indices.movies.remove(movie._id);
+        await movieIndex.remove([movie._id]);
 
         await LabelledItem.removeByItem(movie._id);
         await MovieScene.removeByMovie(movie._id);
@@ -111,7 +110,7 @@ export default {
 
         await movieCollection.upsert(movie._id, movie);
         updatedScenes.push(movie);
-        indices.movies.update(movie._id, await createMovieSearchDoc(movie));
+        await indexMovies([movie]);
       }
     }
 

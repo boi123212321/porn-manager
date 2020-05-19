@@ -989,13 +989,15 @@ export default class SceneDetails extends Vue {
         query: gql`
           query($query: String, $auto: Boolean) {
             getImages(query: $query, auto: $auto) {
-              ...ImageFragment
-              actors {
-                ...ActorFragment
-              }
-              scene {
-                _id
-                name
+              items {
+                ...ImageFragment
+                actors {
+                  ...ActorFragment
+                }
+                scene {
+                  _id
+                  name
+                }
               }
             }
           }
@@ -1008,7 +1010,7 @@ export default class SceneDetails extends Vue {
         }
       });
 
-      return result.data.getImages;
+      return result.data.getImages.items;
     } catch (err) {
       throw err;
     }

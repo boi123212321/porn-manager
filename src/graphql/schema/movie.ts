@@ -1,9 +1,15 @@
 import { gql } from "apollo-server-express";
 
 export default gql`
+  type MovieSearchResults {
+    numItems: Int!
+    numPages: Int!
+    items: [Movie!]!
+  }
+
   extend type Query {
     numMovies: Int!
-    getMovies(query: String): [Movie!]!
+    getMovies(query: String, seed: String): MovieSearchResults!
     getMovieById(id: String!): Movie
   }
 

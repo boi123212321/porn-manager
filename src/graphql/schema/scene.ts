@@ -18,9 +18,15 @@ export default gql`
     score: Int!
   }
 
+  type SceneSearchResults {
+    numItems: Int!
+    numPages: Int!
+    items: [Scene!]!
+  }
+
   extend type Query {
     numScenes: Int!
-    getScenes(query: String, random: Int): [Scene!]!
+    getScenes(query: String, seed: String): SceneSearchResults!
     getSceneById(id: String!): Scene
     getScenesWithoutActors(num: Int): [Scene!]!
     getScenesWithoutLabels(num: Int): [Scene!]!

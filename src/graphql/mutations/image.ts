@@ -2,7 +2,7 @@ import Actor from "../../types/actor";
 import Label from "../../types/label";
 import Scene from "../../types/scene";
 import Image from "../../types/image";
-import { ReadStream, createWriteStream, copyFileSync } from "fs";
+import { ReadStream, createWriteStream } from "fs";
 import { extname } from "path";
 import * as logger from "../../logger";
 import { extractLabels, extractActors } from "../../extractor";
@@ -11,7 +11,11 @@ import Jimp from "jimp";
 import { statAsync, unlinkAsync, copyFileAsync } from "../../fs/async";
 import { getConfig } from "../../config";
 import Studio from "../../types/studio";
-import { removeImageDoc, indexImages } from "../../search/image";
+import {
+  indexImages,
+  index as imageIndex,
+  updateImages,
+} from "../../search/image";
 import { imageCollection } from "../../database";
 import LabelledItem from "../../types/labelled_item";
 import ActorReference from "../../types/actor_reference";
@@ -280,6 +284,8 @@ export default {
       } else {
         throw new Error(`Image ${id} not found`);
       }
+
+      await updateImages(updatedImages);
     }
 
     return updatedImages;
@@ -291,7 +297,7 @@ export default {
 
       if (image) {
         await Image.remove(image);
-        await removeImageDoc(image._id);
+        await imageIndex.remove([image._id]);
         await LabelledItem.removeByItem(image._id);
         await ActorReference.removeByItem(image._id);
       }

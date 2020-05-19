@@ -91,7 +91,7 @@
           solo
           flat
           single-line
-          :disabled="sortBy == 'relevance'"
+          :disabled="sortBy == 'relevance' || sortBy == '$shuffle'"
           hide-details
           color="primary"
           item-text="text"
@@ -103,18 +103,33 @@
       </v-container>
     </v-navigation-drawer>
 
-    <div v-if="!fetchLoader">
-      <div class="d-flex align-center">
-        <h1 class="font-weight-light mr-3">Scenes</h1>
+    <div class="text-center" v-if="fetchError">
+      <div>There was an error</div>
+      <v-btn class="mt-2" @click="loadPage(page)">Try again</v-btn>
+    </div>
+    <div v-else>
+      <div class="mb-2 d-flex align-center">
+        <div class="mr-3">
+          <span class="display-1 font-weight-bold mr-2">{{ fetchLoader ? "-" : numResults }}</span>
+          <span class="title font-weight-regular">scenes found</span>
+        </div>
         <v-btn :loading="fetchingRandom" @click="getRandom" icon>
           <v-icon>mdi-shuffle-variant</v-icon>
         </v-btn>
+        <v-tooltip right>
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on" :disabled="sortBy != '$shuffle'" @click="rerollSeed" icon>
+              <v-icon>mdi-dice-3-outline</v-icon>
+            </v-btn>
+          </template>
+          <span>Reshuffle</span>
+        </v-tooltip>
       </div>
-      <v-row>
+      <v-row v-if="!fetchLoader && numResults">
         <v-col
-          class="pa-1"
           v-for="(scene, i) in scenes"
           :key="scene._id"
+          class="pa-1"
           cols="12"
           sm="6"
           md="4"
@@ -144,10 +159,17 @@
           </scene-card>
         </v-col>
       </v-row>
+      <NoResults v-else-if="!fetchLoader && !numResults" />
+      <Loading v-else />
     </div>
-    <div v-else class="text-center">
-      <p>Loading...</p>
-      <v-progress-circular indeterminate></v-progress-circular>
+    <div class="mt-3" v-if="numResults && numPages > 1">
+      <v-pagination
+        @input="loadPage"
+        v-model="page"
+        :total-visible="7"
+        :disabled="fetchLoader"
+        :length="numPages"
+      ></v-pagination>
     </div>
 
     <v-dialog scrollable v-model="createSceneDialog" max-width="400px">
@@ -228,23 +250,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <infinite-loading :identifier="infiniteId" @infinite="infiniteHandler">
-      <div slot="no-results">
-        <v-icon large>mdi-close</v-icon>
-        <div>Nothing found!</div>
-      </div>
-
-      <div slot="spinner">
-        <v-progress-circular indeterminate></v-progress-circular>
-        <div>Loading...</div>
-      </div>
-
-      <div slot="no-more">
-        <v-icon large>mdi-emoticon-wink</v-icon>
-        <div>That's all!</div>
-      </div>
-    </infinite-loading>
   </v-container>
 </template>
 
@@ -267,6 +272,7 @@ import ILabel from "../types/label";
 import moment from "moment";
 import DrawerMixin from "../mixins/drawer";
 import { mixins } from "vue-class-component";
+import { sceneModule } from "../store/scene";
 
 @Component({
   components: {
@@ -283,7 +289,16 @@ export default class SceneList extends mixins(DrawerMixin) {
   }
 
   scenes = [] as IScene[];
+
+  rerollSeed() {
+    const seed = Math.random().toString(36);
+    localStorage.setItem("pm_seed", seed);
+    if (this.sortBy === "$shuffle") this.loadPage(this.page);
+    return seed;
+  }
+
   fetchLoader = false;
+  fetchError = false;
   fetchingRandom = false;
 
   selectedActors = (() => {
@@ -314,9 +329,7 @@ export default class SceneList extends mixins(DrawerMixin) {
     localStorage.setItem("pm_sceneInclude", val.include.join(","));
     localStorage.setItem("pm_sceneExclude", val.exclude.join(","));
 
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
   }
 
   validCreation = false;
@@ -330,7 +343,22 @@ export default class SceneList extends mixins(DrawerMixin) {
   sceneNameRules = [v => (!!v && !!v.length) || "Invalid scene name"];
 
   query = localStorage.getItem("pm_sceneQuery") || "";
-  page = 0;
+
+  set page(page: number) {
+    sceneModule.setPage(page);
+  }
+
+  get page() {
+    return sceneModule.page;
+  }
+
+  get numResults() {
+    return sceneModule.numResults;
+  }
+
+  get numPages() {
+    return sceneModule.numPages;
+  }
 
   durationMax =
     parseInt(localStorage.getItem("pm_durationFilterMax") || "180") || 180;
@@ -361,7 +389,7 @@ export default class SceneList extends mixins(DrawerMixin) {
     },
     {
       text: "A-Z",
-      value: "alpha"
+      value: "name"
     },
     {
       text: "Added to collection",
@@ -373,7 +401,7 @@ export default class SceneList extends mixins(DrawerMixin) {
     },
     {
       text: "Views",
-      value: "views"
+      value: "numViews"
     },
     {
       text: "Duration",
@@ -389,11 +417,15 @@ export default class SceneList extends mixins(DrawerMixin) {
     },
     {
       text: "Release date",
-      value: "date"
+      value: "releaseDate"
     },
     {
       text: "Bookmarked",
       value: "bookmark"
+    },
+    {
+      text: "Random",
+      value: "$shuffle"
     }
   ];
 
@@ -401,7 +433,6 @@ export default class SceneList extends mixins(DrawerMixin) {
   bookmarksOnly = localStorage.getItem("pm_sceneBookmark") == "true";
   ratingFilter = parseInt(localStorage.getItem("pm_sceneRating") || "0");
 
-  infiniteId = 0;
   resetTimeout = null as NodeJS.Timeout | null;
 
   uploadDialog = false;
@@ -409,18 +440,6 @@ export default class SceneList extends mixins(DrawerMixin) {
 
   selectedScenes = [] as string[];
   deleteSelectedScenesDialog = false;
-
-  /* resetLabels() {
-    this.selectedLabels.include = [];
-    this.selectedLabels.exclude = [];
-
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
-
-    localStorage.removeItem("pm_sceneInclude");
-    localStorage.removeItem("pm_sceneExclude");
-  } */
 
   labelClasses(label: ILabel) {
     if (this.selectedLabels.include.includes(label._id))
@@ -562,48 +581,42 @@ export default class SceneList extends mixins(DrawerMixin) {
   @Watch("ratingFilter", {})
   onRatingChange(newVal: number) {
     localStorage.setItem("pm_sceneRating", newVal.toString());
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("favoritesOnly")
   onFavoriteChange(newVal: boolean) {
     localStorage.setItem("pm_sceneFavorite", "" + newVal);
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("bookmarksOnly")
   onBookmarkChange(newVal: boolean) {
     localStorage.setItem("pm_sceneBookmark", "" + newVal);
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("sortDir")
   onSortDirChange(newVal: string) {
     localStorage.setItem("pm_sceneSortDir", newVal);
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("sortBy")
   onSortChange(newVal: string) {
     localStorage.setItem("pm_sceneSortBy", newVal);
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("selectedLabels")
   onLabelChange() {
-    this.page = 0;
-    this.scenes = [];
-    this.infiniteId++;
+    sceneModule.resetPagination();
+    this.loadPage(this.page);
   }
 
   @Watch("selectedActorIds", { deep: true })
@@ -615,12 +628,11 @@ export default class SceneList extends mixins(DrawerMixin) {
     localStorage.setItem("pm_sceneActors", JSON.stringify(this.selectedActors));
 
     this.waiting = true;
-    this.page = 0;
-    this.scenes = [];
+    sceneModule.resetPagination();
 
     this.resetTimeout = setTimeout(() => {
       this.waiting = false;
-      this.infiniteId++;
+      this.loadPage(this.page);
     }, 500);
   }
 
@@ -640,12 +652,11 @@ export default class SceneList extends mixins(DrawerMixin) {
     );
 
     this.waiting = true;
-    this.page = 0;
-    this.scenes = [];
+    sceneModule.resetPagination();
 
     this.resetTimeout = setTimeout(() => {
       this.waiting = false;
-      this.infiniteId++;
+      this.loadPage(this.page);
     }, 500);
   }
 
@@ -658,44 +669,27 @@ export default class SceneList extends mixins(DrawerMixin) {
     localStorage.setItem("pm_sceneQuery", newVal || "");
 
     this.waiting = true;
-    this.page = 0;
-    this.scenes = [];
+    sceneModule.resetPagination();
 
     this.resetTimeout = setTimeout(() => {
       this.waiting = false;
-      this.infiniteId++;
+      this.loadPage(this.page);
     }, 500);
-  }
-
-  infiniteHandler($state) {
-    this.fetchPage()
-      .then(items => {
-        if (items.length) {
-          this.page++;
-          this.scenes.push(...items);
-          $state.loaded();
-        } else {
-          $state.complete();
-        }
-      })
-      .catch(err => {
-        $state.error();
-      });
   }
 
   getRandom() {
     this.fetchingRandom = true;
-    this.fetchPage(1)
-      .then(scenes => {
+    this.fetchPage(1, 1, true, Math.random().toString())
+      .then(result => {
         // @ts-ignore
-        this.$router.push(`/scene/${scenes[0]._id}`);
+        this.$router.push(`/scene/${result.items[0]._id}`);
       })
       .catch(err => {
         this.fetchingRandom = false;
       });
   }
 
-  async fetchPage(random = 0) {
+  async fetchPage(page: number, take = 24, random?: boolean, seed?: string) {
     try {
       let include = "";
       let exclude = "";
@@ -711,26 +705,29 @@ export default class SceneList extends mixins(DrawerMixin) {
         actors = "actors:" + this.selectedActorIds.join(",");
 
       const query = `query:'${this.query ||
-        ""}' ${actors} ${include} ${exclude} page:${this.page} sortDir:${
-        this.sortDir
-      } sortBy:${this.sortBy} favorite:${
-        this.favoritesOnly ? "true" : "false"
-      } bookmark:${this.bookmarksOnly ? "true" : "false"} rating:${
-        this.ratingFilter
-      } duration.min:${this.durationRange[0] * 60} duration.max:${this
-        .durationRange[1] * 60}`;
+        ""}' take:${take} ${actors} ${include} ${exclude} page:${page -
+        1} sortDir:${this.sortDir} sortBy:${
+        random ? "$shuffle" : this.sortBy
+      }  favorite:${this.favoritesOnly ? "true" : "false"} bookmark:${
+        this.bookmarksOnly ? "true" : "false"
+      } rating:${this.ratingFilter} duration.min:${this.durationRange[0] *
+        60} duration.max:${this.durationRange[1] * 60}`;
 
       const result = await ApolloClient.query({
         query: gql`
-          query($query: String, $random: Int) {
-            getScenes(query: $query, random: $random) {
-              ...SceneFragment
-              actors {
-                ...ActorFragment
+          query($query: String, $seed: String) {
+            getScenes(query: $query, seed: $seed) {
+              items {
+                ...SceneFragment
+                actors {
+                  ...ActorFragment
+                }
+                studio {
+                  ...StudioFragment
+                }
               }
-              studio {
-                ...StudioFragment
-              }
+              numItems
+              numPages
             }
           }
           ${sceneFragment}
@@ -739,7 +736,7 @@ export default class SceneList extends mixins(DrawerMixin) {
         `,
         variables: {
           query,
-          random
+          seed: seed || localStorage.getItem("pm_seed") || "default"
         }
       });
 
@@ -747,6 +744,36 @@ export default class SceneList extends mixins(DrawerMixin) {
     } catch (err) {
       throw err;
     }
+  }
+
+  loadPage(page: number) {
+    this.fetchLoader = true;
+    this.selectedScenes = [];
+
+    this.fetchPage(page)
+      .then(result => {
+        this.fetchError = false;
+        sceneModule.setPagination({
+          numResults: result.numItems,
+          numPages: result.numPages
+        });
+        this.scenes = result.items;
+      })
+      .catch(err => {
+        console.error(err);
+        this.fetchError = true;
+      })
+      .finally(() => {
+        this.fetchLoader = false;
+      });
+  }
+
+  refreshPage() {
+    this.loadPage(sceneModule.page);
+  }
+
+  mounted() {
+    if (!this.scenes.length) this.refreshPage();
   }
 
   beforeMount() {

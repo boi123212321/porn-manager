@@ -45,6 +45,8 @@ export interface IConfig {
   PASSWORD: string | null;
 
   PORT: number;
+  IZZY_PORT: number;
+  GIANNA_PORT: number;
   ENABLE_HTTPS: boolean;
   HTTPS_KEY: string;
   HTTPS_CERT: string;
@@ -99,6 +101,8 @@ export const defaultConfig: IConfig = {
   SCREENSHOT_INTERVAL: 120,
   PASSWORD: null,
   PORT: 3000,
+  IZZY_PORT: 7990,
+  GIANNA_PORT: 7991,
   ENABLE_HTTPS: false,
   HTTPS_KEY: "",
   HTTPS_CERT: "",

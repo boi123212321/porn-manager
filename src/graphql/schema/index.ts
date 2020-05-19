@@ -5,11 +5,6 @@ export default gql`
   scalar Object
   scalar Upload
 
-  type IndexStatus {
-    version: String!
-    indexing: Boolean!
-  }
-
   type SceneView {
     _id: String!
     scene: Scene
@@ -18,8 +13,6 @@ export default gql`
 
   type Query {
     getQueueInfo: QueueInfo!
-    twigs: IndexStatus
-
     getWatches(min: Long, max: Long): [SceneView!]!
   }
 

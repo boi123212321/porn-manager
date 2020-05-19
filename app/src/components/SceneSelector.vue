@@ -124,9 +124,11 @@ export default class SceneSelector extends Vue {
         query: gql`
           query($query: String) {
             getScenes(query: $query) {
-              ...SceneFragment
-              actors {
-                ...ActorFragment
+              items {
+                ...SceneFragment
+                actors {
+                  ...ActorFragment
+                }
               }
             }
           }
@@ -138,7 +140,7 @@ export default class SceneSelector extends Vue {
         }
       });
       this.loading = false;
-      this.scenes.push(...result.data.getScenes);
+      this.scenes.push(...result.data.getScenes.items);
       this.scenes = createObjectSet(this.scenes, "_id");
     } catch (err) {
       throw err;

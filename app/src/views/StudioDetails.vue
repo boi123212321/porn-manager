@@ -383,13 +383,15 @@ export default class StudioDetails extends Vue {
         query: gql`
           query($query: String) {
             getScenes(query: $query) {
-              ...SceneFragment
-              actors {
-                ...ActorFragment
-              }
-              studio {
-                _id
-                name
+              items {
+                ...SceneFragment
+                actors {
+                  ...ActorFragment
+                }
+                studio {
+                  _id
+                  name
+                }
               }
             }
           }
@@ -401,7 +403,7 @@ export default class StudioDetails extends Vue {
         }
       });
 
-      return result.data.getScenes;
+      return result.data.getScenes.items;
     } catch (err) {
       throw err;
     }

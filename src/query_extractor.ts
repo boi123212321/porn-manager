@@ -1,18 +1,3 @@
-export enum SortTarget {
-  RELEVANCE = "relevance",
-  RATING = "rating",
-  DATE = "date",
-  ADDED_ON = "addedOn",
-  VIEWS = "views",
-  DURATION = "duration",
-  ALPHABETIC = "alpha",
-  NUM_SCENES = "scenes",
-  SIZE = "size",
-  RESOLUTION = "resolution",
-  AGE = "age",
-  BOOKMARK = "bookmark"
-}
-
 interface IQueryOptions {
   query?: string;
   include: string[];
@@ -21,7 +6,7 @@ interface IQueryOptions {
   rating: number;
   favorite?: boolean;
   bookmark?: boolean;
-  sortBy: SortTarget;
+  sortBy: string;
   sortDir: "asc" | "desc";
   page: number;
   scenes: string[];
@@ -59,7 +44,7 @@ export default (query?: string) => {
     exclude: [],
     actors: [],
     rating: 0,
-    sortBy: SortTarget.ADDED_ON,
+    sortBy: "addedOn",
     sortDir: "desc",
     page: 0,
     scenes: [],
@@ -67,12 +52,12 @@ export default (query?: string) => {
     durationMin: null,
     durationMax: null,
     skip: null,
-    take: null
+    take: null,
   };
 
   if (!query) return options;
 
-  options.sortBy = SortTarget.RELEVANCE;
+  options.sortBy = "relevance";
 
   for (const part of parseWords(query)) {
     const [operation, value] = part.split(":");
@@ -121,9 +106,7 @@ export default (query?: string) => {
         options[operation] = value == "true";
         break;
       case "sortBy":
-        if (Object.values(SortTarget).includes(<SortTarget>value))
-          options[operation] = <SortTarget>value;
-        else throw `Query error: Unsupported sort target '${value}'`;
+        options[operation] = value;
         break;
       case "sortDir":
         if (["asc", "desc"].includes(value))
@@ -133,8 +116,9 @@ export default (query?: string) => {
     }
   }
 
-  if (!options.query && options.sortBy == SortTarget.RELEVANCE) {
-    options.sortBy = SortTarget.ADDED_ON;
+  if (!options.query && options.sortBy == "relevance") {
+    console.log("No search query, defaulting to addedOn");
+    options.sortBy = "addedOn";
     options.sortDir = "desc";
   }
 

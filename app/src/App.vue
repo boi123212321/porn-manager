@@ -122,6 +122,11 @@ import { ensureDarkColor } from "./util/color";
 export default class App extends Vue {
   navDrawer = false;
 
+  mounted() {
+    const seed = localStorage.getItem("pm_seed");
+    if (!seed) localStorage.setItem("pm_seed", Math.random().toString(36));
+  }
+
   get appbarColor() {
     let color;
     if (this.currentActor && this.currentActor.hero)

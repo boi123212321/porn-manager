@@ -54,7 +54,10 @@ export default class StudioSelector extends Vue {
   }
 
   onInnerValueChange(newVal: string) {
-    this.$emit("input", this.studios.find(a => a._id == newVal));
+    this.$emit(
+      "input",
+      this.studios.find(a => a._id == newVal)
+    );
   }
 
   thumbnail(scene: any) {
@@ -86,7 +89,9 @@ export default class StudioSelector extends Vue {
         query: gql`
           query($query: String) {
             getStudios(query: $query) {
-              ...StudioFragment
+              items {
+                ...StudioFragment
+              }
             }
           }
           ${studioFragment}
@@ -97,7 +102,7 @@ export default class StudioSelector extends Vue {
       });
 
       this.loading = false;
-      this.studios.push(...result.data.getStudios);
+      this.studios.push(...result.data.getStudios.items);
 
       let ids = [...new Set(this.studios.map(a => a._id))];
 
