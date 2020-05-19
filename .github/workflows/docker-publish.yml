@@ -7,6 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v1
     - uses: docker/build-push-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
