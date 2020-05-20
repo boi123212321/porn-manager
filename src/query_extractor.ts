@@ -1,4 +1,4 @@
-interface IQueryOptions {
+export interface IQueryOptions {
   query?: string;
   include: string[];
   exclude: string[];

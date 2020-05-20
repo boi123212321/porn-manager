@@ -87,13 +87,24 @@
           <span class="display-1 font-weight-bold mr-2">{{ fetchLoader ? "-" : numResults }}</span>
           <span class="title font-weight-regular">studios found</span>
         </div>
-        <v-btn @click="bulkImportDialog = true" icon>
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
-        <v-btn :loading="fetchingRandom" @click="getRandom" icon>
-          <v-icon>mdi-shuffle-variant</v-icon>
-        </v-btn>
-        <v-tooltip right>
+
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on" @click="bulkImportDialog = true" icon>
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </template>
+          <span>Add studio</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on" :loading="fetchingRandom" @click="getRandom" icon>
+              <v-icon>mdi-shuffle-variant</v-icon>
+            </v-btn>
+          </template>
+          <span>Get random studio</span>
+        </v-tooltip>
+        <v-tooltip bottom>
           <template v-slot:activator="{ on }">
             <v-btn v-on="on" :disabled="sortBy != '$shuffle'" @click="rerollSeed" icon>
               <v-icon>mdi-dice-3-outline</v-icon>

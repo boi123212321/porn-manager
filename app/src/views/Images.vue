@@ -102,10 +102,15 @@
           <span class="display-1 font-weight-bold mr-2">{{ fetchLoader ? "-" : numResults }}</span>
           <span class="title font-weight-regular">images found</span>
         </div>
-        <v-btn @click="openUploadDialog" icon>
-          <v-icon>mdi-upload</v-icon>
-        </v-btn>
-        <v-tooltip right>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on" @click="openUploadDialog" icon>
+              <v-icon>mdi-upload</v-icon>
+            </v-btn>
+          </template>
+          <span>Upload image</span>
+        </v-tooltip>
+        <v-tooltip bottom>
           <template v-slot:activator="{ on }">
             <v-btn v-on="on" :disabled="sortBy != '$shuffle'" @click="rerollSeed" icon>
               <v-icon>mdi-dice-3-outline</v-icon>

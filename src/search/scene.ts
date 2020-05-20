@@ -7,6 +7,16 @@ import argv from "../args";
 import SceneView from "../types/watch";
 import { Gianna } from "./internal/index";
 import { mapAsync } from "../types/utility";
+import {
+  filterFavorites,
+  filterBookmark,
+  filterRating,
+  filterInclude,
+  filterExclude,
+  filterActors,
+  filterStudios,
+  filterDuration,
+} from "./common";
 
 const PAGE_SIZE = 24;
 
@@ -110,121 +120,14 @@ export async function searchScenes(query: string, shuffleSeed = "default") {
     children: [],
   } as Gianna.IFilterTreeGrouping;
 
-  if (options.durationMin) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "duration",
-        type: "number",
-        value: options.durationMin - 1,
-      },
-    });
-  }
-
-  if (options.durationMax) {
-    filter.children.push({
-      condition: {
-        operation: "<",
-        property: "duration",
-        type: "number",
-        value: options.durationMax + 1,
-      },
-    });
-  }
-
-  if (options.favorite) {
-    filter.children.push({
-      condition: {
-        operation: "=",
-        property: "favorite",
-        type: "boolean",
-        value: true,
-      },
-    });
-  }
-
-  if (options.bookmark) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "bookmark",
-        type: "number",
-        value: 0,
-      },
-    });
-  }
-
-  if (options.rating) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "rating",
-        type: "number",
-        value: options.rating - 1,
-      },
-    });
-  }
-
-  if (options.include.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.include.map((labelId) => ({
-        condition: {
-          operation: "?",
-          property: "labels",
-          type: "array",
-          value: labelId,
-        },
-      })),
-    });
-  }
-
-  if (options.actors.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.actors.map((labelId) => ({
-        condition: {
-          operation: "?",
-          property: "actors",
-          type: "array",
-          value: labelId,
-        },
-      })),
-    });
-  }
-
-  if (options.exclude.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.exclude.map((labelId) => ({
-        type: "NOT",
-        children: [
-          {
-            condition: {
-              operation: "?",
-              property: "labels",
-              type: "array",
-              value: labelId,
-            },
-          },
-        ],
-      })),
-    });
-  }
-
-  if (options.studios.length) {
-    filter.children.push({
-      type: "OR",
-      children: options.studios.map((studioId) => ({
-        condition: {
-          operation: "=",
-          property: "studio",
-          type: "string",
-          value: studioId,
-        },
-      })),
-    });
-  }
+  filterDuration(filter, options);
+  filterFavorites(filter, options);
+  filterBookmark(filter, options);
+  filterRating(filter, options);
+  filterInclude(filter, options);
+  filterExclude(filter, options);
+  filterActors(filter, options);
+  filterStudios(filter, options);
 
   if (options.sortBy) {
     if (options.sortBy === "$shuffle") {

@@ -7,6 +7,13 @@ import argv from "../args";
 import { mapAsync } from "../types/utility";
 import extractQueryOptions from "../query_extractor";
 import { getNationality } from "../types/countries";
+import {
+  filterFavorites,
+  filterBookmark,
+  filterRating,
+  filterInclude,
+  filterExclude,
+} from "./common";
 
 const PAGE_SIZE = 24;
 
@@ -121,71 +128,11 @@ export async function searchActors(query: string, shuffleSeed = "default") {
     children: [],
   } as Gianna.IFilterTreeGrouping;
 
-  if (options.favorite) {
-    filter.children.push({
-      condition: {
-        operation: "=",
-        property: "favorite",
-        type: "boolean",
-        value: true,
-      },
-    });
-  }
-
-  if (options.bookmark) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "bookmark",
-        type: "number",
-        value: 0,
-      },
-    });
-  }
-
-  if (options.rating) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "rating",
-        type: "number",
-        value: options.rating - 1,
-      },
-    });
-  }
-
-  if (options.include.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.include.map((labelId) => ({
-        condition: {
-          operation: "?",
-          property: "labels",
-          type: "array",
-          value: labelId,
-        },
-      })),
-    });
-  }
-
-  if (options.exclude.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.exclude.map((labelId) => ({
-        type: "NOT",
-        children: [
-          {
-            condition: {
-              operation: "?",
-              property: "labels",
-              type: "array",
-              value: labelId,
-            },
-          },
-        ],
-      })),
-    });
-  }
+  filterFavorites(filter, options);
+  filterBookmark(filter, options);
+  filterRating(filter, options);
+  filterInclude(filter, options);
+  filterExclude(filter, options);
 
   if (options.sortBy) {
     if (options.sortBy === "$shuffle") {

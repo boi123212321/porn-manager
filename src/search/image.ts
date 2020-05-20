@@ -6,6 +6,15 @@ import * as logger from "../logger";
 import asyncPool from "tiny-async-pool";
 import { Gianna } from "./internal/index";
 import { mapAsync } from "../types/utility";
+import {
+  filterFavorites,
+  filterBookmark,
+  filterRating,
+  filterInclude,
+  filterExclude,
+  filterActors,
+  filterStudios,
+} from "./common";
 
 const PAGE_SIZE = 24;
 
@@ -149,85 +158,13 @@ export async function searchImages(query: string, shuffleSeed = "default") {
     children: [],
   } as Gianna.IFilterTreeGrouping;
 
-  if (options.favorite) {
-    filter.children.push({
-      condition: {
-        operation: "=",
-        property: "favorite",
-        type: "boolean",
-        value: true,
-      },
-    });
-  }
-
-  if (options.bookmark) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "bookmark",
-        type: "number",
-        value: 0,
-      },
-    });
-  }
-
-  if (options.rating) {
-    filter.children.push({
-      condition: {
-        operation: ">",
-        property: "rating",
-        type: "number",
-        value: options.rating - 1,
-      },
-    });
-  }
-
-  if (options.include.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.include.map((labelId) => ({
-        condition: {
-          operation: "?",
-          property: "labels",
-          type: "array",
-          value: labelId,
-        },
-      })),
-    });
-  }
-
-  if (options.actors.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.actors.map((labelId) => ({
-        condition: {
-          operation: "?",
-          property: "actors",
-          type: "array",
-          value: labelId,
-        },
-      })),
-    });
-  }
-
-  if (options.exclude.length) {
-    filter.children.push({
-      type: "AND",
-      children: options.exclude.map((labelId) => ({
-        type: "NOT",
-        children: [
-          {
-            condition: {
-              operation: "?",
-              property: "labels",
-              type: "array",
-              value: labelId,
-            },
-          },
-        ],
-      })),
-    });
-  }
+  filterFavorites(filter, options);
+  filterBookmark(filter, options);
+  filterRating(filter, options);
+  filterInclude(filter, options);
+  filterExclude(filter, options);
+  filterActors(filter, options);
+  filterStudios(filter, options);
 
   if (options.scenes.length) {
     filter.children.push({
@@ -238,20 +175,6 @@ export async function searchImages(query: string, shuffleSeed = "default") {
           property: "scene",
           type: "string",
           value: sceneId,
-        },
-      })),
-    });
-  }
-
-  if (options.studios.length) {
-    filter.children.push({
-      type: "OR",
-      children: options.studios.map((studioId) => ({
-        condition: {
-          operation: "=",
-          property: "studio",
-          type: "string",
-          value: studioId,
         },
       })),
     });

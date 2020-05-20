@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="white--text">
     <v-hover v-slot:default="{ hover }">
       <div class="video-wrapper">
         <div class="video-overlay">
@@ -26,13 +26,13 @@
           <v-fade-transition>
             <div v-if="hover" class="bottom-bar d-flex align-center">
               <div class="px-1 align-center d-flex" style="width: 100%; height: 100%">
-                <v-btn @click="togglePlay" icon>
+                <v-btn dark @click="togglePlay" icon>
                   <v-icon>{{ isPlaying ? 'mdi-pause' : 'mdi-play' }}</v-icon>
                 </v-btn>
-                <v-btn @click="toggleMute" icon>
+                <v-btn dark @click="toggleMute" icon>
                   <v-icon>{{ isMuted ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
                 </v-btn>
-                <span class="mx-2 caption">{{ formatTime(progress) }}</span>
+                <span class="mx-2 body-2">{{ formatTime(progress) }}</span>
                 <v-hover v-slot:default="{ hover }">
                   <div
                     @mousemove="onMouseMove"
@@ -74,8 +74,8 @@
                     </v-tooltip>
                   </div>
                 </v-hover>
-                <span class="mx-2 caption">{{ formatTime(duration) }}</span>
-                <v-btn @click="requestFullscreen" icon>
+                <span class="mx-2 body-2">{{ formatTime(duration) }}</span>
+                <v-btn dark @click="requestFullscreen" icon>
                   <v-icon>mdi-fullscreen</v-icon>
                 </v-btn>
               </div>
