@@ -42,11 +42,13 @@ export async function checkVideoFolders() {
         } else {
           logger.log(`Found matching file ${path}`);
           const existingScene = existingScenesMap.has(path);
+          if (existingScene) existingScenesMap.delete(path)
           logger.log("Scene with that path exists already: " + !!existingScene);
           if (!existingScene) unknownVideos.push(path);
         }
       },
     });
+    //push existingScenesMap to collection since those are the paths not found.
     loader.succeed(`${folder} done (${numFiles} videos)`);
   }
 
