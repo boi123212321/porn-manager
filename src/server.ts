@@ -90,7 +90,6 @@ export default async () => {
 
   app.get("/label-usage/scenes", async (req, res) => {
     const cached = cache.get("scene-label-usage");
-    console.log(cached);
     if (cached) {
       logger.log("Using cached scene label usage");
       return res.json(cached);
@@ -105,7 +104,6 @@ export default async () => {
 
   app.get("/label-usage/actors", async (req, res) => {
     const cached = cache.get("actor-label-usage");
-    console.log(cached);
     if (cached) {
       logger.log("Using cached actor label usage");
       return res.json(cached);
@@ -272,7 +270,17 @@ export default async () => {
   } else {
     await spawnIzzy();
   }
-  await loadStores();
+
+  try {
+    await loadStores();
+  } catch (error) {
+    logger.error(error);
+    logger.error("Error while loading database: " + error.message);
+    logger.warn(
+      "Try restarting, if the error persists, your database may be corrupted"
+    );
+    process.exit(1);
+  }
 
   setupMessage = "Loading search engine...";
   if (await giannaVersion()) {
@@ -295,6 +303,7 @@ export default async () => {
   console.log(
     boxen(`PORN VAULT READY\nOpen ${protocol}://localhost:${port}/`, {
       padding: 1,
+      margin: 1,
     })
   );
 

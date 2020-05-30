@@ -15,6 +15,7 @@ import YAML from "yaml";
 import inquirer from "inquirer";
 import readline from "readline";
 import * as os from "os";
+import boxen from "boxen";
 
 function requireUncached(module: string) {
   delete require.cache[require.resolve(module)];
@@ -126,6 +127,7 @@ export async function runPlugin(
         $moment: moment,
         $log: debug("vault:plugin"),
         $loader: ora,
+        $boxen: boxen,
         $throw: (str: string) => {
           throw new Error(str);
         },
