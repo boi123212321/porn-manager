@@ -26,6 +26,7 @@
     "zip:win": "zip -r ./releases/win.zip ./releases/win",
     "zip:mac": "zip -r ./releases/mac.zip ./releases/mac",
     "lint": "eslint \"src/**/*.ts\"",
+    "lint:report": "eslint --output-file eslint_report.json --format json \"src/**/*.ts\"",
     "lint:fix": "eslint --quiet --fix \"src/**/*.ts\""
   },
   "repository": {
