@@ -24,7 +24,9 @@
     "zip:armv7": "zip -r ./releases/armv7.zip ./releases/armv7",
     "zip:linux": "zip -r ./releases/linux.zip ./releases/linux",
     "zip:win": "zip -r ./releases/win.zip ./releases/win",
-    "zip:mac": "zip -r ./releases/mac.zip ./releases/mac"
+    "zip:mac": "zip -r ./releases/mac.zip ./releases/mac",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint --quiet --fix \"src/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -83,10 +85,22 @@
     "@types/tiny-async-pool": "^1.0.0",
     "@types/yaml": "^1.9.7",
     "@types/yargs": "^15.0.5",
+    "@typescript-eslint/eslint-plugin": "^3.0.2",
+    "@typescript-eslint/parser": "^3.0.2",
     "chai": "^4.2.0",
+    "eslint": "^7.1.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-simple-import-sort": "^5.0.3",
+    "eslint-plugin-standard": "^4.0.1",
     "mocha": "^7.2.0",
     "nodemon": "^2.0.4",
     "pkg": "^4.4.7",
+    "prettier": "^2.0.5",
     "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   },
