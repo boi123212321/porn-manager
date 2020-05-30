@@ -27,4 +27,4 @@ jobs:
           # Enable linters
           # Eslint will also run prettier
           eslint: true
-            eslint_args: "\"src/**/*.ts\""
+          eslint_args: "\"src/**/*.ts\""
