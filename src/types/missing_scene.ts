@@ -12,6 +12,7 @@ import * as logger from "../logger";
 export async function purgeMissingScenes() {
   const items = await missingSceneCollection.getAll();
   for (const [key, item] of items.entries()) {
+    logger.log(`Deleting missing scene ${item.path}`);
     await sceneCollection
       .remove(item._id)
       .catch(err =>
@@ -24,6 +25,7 @@ export async function purgeMissingScenes() {
 }
 export async function resetMissingScenes() {
   const items = await missingSceneCollection.getAll();
+  logger.log(`Clearing Recycle Bin`);
   for (const [key, item] of items.entries()) {
     await missingSceneCollection
       .remove(item._id)
