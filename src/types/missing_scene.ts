@@ -58,7 +58,7 @@ export async function purgeMissingScenes() {
 export async function resetMissingScenes() {
   const items = await missingSceneCollection.getAll();
   logger.log(`Clearing Recycle Bin`);
-  for (const [key, item] of items.entries()) {
+  for (const item of items) {
     await missingSceneCollection
       .remove(item._id)
       .catch(err =>
