@@ -17,8 +17,8 @@ import Image from "../types/image";
 import { index as sceneIndex } from "../search/scene";
 import * as logger from "../logger";
 export async function purgeMissingScenes() {
-  const items = await missingSceneCollection.getAll();
-  for (const missingScene of items) {
+  const missingScenes = await missingSceneCollection.getAll();
+  for (const missingScene of missingScenes) {
     logger.log(`Deleting missing scene ${missingScene.path}`);
 
     await sceneCollection
@@ -59,14 +59,14 @@ export async function purgeMissingScenes() {
   }
 }
 export async function resetMissingScenes() {
-  const items = await missingSceneCollection.getAll();
+  const missingScenes = await missingSceneCollection.getAll();
   logger.log(`Clearing Recycle Bin`);
-  for (const item of items) {
+  for (const missingScene of missingScenes) {
     await missingSceneCollection
-      .remove(item._id)
+      .remove(missingScene._id)
       .catch(err =>
         logger.error(
-          `Failed to remove ${item._id} at path ${item.path} from the db. Error: ${err}`
+          `Failed to remove ${missingScene._id} at path ${missingScene.path} from the db. Error: ${err}`
         )
       );
   }
