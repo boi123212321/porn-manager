@@ -1,8 +1,3 @@
-// export interface IMissingSceneItem {
-//   _id: string;
-//   path: string;
-// }
-
 export default class MissingScene {
   _id: string;
   path: string;
