@@ -55,9 +55,9 @@ export async function checkVideoFolders() {
       },
     });
     logger.log(`found ${existingScenesMap.size} missing files`);
-    existingScenesMap.forEach(async (_id, path) => {
+    for (const [path, _id] of existingScenesMap.entries()) {
       await missingSceneCollection.upsert(_id, new MissingScene(_id, path));
-    });
+    }
     loader.succeed(`${folder} done (${numFiles} videos)`);
   }
 

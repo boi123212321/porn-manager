@@ -11,7 +11,7 @@ import { sceneCollection, missingSceneCollection } from "../database/index";
 import * as logger from "../logger";
 export async function purgeMissingScenes() {
   const items = await missingSceneCollection.getAll();
-  items.forEach(async item => {
+  for (const [key, item] of items.entries()) {
     await sceneCollection
       .remove(item._id)
       .catch(err =>
@@ -20,11 +20,17 @@ export async function purgeMissingScenes() {
         )
       );
     await missingSceneCollection.remove(item._id);
-  });
+  }
 }
 export async function resetMissingScenes() {
   const items = await missingSceneCollection.getAll();
-  items.forEach(async item => {
-    await missingSceneCollection.remove(item._id);
-  });
+  for (const [key, item] of items.entries()) {
+    await missingSceneCollection
+      .remove(item._id)
+      .catch(err =>
+        logger.error(
+          `Failed to remove ${item._id} at path ${item.path} from the db. Error: ${err}`
+        )
+      );
+  }
 }
