@@ -224,7 +224,7 @@ export default class About extends Vue {
         }
       `,
     }).then(res => {
-      console.log(`emptied recycle bin ${onFulfilled.data}`);
+      console.log(`emptied recycle bin ${res.data}`);
     });
   }
 }
