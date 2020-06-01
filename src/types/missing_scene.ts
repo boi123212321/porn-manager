@@ -18,7 +18,7 @@ import { index as sceneIndex } from "../search/scene";
 import * as logger from "../logger";
 export async function purgeMissingScenes() {
   const items = await missingSceneCollection.getAll();
-  for (const [key, item] of items.entries()) {
+  for (const missingScene of items) {
     logger.log(`Deleting missing scene ${item.path}`);
 
     await sceneCollection
