@@ -1,18 +1,12 @@
 import Vibrant from "node-vibrant";
 
-import {
-  actorCollection,
-  actorReferenceCollection,
-  imageCollection,
-  labelledItemCollection,
-} from "../database";
+import { actorCollection, actorReferenceCollection, imageCollection } from "../database";
 import { unlinkAsync } from "../fs/async";
 import { generateHash } from "../hash";
 import * as logger from "../logger";
 import ActorReference from "./actor_reference";
 import Label from "./label";
-import LabelledItem from "./labelled_item";
-import { mapAsync } from "./utility";
+import Actor from "./actor";
 
 export class ImageDimensions {
   width: number | null = null;
@@ -33,6 +27,7 @@ export default class Image {
   favorite = false;
   bookmark: number | null = null;
   rating = 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customFields: Record<string, any> = {};
   labels?: string[]; // backwards compatibility
   meta = new ImageMeta();
@@ -41,7 +36,7 @@ export default class Image {
   hash: string | null = null;
   color: string | null = null;
 
-  static async color(image: Image) {
+  static async color(image: Image): Promise<string | null> {
     if (!image.path) return null;
     if (image.color) return image.color;
 
@@ -73,7 +68,7 @@ export default class Image {
 
   static async checkIntegrity() {}
 
-  static async remove(image: Image) {
+  static async remove(image: Image): Promise<void> {
     await imageCollection.remove(image._id);
     try {
       if (image.path) await unlinkAsync(image.path);
@@ -82,42 +77,42 @@ export default class Image {
     }
   }
 
-  static async filterStudio(studioId: string) {
+  static async filterStudio(studioId: string): Promise<void> {
     for (const image of await Image.getAll()) {
-      if (image.studio == studioId) {
+      if (image.studio === studioId) {
         image.studio = null;
         await imageCollection.upsert(image._id, image);
       }
     }
   }
 
-  static async filterScene(sceneId: string) {
+  static async filterScene(sceneId: string): Promise<void> {
     for (const image of await Image.getAll()) {
-      if (image.scene == sceneId) {
+      if (image.scene === sceneId) {
         image.scene = null;
         await imageCollection.upsert(image._id, image);
       }
     }
   }
 
-  static async getByScene(id: string) {
+  static async getByScene(id: string): Promise<Image[]> {
     return imageCollection.query("scene-index", id);
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<Image | null> {
     return imageCollection.get(_id);
   }
 
-  static async getAll() {
+  static async getAll(): Promise<Image[]> {
     return imageCollection.getAll();
   }
 
-  static async getActors(image: Image) {
+  static async getActors(image: Image): Promise<Actor[]> {
     const references = await ActorReference.getByItem(image._id);
     return (await actorCollection.getBulk(references.map((r) => r.actor))).filter(Boolean);
   }
 
-  static async setActors(image: Image, actorIds: string[]) {
+  static async setActors(image: Image, actorIds: string[]): Promise<Actor[]> {
     const references = await ActorReference.getByItem(image._id);
 
     const oldActorReferences = references.map((r) => r._id);
@@ -133,15 +128,15 @@ export default class Image {
     }
   }
 
-  static async setLabels(image: Image, labelIds: string[]) {
+  static async setLabels(image: Image, labelIds: string[]): Promise<void> {
     return Label.setForItem(image._id, labelIds, "image");
   }
 
-  static async getLabels(image: Image) {
+  static async getLabels(image: Image): Promise<Label[]> {
     return Label.getForItem(image._id);
   }
 
-  static async getImageByPath(path: string) {
+  static async getImageByPath(path: string): Promise<Image | undefined> {
     return (await imageCollection.query("path-index", encodeURIComponent(path)))[0] as
       | Image
       | undefined;

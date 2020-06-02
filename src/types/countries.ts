@@ -8,10 +8,10 @@ const countryMap = (() => {
   return map;
 })();
 
-export function getNationality(str: string) {
+export function getNationality(str: string): ICountry {
   return countryMap[str.toUpperCase()];
 }
 
-export function isValidCountryCode(str: string) {
+export function isValidCountryCode(str: string): boolean {
   return !!getNationality(str);
 }

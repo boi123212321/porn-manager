@@ -89,11 +89,16 @@ export default class Scene {
   studio: string | null = null;
   processed?: boolean = false;
 
-  static calculateScore(scene: Scene, numViews: number) {
+  static calculateScore(scene: Scene, numViews: number): number {
     return numViews + +scene.favorite * 5 + scene.rating;
   }
 
-  static async getLabelUsage() {
+  static async getLabelUsage(): Promise<
+    {
+      label: Label;
+      score: number;
+    }[]
+  > {
     const scores = {} as Record<string, { label: Label; score: number }>;
     for (const scene of await Scene.getAll()) {
       for (const label of await Scene.getLabels(scene)) {
@@ -114,7 +119,7 @@ export default class Scene {
       .sort((a, b) => b.score - a.score);
   }
 
-  static async onImport(videoPath: string, extractInfo = true) {
+  static async onImport(videoPath: string, extractInfo = true): Promise<Scene> {
     logger.log("Importing " + videoPath);
     const config = getConfig();
 
@@ -256,7 +261,7 @@ export default class Scene {
     return scene;
   }
 
-  static async checkIntegrity() {
+  static async checkIntegrity(): Promise<void> {
     const allScenes = await Scene.getAll();
 
     for (const scene of allScenes) {
@@ -284,14 +289,14 @@ export default class Scene {
     }
   }
 
-  static async watch(scene: Scene) {
+  static async watch(scene: Scene): Promise<void> {
     logger.log("Watch scene " + scene._id);
     const watchItem = new SceneView(scene._id, +new Date());
     await viewCollection.upsert(watchItem._id, watchItem);
     await indexScenes([scene]);
   }
 
-  static async unwatch(scene: Scene) {
+  static async unwatch(scene: Scene): Promise<void> {
     const watches = await SceneView.getByScene(scene._id);
     const last = watches[watches.length - 1];
     if (last) {
@@ -301,7 +306,7 @@ export default class Scene {
     await indexScenes([scene]);
   }
 
-  static async remove(scene: Scene) {
+  static async remove(scene: Scene): Promise<void> {
     await sceneCollection.remove(scene._id);
     try {
       if (scene.path) await unlinkAsync(scene.path);
@@ -310,16 +315,16 @@ export default class Scene {
     }
   }
 
-  static async filterStudio(studioId: string) {
+  static async filterStudio(studioId: string): Promise<void> {
     for (const scene of await Scene.getAll()) {
-      if (scene.studio == studioId) {
+      if (scene.studio === studioId) {
         scene.studio = null;
         await sceneCollection.upsert(scene._id, scene);
       }
     }
   }
 
-  static async getByActor(id: string) {
+  static async getByActor(id: string): Promise<Scene[]> {
     const references = await ActorReference.getByActor(id);
     return (
       await sceneCollection.getBulk(
@@ -328,11 +333,11 @@ export default class Scene {
     ).filter(Boolean);
   }
 
-  static async getByStudio(id: string) {
+  static async getByStudio(id: string): Promise<Scene[]> {
     return sceneCollection.query("studio-index", id);
   }
 
-  static async getMarkers(scene: Scene) {
+  static async getMarkers(scene: Scene): Promise<Marker[]> {
     return Marker.getByScene(scene._id);
     /* const references = await MarkerReference.getByScene(scene._id);
     return (await mapAsync(references, (r) => Marker.getById(r.marker))).filter(
@@ -340,16 +345,16 @@ export default class Scene {
     ) as Marker[]; */
   }
 
-  static async getMovies(scene: Scene) {
+  static async getMovies(scene: Scene): Promise<Movie[]> {
     return Movie.getByScene(scene._id);
   }
 
-  static async getActors(scene: Scene) {
+  static async getActors(scene: Scene): Promise<Actor[]> {
     const references = await ActorReference.getByItem(scene._id);
     return (await actorCollection.getBulk(references.map((r) => r.actor))).filter(Boolean);
   }
 
-  static async setActors(scene: Scene, actorIds: string[]) {
+  static async setActors(scene: Scene, actorIds: string[]): Promise<void> {
     const references = await ActorReference.getByItem(scene._id);
 
     const oldActorReferences = references.map((r) => r._id);
@@ -365,20 +370,20 @@ export default class Scene {
     }
   }
 
-  static async setLabels(scene: Scene, labelIds: string[]) {
+  static async setLabels(scene: Scene, labelIds: string[]): Promise<void> {
     return Label.setForItem(scene._id, labelIds, "scene");
   }
 
-  static async getLabels(scene: Scene) {
+  static async getLabels(scene: Scene): Promise<Label[]> {
     return Label.getForItem(scene._id);
   }
 
-  static async getSceneByPath(path: string) {
+  static async getSceneByPath(path: string): Promise<Scene | undefined> {
     const scenes = await sceneCollection.query("path-index", encodeURIComponent(path));
     return scenes[0] as Scene | undefined;
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<Scene | null> {
     return sceneCollection.get(_id);
   }
 
@@ -426,12 +431,12 @@ export default class Scene {
       let hadError = false;
 
       await asyncPool(4, timestamps, (timestamp) => {
-        const index = timestamps.findIndex((s) => s == timestamp);
+        const index = timestamps.findIndex((s) => s === timestamp);
         return new Promise((resolve, reject) => {
           logger.log(`Creating thumbnail ${index}...`);
           ffmpeg(options.file)
             .on("end", async () => {
-              logger.success("Created thumbnail " + index);
+              logger.success(`Created thumbnail ${index}`);
               resolve();
             })
             .on("error", (err: Error) => {
@@ -441,7 +446,7 @@ export default class Scene {
                 timestamps,
               });
               logger.error(err);
-              logger.error("Thumbnail generation failed for thumbnail " + index);
+              logger.error(`Thumbnail generation failed for thumbnail ${index}`);
               hadError = true;
               resolve();
             })
@@ -523,11 +528,10 @@ export default class Scene {
                 count: 1,
                 filename: `${id} (thumbnail).jpg`,
                 timestamps: ["50%"],
-                size:
-                  Math.min(
-                    dimensions.width || config.COMPRESS_IMAGE_SIZE,
-                    config.COMPRESS_IMAGE_SIZE
-                  ) + "x?",
+                size: `${Math.min(
+                  dimensions.width || config.COMPRESS_IMAGE_SIZE,
+                  config.COMPRESS_IMAGE_SIZE
+                )}x?`,
               });
           });
         })();
@@ -635,16 +639,16 @@ export default class Scene {
         logger.log("Creating thumbnails with options: ", options);
 
         await asyncPool(4, timestamps, (timestamp) => {
-          const index = timestamps.findIndex((s) => s == timestamp);
+          const index = timestamps.findIndex((s) => s === timestamp);
           return new Promise((resolve, reject) => {
             logger.log(`Creating thumbnail ${index}...`);
             ffmpeg(options.file)
               .on("end", async () => {
-                logger.success("Created thumbnail " + index);
+                logger.success(`Created thumbnail ${index}`);
                 resolve();
               })
               .on("error", (err: Error) => {
-                logger.error("Thumbnail generation failed for thumbnail " + index);
+                logger.error(`Thumbnail generation failed for thumbnail ${index}`);
                 logger.error({
                   options,
                   duration: scene.meta.duration,
@@ -659,12 +663,11 @@ export default class Scene {
                 // because we're generating 1 screenshot at a time instead of N
                 filename: options.pattern.replace("{{index}}", index.toString().padStart(3, "0")),
                 folder: options.thumbnailPath,
-                size:
-                  Math.min(
-                    // @ts-ignore
-                    scene.meta.dimensions.width || config.COMPRESS_IMAGE_SIZE,
-                    config.COMPRESS_IMAGE_SIZE
-                  ) + "x?",
+                size: `${Math.min(
+                  // @ts-ignore
+                  scene.meta.dimensions.width || config.COMPRESS_IMAGE_SIZE,
+                  config.COMPRESS_IMAGE_SIZE
+                )}x?`,
               });
           });
         });

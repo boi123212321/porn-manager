@@ -1,4 +1,3 @@
-import * as database from "../database";
 import { labelCollection, labelledItemCollection } from "../database";
 import { generateHash } from "../hash";
 import * as logger from "../logger";
@@ -14,11 +13,11 @@ export default class Label {
 
   static async checkIntegrity() {}
 
-  static async remove(_id: string) {
+  static async remove(_id: string): Promise<void> {
     await labelCollection.remove(_id);
   }
 
-  static async setForItem(itemId: string, labelIds: string[], type: string) {
+  static async setForItem(itemId: string, labelIds: string[], type: string): Promise<void> {
     const references = await LabelledItem.getByItem(itemId);
 
     const oldLabelReferences = references.map((r) => r._id);
@@ -34,20 +33,20 @@ export default class Label {
     }
   }
 
-  static async getForItem(id: string) {
+  static async getForItem(id: string): Promise<Label[]> {
     const references = await LabelledItem.getByItem(id);
     return (await mapAsync(references, (r) => Label.getById(r.label))).filter(Boolean) as Label[];
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<Label | null> {
     return await labelCollection.get(_id);
   }
 
-  static async getAll() {
+  static async getAll(): Promise<Label[]> {
     return await labelCollection.getAll();
   }
 
-  static async find(name: string) {
+  static async find(name: string): Promise<Label | undefined> {
     name = name.toLowerCase().trim();
     const allLabels = await Label.getAll();
     return allLabels.find((label) => label.name === name);

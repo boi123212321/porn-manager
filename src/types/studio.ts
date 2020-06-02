@@ -1,9 +1,7 @@
-import { labelledItemCollection, studioCollection } from "../database";
+import { studioCollection } from "../database";
 import { generateHash } from "../hash";
-import * as logger from "../logger";
 import Actor from "./actor";
 import Label from "./label";
-import LabelledItem from "./labelled_item";
 import Movie from "./movie";
 import Scene from "./scene";
 import { mapAsync } from "./utility";
@@ -27,24 +25,24 @@ export default class Studio {
     this.name = name;
   }
 
-  static async remove(studioId: string) {
+  static async remove(studioId: string): Promise<void> {
     await studioCollection.remove(studioId);
   }
 
-  static async filterStudio(studioId: string) {
+  static async filterStudio(studioId: string): Promise<void> {
     for (const studio of await Studio.getAll()) {
-      if (studio.parent == studioId) {
+      if (studio.parent === studioId) {
         studio.parent = null;
         await studioCollection.upsert(studio._id, studio);
       }
     }
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<Studio | null> {
     return studioCollection.get(_id);
   }
 
-  static async getAll() {
+  static async getAll(): Promise<Studio[]> {
     return studioCollection.getAll();
   }
 
@@ -71,11 +69,11 @@ export default class Studio {
     return movies.concat(moviesOfSubStudios);
   }
 
-  static async getSubStudios(studioId: string) {
+  static async getSubStudios(studioId: string): Promise<Studio[]> {
     return studioCollection.query("parent-index", studioId);
   }
 
-  static async getActors(studio: Studio) {
+  static async getActors(studio: Studio): Promise<Actor[]> {
     const scenes = await Studio.getScenes(studio);
     const actorIds = [
       ...new Set((await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)),
@@ -83,15 +81,15 @@ export default class Studio {
     return (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
   }
 
-  static async setLabels(studio: Studio, labelIds: string[]) {
+  static async setLabels(studio: Studio, labelIds: string[]): Promise<void> {
     return Label.setForItem(studio._id, labelIds, "studio");
   }
 
-  static async getLabels(studio: Studio) {
+  static async getLabels(studio: Studio): Promise<Label[]> {
     return Label.getForItem(studio._id);
   }
 
-  static async inferLabels(studio: Studio) {
+  static async inferLabels(studio: Studio): Promise<Label[]> {
     const scenes = await Studio.getScenes(studio);
     const labelIds = [...new Set(scenes.map((scene) => scene.labels).flat())];
     return (await mapAsync(labelIds, Label.getById)).filter(Boolean) as Label[];

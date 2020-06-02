@@ -6,12 +6,12 @@ export default class SceneView {
   date: number;
   scene: string;
 
-  static async getByScene(sceneId: string) {
+  static async getByScene(sceneId: string): Promise<SceneView[]> {
     const items = await viewCollection.query("scene-index", sceneId);
     return items.sort((a, b) => a.date - b.date);
   }
 
-  static async getCount(sceneId: string) {
+  static async getCount(sceneId: string): Promise<number> {
     return (await SceneView.getByScene(sceneId)).length;
   }
 

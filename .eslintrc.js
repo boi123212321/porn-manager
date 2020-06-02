@@ -30,5 +30,11 @@ module.exports = {
     "import/order": "off",
     // Use simple-import-sort instead
     "simple-import-sort/sort": "error",
+    "@typescript-eslint/unbound-method": [
+      "error",
+      {
+        ignoreStatic: true,
+      },
+    ],
   },
 };
