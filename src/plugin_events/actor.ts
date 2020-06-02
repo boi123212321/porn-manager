@@ -1,35 +1,28 @@
-import Actor from "../types/actor";
-import { runPluginsSerial } from "../plugins/index";
-import { libraryPath, validRating, extensionFromUrl } from "../types/utility";
-import { extractLabels, extractFields } from "../extractor";
-import { getConfig } from "../config";
 import { extname } from "path";
-import { downloadFile } from "../ffmpeg-download";
-import Image from "../types/image";
-import * as logger from "../logger";
-import { indexImages } from "../search/image";
-import Label from "../types/label";
-import { imageCollection, labelCollection } from "../database/index";
-import { isValidCountryCode } from "../types/countries";
+
+import { getConfig } from "../config";
 import countries from "../data/countries";
+import { imageCollection, labelCollection } from "../database/index";
+import { extractFields, extractLabels } from "../extractor";
+import { downloadFile } from "../ffmpeg-download";
+import * as logger from "../logger";
+import { runPluginsSerial } from "../plugins/index";
+import { indexImages } from "../search/image";
+import Actor from "../types/actor";
+import { isValidCountryCode } from "../types/countries";
+import Image from "../types/image";
+import Label from "../types/label";
+import { extensionFromUrl, libraryPath, validRating } from "../types/utility";
 
 // This function has side effects
-export async function onActorCreate(
-  actor: Actor,
-  actorLabels: string[],
-  event = "actorCreated"
-) {
+export async function onActorCreate(actor: Actor, actorLabels: string[], event = "actorCreated") {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {
     actor: JSON.parse(JSON.stringify(actor)),
     actorName: actor.name,
     countries: JSON.parse(JSON.stringify(countries)),
-    $createLocalImage: async (
-      path: string,
-      name: string,
-      thumbnail?: boolean
-    ) => {
+    $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       logger.log("Creating image from " + path);
       const img = new Image(name);
       if (thumbnail) img.name += " (thumbnail)";
@@ -64,28 +57,28 @@ export async function onActorCreate(
   });
 
   if (
-    typeof pluginResult.thumbnail == "string" &&
+    typeof pluginResult.thumbnail === "string" &&
     pluginResult.thumbnail.startsWith("im_") &&
     (!actor.thumbnail || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
     actor.thumbnail = pluginResult.thumbnail;
 
   if (
-    typeof pluginResult.altThumbnail == "string" &&
+    typeof pluginResult.altThumbnail === "string" &&
     pluginResult.altThumbnail.startsWith("im_") &&
     (!actor.altThumbnail || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
     actor.altThumbnail = pluginResult.altThumbnail;
 
   if (
-    typeof pluginResult.avatar == "string" &&
+    typeof pluginResult.avatar === "string" &&
     pluginResult.avatar.startsWith("im_") &&
     (!actor.avatar || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
     actor.avatar = pluginResult.avatar;
 
   if (
-    typeof pluginResult.hero == "string" &&
+    typeof pluginResult.hero === "string" &&
     pluginResult.hero.startsWith("im_") &&
     (!actor.hero || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
@@ -93,8 +86,7 @@ export async function onActorCreate(
 
   if (typeof pluginResult.name === "string") actor.name = pluginResult.name;
 
-  if (typeof pluginResult.description === "string")
-    actor.description = pluginResult.description;
+  if (typeof pluginResult.description === "string") actor.description = pluginResult.description;
 
   if (typeof pluginResult.bornOn === "number")
     actor.bornOn = new Date(pluginResult.bornOn).valueOf();
@@ -107,18 +99,15 @@ export async function onActorCreate(
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length)
-        actor.customFields[fields[0]] = pluginResult.custom[key];
+      if (fields.length) actor.customFields[fields[0]] = pluginResult.custom[key];
     }
   }
 
   if (validRating(pluginResult.rating)) actor.rating = pluginResult.rating;
 
-  if (typeof pluginResult.favorite === "boolean")
-    actor.favorite = pluginResult.favorite;
+  if (typeof pluginResult.favorite === "boolean") actor.favorite = pluginResult.favorite;
 
-  if (typeof pluginResult.bookmark === "number")
-    actor.bookmark = pluginResult.bookmark;
+  if (typeof pluginResult.bookmark === "number") actor.bookmark = pluginResult.bookmark;
 
   if (pluginResult.nationality !== undefined) {
     if (

@@ -1,34 +1,27 @@
-import Image from "../types/image";
-import ora from "ora";
 import Axios from "axios";
-import extractQueryOptions from "../query_extractor";
-import * as logger from "../logger";
+import ora from "ora";
 import asyncPool from "tiny-async-pool";
-import { Gianna } from "./internal/index";
+
+import * as logger from "../logger";
+import extractQueryOptions from "../query_extractor";
+import Image from "../types/image";
 import { mapAsync } from "../types/utility";
 import {
-  filterFavorites,
-  filterBookmark,
-  filterRating,
-  filterInclude,
-  filterExclude,
   filterActors,
+  filterBookmark,
+  filterExclude,
+  filterFavorites,
+  filterInclude,
+  filterRating,
   filterStudios,
 } from "./common";
+import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
 export let index!: Gianna.Index<IImageSearchDoc>;
 
-const FIELDS = [
-  "name",
-  "labels",
-  "actors",
-  "studioName",
-  "sceneName",
-  "actorNames",
-  "labelNames",
-];
+const FIELDS = ["name", "labels", "actors", "studioName", "sceneName", "actorNames", "labelNames"];
 
 export interface IImageSearchDoc {
   _id: string;
@@ -70,10 +63,10 @@ export const sliceArray = (size: number) => <T>(
   cb: (value: T[], index: number, arr: T[]) => any
 ) => {
   let index = 0;
-  let slice = arr.slice(index, index + size) as T[];
+  let slice = arr.slice(index, index + size);
   while (slice.length) {
     const result = cb(slice, index, arr);
-    if (!!result) break;
+    if (result) break;
     index += size;
     slice = arr.slice(index, index + size);
   }
@@ -94,8 +87,7 @@ export async function indexImages(images: Image[]) {
   await asyncPool(4, slices, async (slice) => {
     const docs = [] as IImageSearchDoc[];
     await asyncPool(16, slice, async (image) => {
-      if (!isBlacklisted(image.name))
-        docs.push(await createImageSearchDoc(image));
+      if (!isBlacklisted(image.name)) docs.push(await createImageSearchDoc(image));
     });
     await addImageSearchDocs(docs);
   });
@@ -125,9 +117,7 @@ export async function buildImageIndex() {
   return index;
 }
 
-export async function createImageSearchDoc(
-  image: Image
-): Promise<IImageSearchDoc> {
+export async function createImageSearchDoc(image: Image): Promise<IImageSearchDoc> {
   const labels = await Image.getLabels(image);
   const actors = await Image.getActors(image);
 
@@ -153,7 +143,7 @@ export async function searchImages(query: string, shuffleSeed = "default") {
   logger.log(`Searching images for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;

@@ -1,15 +1,14 @@
 import debug from "debug";
-import * as url from "url";
 import express from "express";
+import * as url from "url";
+
 import { getConfig } from "./config/index";
 import { writeFileAsync } from "./fs/async";
 
 if (process.env.NODE_ENV == "development") {
   debug.enable("vault:*");
 } else {
-  debug.enable(
-    "vault:success,vault:warn,vault:error,vault:message,vault:plugin"
-  );
+  debug.enable("vault:success,vault:warn,vault:error,vault:message,vault:plugin");
 }
 
 enum LogType {
@@ -50,11 +49,7 @@ function appendToLog(item: ILogData) {
 }
 
 export async function logToFile() {
-  return writeFileAsync(
-    `log-${new Date().toISOString()}`,
-    JSON.stringify(logArray),
-    "utf-8"
-  );
+  return writeFileAsync(`log-${new Date().toISOString()}`, JSON.stringify(logArray), "utf-8");
 }
 
 function merge(...args: any[]) {

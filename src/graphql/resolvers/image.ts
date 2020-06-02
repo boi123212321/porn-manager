@@ -1,5 +1,5 @@
-import Scene from "../../types/scene";
 import Image from "../../types/image";
+import Scene from "../../types/scene";
 import Studio from "../../types/studio";
 
 export default {
@@ -19,5 +19,5 @@ export default {
   },
   async color(image: Image) {
     return (await Image.color(image)) || null;
-  }
+  },
 };

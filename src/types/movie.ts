@@ -1,15 +1,15 @@
-import { generateHash } from "../hash";
-import Scene from "./scene";
-import Label from "./label";
-import { mapAsync } from "./utility";
-import * as logger from "../logger";
 import {
-  sceneCollection,
   actorCollection,
   movieCollection,
   movieSceneCollection,
+  sceneCollection,
 } from "../database";
+import { generateHash } from "../hash";
+import * as logger from "../logger";
+import Label from "./label";
 import MovieScene from "./movie_scene";
+import Scene from "./scene";
+import { mapAsync } from "./utility";
 
 export default class Movie {
   _id: string;
@@ -20,9 +20,9 @@ export default class Movie {
   frontCover: string | null = null;
   backCover: string | null = null;
   spineCover: string | null = null;
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
-  rating: number = 0;
+  rating = 0;
   scenes?: string[]; // backwards compatibility
   customFields: any = {};
   studio: string | null = null;
@@ -36,10 +36,7 @@ export default class Movie {
 
     if (!scenesWithSource.length) return null;
 
-    return scenesWithSource.reduce(
-      (dur, scene) => dur + <number>scene.meta.duration,
-      0
-    );
+    return scenesWithSource.reduce((dur, scene) => dur + <number>scene.meta.duration, 0);
   }
 
   static async filterStudio(studioId: string) {
@@ -65,9 +62,7 @@ export default class Movie {
 
   static async getByScene(id: string) {
     return (
-      await mapAsync(await MovieScene.getByScene(id), (ms) =>
-        Movie.getById(ms.movie)
-      )
+      await mapAsync(await MovieScene.getByScene(id), (ms) => Movie.getById(ms.movie))
     ).filter(Boolean) as Movie[];
   }
 
@@ -78,9 +73,7 @@ export default class Movie {
   static async getLabels(movie: Movie) {
     const scenes = await Movie.getScenes(movie);
     const labelIds = [
-      ...new Set(
-        (await mapAsync(scenes, Scene.getLabels)).flat().map((a) => a._id)
-      ),
+      ...new Set((await mapAsync(scenes, Scene.getLabels)).flat().map((a) => a._id)),
     ];
     return (await mapAsync(labelIds, Label.getById)).filter(Boolean) as Label[];
   }
@@ -88,9 +81,7 @@ export default class Movie {
   static async getActors(movie: Movie) {
     const scenes = await Movie.getScenes(movie);
     const actorIds = [
-      ...new Set(
-        (await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)
-      ),
+      ...new Set((await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)),
     ];
     return (await actorCollection.getBulk(actorIds)).filter(Boolean);
   }
@@ -113,21 +104,16 @@ export default class Movie {
 
   static async getScenes(movie: Movie) {
     const references = await MovieScene.getByMovie(movie._id);
-    return (
-      await sceneCollection.getBulk(references.map((r) => r.scene))
-    ).filter(Boolean);
+    return (await sceneCollection.getBulk(references.map((r) => r.scene))).filter(Boolean);
   }
 
   static async getRating(movie: Movie) {
-    const scenesWithScore = (await Movie.getScenes(movie)).filter(
-      (scene) => !!scene.rating
-    );
+    const scenesWithScore = (await Movie.getScenes(movie)).filter((scene) => !!scene.rating);
 
     if (!scenesWithScore.length) return 0;
 
     return Math.round(
-      scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) /
-        scenesWithScore.length
+      scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) / scenesWithScore.length
     );
   }
 

@@ -1,17 +1,18 @@
-import { generateHash } from "../hash";
-import Label from "./label";
-import * as logger from "../logger";
-import { unlinkAsync } from "../fs/async";
-import { mapAsync } from "./utility";
 import Vibrant from "node-vibrant";
+
 import {
-  imageCollection,
   actorCollection,
-  labelledItemCollection,
   actorReferenceCollection,
+  imageCollection,
+  labelledItemCollection,
 } from "../database";
-import LabelledItem from "./labelled_item";
+import { unlinkAsync } from "../fs/async";
+import { generateHash } from "../hash";
+import * as logger from "../logger";
 import ActorReference from "./actor_reference";
+import Label from "./label";
+import LabelledItem from "./labelled_item";
+import { mapAsync } from "./utility";
 
 export class ImageDimensions {
   width: number | null = null;
@@ -29,9 +30,9 @@ export default class Image {
   path: string | null = null;
   scene: string | null = null;
   addedOn = +new Date();
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
-  rating: number = 0;
+  rating = 0;
   customFields: Record<string, any> = {};
   labels?: string[]; // backwards compatibility
   meta = new ImageMeta();
@@ -113,9 +114,7 @@ export default class Image {
 
   static async getActors(image: Image) {
     const references = await ActorReference.getByItem(image._id);
-    return (
-      await actorCollection.getBulk(references.map((r) => r.actor))
-    ).filter(Boolean);
+    return (await actorCollection.getBulk(references.map((r) => r.actor))).filter(Boolean);
   }
 
   static async setActors(image: Image, actorIds: string[]) {
@@ -143,9 +142,9 @@ export default class Image {
   }
 
   static async getImageByPath(path: string) {
-    return (
-      await imageCollection.query("path-index", encodeURIComponent(path))
-    )[0] as Image | undefined;
+    return (await imageCollection.query("path-index", encodeURIComponent(path)))[0] as
+      | Image
+      | undefined;
   }
 
   constructor(name: string) {

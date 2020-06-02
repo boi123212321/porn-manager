@@ -1,11 +1,12 @@
-import { spawn, ChildProcessWithoutNullStreams } from "child_process";
-import { type, arch } from "os";
-import * as logger from "./logger";
-import { existsAsync, unlinkAsync} from "./fs/async";
 import Axios from "axios";
-import { downloadFile } from "./ffmpeg-download";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { chmodSync } from "fs";
+import { arch, type } from "os";
+
 import { getConfig } from "./config/index";
+import { downloadFile } from "./ffmpeg-download";
+import { existsAsync, unlinkAsync } from "./fs/async";
+import * as logger from "./logger";
 
 export let giannaProcess!: ChildProcessWithoutNullStreams;
 
@@ -64,9 +65,7 @@ async function downloadGianna() {
   const asset = assets.find((as) => as.name == downloadName);
 
   if (!asset) {
-    logger.error(
-      "Gianna release not found: " + downloadName + " for " + type()
-    );
+    logger.error("Gianna release not found: " + downloadName + " for " + type());
     process.exit(1);
   }
 

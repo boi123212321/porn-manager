@@ -1,10 +1,10 @@
-import Label from "./types/label";
-import Actor from "./types/actor";
-import Studio from "./types/studio";
-import Scene from "./types/scene";
-import CustomField from "./types/custom_field";
-import Movie from "./types/movie";
 import * as logger from "./logger";
+import Actor from "./types/actor";
+import CustomField from "./types/custom_field";
+import Label from "./types/label";
+import Movie from "./types/movie";
+import Scene from "./types/scene";
+import Studio from "./types/studio";
 
 export function isSingleWord(str: string) {
   return str.split(" ").length == 1;
@@ -37,9 +37,7 @@ export function isMatchingItem(
   if (!ignoreSingle || !isSingleWord(item.name))
     if (originalStr.includes(stripStr(item.name))) return true;
 
-  const aliases = ignoreSingle
-    ? ignoreSingleNames(item.aliases || [])
-    : item.aliases || [];
+  const aliases = ignoreSingle ? ignoreSingleNames(item.aliases || []) : item.aliases || [];
 
   return aliases.some((alias) => {
     if (isRegex(alias)) {

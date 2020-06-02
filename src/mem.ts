@@ -1,16 +1,15 @@
-import * as logger from "./logger";
 import v8 from "v8";
+
+import * as logger from "./logger";
 
 export function printMaxMemory() {
   logger.message(
-    `Max. memory: ${Math.round(
-      v8.getHeapStatistics().total_available_size / 1024 / 1024
-    )} MB`
+    `Max. memory: ${Math.round(v8.getHeapStatistics().total_available_size / 1024 / 1024)} MB`
   );
 }
 
 export function memorySizeOf(obj: any) {
-  var bytes = 0;
+  let bytes = 0;
 
   function sizeOf(obj: any) {
     if (obj !== null && obj !== undefined) {
@@ -27,7 +26,7 @@ export function memorySizeOf(obj: any) {
         case "object":
           var objClass = Object.prototype.toString.call(obj).slice(8, -1);
           if (objClass === "Object" || objClass === "Array") {
-            for (var key in obj) {
+            for (const key in obj) {
               if (!obj.hasOwnProperty(key)) continue;
               sizeOf(obj[key]);
             }

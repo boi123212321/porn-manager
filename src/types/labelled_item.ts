@@ -31,10 +31,7 @@ export default class LabelledItem {
   }
 
   static async get(from: string, to: string) {
-    const fromReferences = await labelledItemCollection.query(
-      "item-index",
-      from
-    );
+    const fromReferences = await labelledItemCollection.query("item-index", from);
     return fromReferences.find((r) => r.label == to);
   }
 

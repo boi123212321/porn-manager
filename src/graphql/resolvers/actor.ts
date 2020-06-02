@@ -1,9 +1,9 @@
-import Scene from "../../types/scene";
-import Image from "../../types/image";
 import Actor from "../../types/actor";
-import CustomField, { CustomFieldTarget } from "../../types/custom_field";
-import { createObjectSet } from "../../types/utility";
 import { getNationality } from "../../types/countries";
+import CustomField, { CustomFieldTarget } from "../../types/custom_field";
+import Image from "../../types/image";
+import Scene from "../../types/scene";
+import { createObjectSet } from "../../types/utility";
 
 export default {
   async scenes(actor: Actor) {
@@ -37,9 +37,7 @@ export default {
   },
   async availableFields() {
     const fields = await CustomField.getAll();
-    return fields.filter((field) =>
-      field.target.includes(CustomFieldTarget.ACTORS)
-    );
+    return fields.filter((field) => field.target.includes(CustomFieldTarget.ACTORS));
   },
   age(actor: Actor) {
     return Actor.getAge(actor);

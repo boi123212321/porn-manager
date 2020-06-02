@@ -1,8 +1,9 @@
 // TS bindings for Gianna
 
 import Axios from "axios";
-import * as logger from "../../logger";
+
 import { getConfig } from "../../config/index";
+import * as logger from "../../logger";
 
 export namespace Gianna {
   export interface ISearchResults {
@@ -60,38 +61,27 @@ export namespace Gianna {
     }
 
     async clear() {
-      await Axios.delete(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}/clear`
-      );
+      await Axios.delete(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}/clear`);
     }
 
     async update(items: T[]) {
-      await Axios.patch(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`,
-        {
-          items,
-        }
-      );
+      await Axios.patch(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`, {
+        items,
+      });
     }
 
     async index(items: T[]) {
-      await Axios.post(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`,
-        {
-          items,
-        }
-      );
+      await Axios.post(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`, {
+        items,
+      });
     }
 
     async remove(items: string[]) {
-      await Axios.delete(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`,
-        {
-          data: {
-            items,
-          },
-        }
-      );
+      await Axios.delete(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`, {
+        data: {
+          items,
+        },
+      });
     }
 
     async search(opts: ISearchOptions) {
@@ -106,9 +96,7 @@ export namespace Gianna {
         {
           params: {
             // hot fix, fix this in gianna eventually TODO:
-            q: opts.query
-              ? opts.query.trim().replace(/ {2,}/g, " ")
-              : opts.query,
+            q: opts.query ? opts.query.trim().replace(/ {2,}/g, " ") : opts.query,
             take: opts.take,
             skip: opts.skip,
           },
@@ -119,12 +107,9 @@ export namespace Gianna {
   }
 
   export async function createIndex(name: string, fields: string[]) {
-    await Axios.put(
-      `http://localhost:${getConfig().GIANNA_PORT}/index/${name}`,
-      {
-        fields,
-      }
-    );
+    await Axios.put(`http://localhost:${getConfig().GIANNA_PORT}/index/${name}`, {
+      fields,
+    });
     return new Index(name);
   }
 }

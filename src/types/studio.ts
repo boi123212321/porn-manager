@@ -1,12 +1,12 @@
-import { generateHash } from "../hash";
-import Label from "./label";
-import Actor from "./actor";
-import Scene from "./scene";
-import Movie from "./movie";
-import { mapAsync } from "./utility";
-import * as logger from "../logger";
 import { labelledItemCollection, studioCollection } from "../database";
+import { generateHash } from "../hash";
+import * as logger from "../logger";
+import Actor from "./actor";
+import Label from "./label";
 import LabelledItem from "./labelled_item";
+import Movie from "./movie";
+import Scene from "./scene";
+import { mapAsync } from "./utility";
 
 export default class Studio {
   _id: string;
@@ -14,7 +14,7 @@ export default class Studio {
   description: string | null = null;
   thumbnail: string | null = null;
   addedOn: number = +new Date();
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
   parent: string | null = null;
   labels?: string[]; // backwards compatibility
@@ -64,9 +64,7 @@ export default class Studio {
 
     const moviesOfSubStudios = (
       await Promise.all(
-        (await Studio.getSubStudios(studio._id)).map((child) =>
-          Studio.getMovies(child)
-        )
+        (await Studio.getSubStudios(studio._id)).map((child) => Studio.getMovies(child))
       )
     ).flat();
 
@@ -80,9 +78,7 @@ export default class Studio {
   static async getActors(studio: Studio) {
     const scenes = await Studio.getScenes(studio);
     const actorIds = [
-      ...new Set(
-        (await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)
-      ),
+      ...new Set((await mapAsync(scenes, Scene.getActors)).flat().map((a) => a._id)),
     ];
     return (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
   }

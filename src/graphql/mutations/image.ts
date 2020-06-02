@@ -1,24 +1,21 @@
-import Actor from "../../types/actor";
-import Label from "../../types/label";
-import Scene from "../../types/scene";
-import Image from "../../types/image";
-import { ReadStream, createWriteStream } from "fs";
-import { extname } from "path";
-import * as logger from "../../logger";
-import { extractLabels, extractActors } from "../../extractor";
-import { Dictionary, libraryPath, mapAsync } from "../../types/utility";
+import { createWriteStream, ReadStream } from "fs";
 import Jimp from "jimp";
-import { statAsync, unlinkAsync, copyFileAsync } from "../../fs/async";
+import { extname } from "path";
+
 import { getConfig } from "../../config";
-import Studio from "../../types/studio";
-import {
-  indexImages,
-  index as imageIndex,
-  updateImages,
-} from "../../search/image";
 import { imageCollection } from "../../database";
-import LabelledItem from "../../types/labelled_item";
+import { extractActors, extractLabels } from "../../extractor";
+import { copyFileAsync, statAsync, unlinkAsync } from "../../fs/async";
+import * as logger from "../../logger";
+import { index as imageIndex, indexImages, updateImages } from "../../search/image";
+import Actor from "../../types/actor";
 import ActorReference from "../../types/actor_reference";
+import Image from "../../types/image";
+import Label from "../../types/label";
+import LabelledItem from "../../types/labelled_item";
+import Scene from "../../types/scene";
+import Studio from "../../types/studio";
+import { Dictionary, libraryPath, mapAsync } from "../../types/utility";
 
 type IImageUpdateOpts = Partial<{
   name: string;
@@ -116,12 +113,7 @@ export default {
 
       if (args.crop) {
         logger.log(`Cropping image...`);
-        _image.crop(
-          args.crop.left,
-          args.crop.top,
-          args.crop.width,
-          args.crop.height
-        );
+        _image.crop(args.crop.left, args.crop.top, args.crop.width, args.crop.height);
         image.meta.dimensions.width = args.crop.width;
         image.meta.dimensions.height = args.crop.height;
       } else {
@@ -133,10 +125,7 @@ export default {
         logger.log("Resizing image to thumbnail size");
         const MAX_SIZE = config.COMPRESS_IMAGE_SIZE;
 
-        if (
-          _image.bitmap.width > _image.bitmap.height &&
-          _image.bitmap.width > MAX_SIZE
-        ) {
+        if (_image.bitmap.width > _image.bitmap.height && _image.bitmap.width > MAX_SIZE) {
           _image.resize(MAX_SIZE, Jimp.AUTO);
         } else if (_image.bitmap.height > MAX_SIZE) {
           _image.resize(Jimp.AUTO, MAX_SIZE);
@@ -218,10 +207,7 @@ export default {
     return image;
   },
 
-  async updateImages(
-    _,
-    { ids, opts }: { ids: string[]; opts: IImageUpdateOpts }
-  ) {
+  async updateImages(_, { ids, opts }: { ids: string[]; opts: IImageUpdateOpts }) {
     const config = getConfig();
     const updatedImages = [] as Image[];
 
@@ -233,46 +219,37 @@ export default {
           const actorIds = [...new Set(opts.actors)];
           await Image.setActors(image, actorIds);
 
-          const existingLabels = (await Image.getLabels(image)).map(
-            (l) => l._id
-          );
+          const existingLabels = (await Image.getLabels(image)).map((l) => l._id);
 
           if (config.APPLY_ACTOR_LABELS === true) {
-            const actors = (await mapAsync(actorIds, Actor.getById)).filter(
-              Boolean
-            ) as Actor[];
+            const actors = (await mapAsync(actorIds, Actor.getById)).filter(Boolean) as Actor[];
             const labelIds = actors.map((ac) => ac.labels).flat();
 
             logger.log("Applying actor labels to image");
             await Image.setLabels(image, existingLabels.concat(labelIds));
           }
         } else {
-          if (Array.isArray(opts.labels))
-            await Image.setLabels(image, opts.labels);
+          if (Array.isArray(opts.labels)) await Image.setLabels(image, opts.labels);
         }
 
-        if (typeof opts.bookmark == "number" || opts.bookmark === null)
+        if (typeof opts.bookmark === "number" || opts.bookmark === null)
           image.bookmark = opts.bookmark;
 
-        if (typeof opts.favorite == "boolean") image.favorite = opts.favorite;
+        if (typeof opts.favorite === "boolean") image.favorite = opts.favorite;
 
-        if (typeof opts.name == "string") image.name = opts.name.trim();
+        if (typeof opts.name === "string") image.name = opts.name.trim();
 
-        if (typeof opts.rating == "number") image.rating = opts.rating;
+        if (typeof opts.rating === "number") image.rating = opts.rating;
 
         if (opts.studio !== undefined) image.studio = opts.studio;
 
         if (opts.scene !== undefined) image.scene = opts.scene;
 
-        if (opts.color && isHexColorString(opts.color))
-          image.color = opts.color;
+        if (opts.color && isHexColorString(opts.color)) image.color = opts.color;
 
         if (opts.customFields) {
           for (const key in opts.customFields) {
-            const value =
-              opts.customFields[key] !== undefined
-                ? opts.customFields[key]
-                : null;
+            const value = opts.customFields[key] !== undefined ? opts.customFields[key] : null;
             logger.log(`Set scene custom.${key} to ${value}`);
             opts.customFields[key] = value;
           }

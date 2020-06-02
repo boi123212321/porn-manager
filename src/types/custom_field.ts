@@ -1,6 +1,6 @@
-import { generateHash } from "../hash";
 import * as database from "../database";
 import { customFieldCollection } from "../database";
+import { generateHash } from "../hash";
 
 export enum CustomFieldType {
   NUMBER = "NUMBER",

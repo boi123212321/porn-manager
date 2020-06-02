@@ -1,16 +1,12 @@
-import Studio from "../types/studio";
-import * as logger from "../logger";
 import ora from "ora";
-import { Gianna } from "./internal";
+
 import argv from "../args";
-import { mapAsync } from "../types/utility";
+import * as logger from "../logger";
 import extractQueryOptions from "../query_extractor";
-import {
-  filterFavorites,
-  filterBookmark,
-  filterInclude,
-  filterExclude,
-} from "./common";
+import Studio from "../types/studio";
+import { mapAsync } from "../types/utility";
+import { filterBookmark, filterExclude, filterFavorites, filterInclude } from "./common";
+import { Gianna } from "./internal";
 
 const PAGE_SIZE = 24;
 
@@ -30,9 +26,7 @@ export interface IStudioSearchDoc {
   numScenes: number;
 }
 
-export async function createStudioSearchDoc(
-  studio: Studio
-): Promise<IStudioSearchDoc> {
+export async function createStudioSearchDoc(studio: Studio): Promise<IStudioSearchDoc> {
   const labels = await Studio.getLabels(studio);
   // const actors = await Studio.getActors(studio);
 
@@ -100,7 +94,7 @@ export async function searchStudios(query: string, shuffleSeed = "default") {
   logger.log(`Searching scenes for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;

@@ -1,32 +1,33 @@
 import Schema from "validate";
-import { stringArray, limitRating } from "./common";
+
+import { limitRating, stringArray } from "./common";
 
 export const studioSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   parent: {
     type: String,
-    required: false
+    required: false,
   },
   aliases: stringArray(false),
   thumbnail: {
     type: String,
-    required: false
+    required: false,
   },
   rating: {
     type: Number,
     required: false,
-    use: { limitRating }
+    use: { limitRating },
   },
   labels: stringArray(false),
   bookmark: {
     required: false,
-    type: Number
+    type: Number,
   },
   favorite: {
     required: false,
-    type: Boolean
-  }
+    type: Boolean,
+  },
 });

@@ -1,8 +1,5 @@
-import CustomField, {
-  CustomFieldType,
-  CustomFieldTarget,
-} from "../../types/custom_field";
 import { customFieldCollection } from "../../database";
+import CustomField, { CustomFieldTarget, CustomFieldType } from "../../types/custom_field";
 
 export default {
   async updateCustomField(
@@ -60,10 +57,7 @@ export default {
 
     if (unit) field.unit = unit;
 
-    if (
-      type == CustomFieldType.SINGLE_SELECT ||
-      type == CustomFieldType.MULTI_SELECT
-    ) {
+    if (type == CustomFieldType.SINGLE_SELECT || type == CustomFieldType.MULTI_SELECT) {
       if (values) field.values = values;
       else {
         throw new Error("Values have to be defined for select fields");

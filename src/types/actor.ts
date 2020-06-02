@@ -1,12 +1,12 @@
+import { actorCollection } from "../database";
 import { generateHash } from "../hash";
+import * as logger from "../logger";
+import { searchActors } from "../search/actor";
 import Label from "./label";
 import Scene from "./scene";
-import { mapAsync, createObjectSet } from "./utility";
-import * as logger from "../logger";
-import moment = require("moment");
-import { actorCollection } from "../database";
+import { createObjectSet, mapAsync } from "./utility";
 import SceneView from "./watch";
-import { searchActors } from "../search/actor";
+import moment = require("moment");
 
 export default class Actor {
   _id: string;
@@ -18,13 +18,11 @@ export default class Actor {
   altThumbnail: string | null = null;
   hero?: string | null = null;
   avatar?: string | null = null;
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
-  rating: number = 0;
-  customFields: Record<
-    string,
-    boolean | string | number | string[] | null
-  > = {};
+  rating = 0;
+  customFields: Record<string, boolean | string | number | string[] | null> = {};
+
   labels?: string[]; // backwards compatibility
   studio?: string | null; // backwards compatibility
   description?: string | null = null;
@@ -119,9 +117,7 @@ export default class Actor {
     return await mapAsync(scenes, async (scene) => {
       return {
         scene,
-        actors: (await Scene.getActors(scene)).filter(
-          (ac) => ac._id != actor._id
-        ),
+        actors: (await Scene.getActors(scene)).filter((ac) => ac._id != actor._id),
       };
     });
   }

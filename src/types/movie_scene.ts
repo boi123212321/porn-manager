@@ -25,10 +25,7 @@ export default class MovieScene {
   }
 
   static async get(from: string, to: string) {
-    const fromReferences = await movieSceneCollection.query(
-      "movie-index",
-      from
-    );
+    const fromReferences = await movieSceneCollection.query("movie-index", from);
     return fromReferences.find((r) => r.scene == to);
   }
 

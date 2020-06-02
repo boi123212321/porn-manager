@@ -1,33 +1,30 @@
-import Actor from "../../types/actor";
-import Label from "../../types/label";
-import Scene from "../../types/scene";
-import Movie from "../../types/movie";
-import { mapAsync, filterAsync } from "../../types/utility";
-import Studio from "../../types/studio";
-import Image from "../../types/image";
-import CustomField from "../../types/custom_field";
-import { getImages } from "./search/image";
-import { getScenes } from "./search/scene";
-import { getActors, getUnwatchedActors } from "./search/actor";
-import { getStudios } from "./search/studio";
-import { getMovies } from "./search/movie";
-import { getLength, isProcessing } from "../../queue/processing";
 import {
-  sceneCollection,
-  imageCollection,
   actorCollection,
-  movieCollection,
+  imageCollection,
   labelCollection,
+  movieCollection,
+  sceneCollection,
   studioCollection,
 } from "../../database/index";
-import SceneView from "../../types/watch";
+import { getLength, isProcessing } from "../../queue/processing";
+import Actor from "../../types/actor";
+import CustomField from "../../types/custom_field";
+import Image from "../../types/image";
+import Label from "../../types/label";
 import LabelledItem from "../../types/labelled_item";
+import Movie from "../../types/movie";
+import Scene from "../../types/scene";
+import Studio from "../../types/studio";
+import { filterAsync, mapAsync } from "../../types/utility";
+import SceneView from "../../types/watch";
+import { getActors, getUnwatchedActors } from "./search/actor";
+import { getImages } from "./search/image";
+import { getMovies } from "./search/movie";
+import { getScenes } from "./search/scene";
+import { getStudios } from "./search/studio";
 
 export default {
-  async getWatches(
-    _: void,
-    { min, max }: { min: number | null; max: number | null }
-  ) {
+  async getWatches(_: void, { min, max }: { min: number | null; max: number | null }) {
     return (await SceneView.getAll()).filter(
       (w) => w.date >= (min || 0) && w.date <= (max || 99999999999999)
     );
@@ -37,9 +34,7 @@ export default {
     const numStudios = await studioCollection.count();
     if (numStudios == 0) return [];
 
-    return (await Scene.getAll())
-      .filter((s) => s.studio === null)
-      .slice(0, num || 12);
+    return (await Scene.getAll()).filter((s) => s.studio === null).slice(0, num || 12);
   },
 
   async getScenesWithoutLabels(_, { num }: { num: number }) {
@@ -168,7 +163,7 @@ export default {
   async actorGraph() {
     const actors = await Actor.getAll();
 
-    let links = [] as {
+    const links = [] as {
       _id: string;
       from: string;
       to: string;

@@ -1,9 +1,9 @@
 import * as database from "../database";
+import { labelCollection, labelledItemCollection } from "../database";
 import { generateHash } from "../hash";
 import * as logger from "../logger";
 import LabelledItem from "./labelled_item";
 import { mapAsync } from "./utility";
-import { labelledItemCollection, labelCollection } from "../database";
 
 export default class Label {
   _id: string;
@@ -36,9 +36,7 @@ export default class Label {
 
   static async getForItem(id: string) {
     const references = await LabelledItem.getByItem(id);
-    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
-      Boolean
-    ) as Label[];
+    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(Boolean) as Label[];
   }
 
   static async getById(_id: string) {
@@ -58,8 +56,6 @@ export default class Label {
   constructor(name: string, aliases: string[] = []) {
     this._id = "la_" + generateHash();
     this.name = name.trim();
-    this.aliases = [
-      ...new Set(aliases.map((alias) => alias.toLowerCase().trim())),
-    ];
+    this.aliases = [...new Set(aliases.map((alias) => alias.toLowerCase().trim()))];
   }
 }

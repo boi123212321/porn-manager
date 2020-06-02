@@ -1,5 +1,5 @@
-import { generateHash } from "../hash";
 import { viewCollection } from "../database/index";
+import { generateHash } from "../hash";
 
 export default class SceneView {
   _id: string;

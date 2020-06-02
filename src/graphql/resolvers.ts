@@ -1,17 +1,17 @@
+import { GraphQLJSONObject } from "graphql-type-json";
 import GraphQLLong from "graphql-type-long";
-import QueryResolvers from "./resolvers/query";
-import ActorResolver from "./resolvers/actor";
-import SceneResolver from "./resolvers/scene";
+
 import MutationResolver from "./mutation";
+import ActorResolver from "./resolvers/actor";
+import CustomFieldResolver from "./resolvers/custom_field";
 import ImageResolver from "./resolvers/image";
 import LabelResolver from "./resolvers/label";
-import MovieResolver from "./resolvers/movie";
-import StudioResolver from "./resolvers/studio";
-import CustomFieldResolver from "./resolvers/custom_field";
 import MarkerResolver from "./resolvers/marker";
+import MovieResolver from "./resolvers/movie";
+import QueryResolvers from "./resolvers/query";
+import SceneResolver from "./resolvers/scene";
 import SceneViewResolver from "./resolvers/scene_view";
-
-import { GraphQLJSONObject } from "graphql-type-json";
+import StudioResolver from "./resolvers/studio";
 
 const resolvers = {
   Long: GraphQLLong,

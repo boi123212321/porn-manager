@@ -1,11 +1,12 @@
-import { defaultConfig, IConfig } from "./config/index";
+import { chmodSync } from "fs";
 import inquirer from "inquirer";
-import { getFFMpegURL, getFFProbeURL, downloadFile } from "./ffmpeg-download";
-const sha = require("js-sha512").sha512;
 import * as path from "path";
+
+import { defaultConfig, IConfig } from "./config/index";
+import { downloadFile, getFFMpegURL, getFFProbeURL } from "./ffmpeg-download";
 import { existsAsync } from "./fs/async";
 import * as logger from "./logger";
-import { chmodSync } from "fs";
+const sha = require("js-sha512").sha512;
 
 export default async () => {
   const { downloadFFMPEG } = await inquirer.prompt([
@@ -13,8 +14,8 @@ export default async () => {
       type: "confirm",
       name: "downloadFFMPEG",
       message: "Download FFMPEG binaries?",
-      default: true
-    }
+      default: true,
+    },
   ]);
 
   const { usePassword } = await inquirer.prompt([
@@ -22,8 +23,8 @@ export default async () => {
       type: "confirm",
       name: "usePassword",
       message: "Set a password (protect server in LAN)?",
-      default: true
-    }
+      default: true,
+    },
   ]);
 
   let password;
@@ -34,8 +35,8 @@ export default async () => {
         {
           type: "password",
           name: "password",
-          message: "Enter a password"
-        }
+          message: "Enter a password",
+        },
       ])
     ).password;
 
@@ -47,8 +48,8 @@ export default async () => {
           {
             type: "password",
             name: "password",
-            message: "Confirm password"
-          }
+            message: "Confirm password",
+          },
         ])
       ).password;
     } while (password != confirmPassword);
@@ -58,10 +59,9 @@ export default async () => {
     {
       type: "confirm",
       name: "useVideoFolders",
-      message:
-        "Do you have one or more folders you want to import VIDEOS from?",
-      default: true
-    }
+      message: "Do you have one or more folders you want to import VIDEOS from?",
+      default: true,
+    },
   ]);
 
   const videoFolders = [] as string[];
@@ -76,8 +76,8 @@ export default async () => {
             type: "input",
             name: "path",
             message: "Enter folder name (enter 'done' when done)",
-            default: "done"
-          }
+            default: "done",
+          },
         ])
       ).path;
 
@@ -92,10 +92,9 @@ export default async () => {
     {
       type: "confirm",
       name: "useImageFolders",
-      message:
-        "Do you have one or more folders you want to import IMAGES from?",
-      default: true
-    }
+      message: "Do you have one or more folders you want to import IMAGES from?",
+      default: true,
+    },
   ]);
 
   const imageFolders = [] as string[];
@@ -110,8 +109,8 @@ export default async () => {
             type: "input",
             name: "path",
             message: "Enter folder name (enter 'done' when done)",
-            default: "done"
-          }
+            default: "done",
+          },
         ])
       ).path;
 
@@ -122,7 +121,7 @@ export default async () => {
     } while (path != "done");
   }
 
-  let config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;
+  const config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;
 
   if (downloadFFMPEG) {
     const ffmpegURL = getFFMpegURL();

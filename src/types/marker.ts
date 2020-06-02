@@ -1,25 +1,22 @@
-import { generateHash } from "../hash";
-import Scene from "./scene";
-import * as logger from "../logger";
-import { mapAsync, libraryPath } from "./utility";
-import Label from "./label";
-import Image from "./image";
 import * as path from "path";
+
+import { imageCollection, labelledItemCollection, markerCollection } from "../database";
 import { singleScreenshot } from "../ffmpeg/screenshot";
-import {
-  imageCollection,
-  labelledItemCollection,
-  markerCollection,
-} from "../database";
+import { generateHash } from "../hash";
+import * as logger from "../logger";
+import Image from "./image";
+import Label from "./label";
 import LabelledItem from "./labelled_item";
+import Scene from "./scene";
+import { libraryPath, mapAsync } from "./utility";
 
 export default class Marker {
   _id: string;
   name: string;
   addedOn = +new Date();
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
-  rating: number = 0;
+  rating = 0;
   customFields: any = {};
   scene: string;
   time: number; // Time in scene in seconds
@@ -33,9 +30,7 @@ export default class Marker {
     const allMarkers = await Marker.getAll();
 
     for (const marker of allMarkers) {
-      const markerId = marker._id.startsWith("st_")
-        ? marker._id
-        : `st_${marker._id}`;
+      const markerId = marker._id.startsWith("st_") ? marker._id : `st_${marker._id}`;
 
       if (!marker.thumbnail) {
         await this.createMarkerThumbnail(marker);

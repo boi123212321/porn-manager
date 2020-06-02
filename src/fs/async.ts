@@ -1,16 +1,9 @@
-import {
-  exists,
-  stat,
-  unlink,
-  readdir,
-  readFile,
-  writeFile,
-  copyFile,
-} from "fs";
-import { promisify } from "util";
-import { join, extname, resolve } from "path";
-import * as logger from "../logger";
+import { copyFile, exists, readdir, readFile, stat, unlink, writeFile } from "fs";
+import { extname, join, resolve } from "path";
 import rimraf from "rimraf";
+import { promisify } from "util";
+
+import * as logger from "../logger";
 
 export const existsAsync = promisify(exists);
 export const statAsync = promisify(stat);
@@ -24,8 +17,7 @@ export const rimrafAsync = promisify(rimraf);
 const pathIsExcluded = (exclude: string[], path: string) =>
   exclude.some((regStr) => new RegExp(regStr, "i").test(path.toLowerCase()));
 
-const validExtension = (exts: string[], path: string) =>
-  exts.includes(extname(path).toLowerCase());
+const validExtension = (exts: string[], path: string) => exts.includes(extname(path).toLowerCase());
 
 export interface IWalkOptions {
   dir: string;
@@ -37,7 +29,7 @@ export interface IWalkOptions {
 export async function walk(options: IWalkOptions) {
   const root = resolve(options.dir);
 
-  let folderStack = [] as string[];
+  const folderStack = [] as string[];
   folderStack.push(root);
 
   while (folderStack.length) {

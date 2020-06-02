@@ -10,7 +10,7 @@ export default function cors(
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
 
   // intercept OPTIONS method
-  if ("OPTIONS" == req.method) {
+  if (req.method == "OPTIONS") {
     res.sendStatus(200);
   } else {
     next();

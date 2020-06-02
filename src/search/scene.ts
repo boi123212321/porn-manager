@@ -1,22 +1,23 @@
+import ora from "ora";
+
+import argv from "../args";
+import * as logger from "../logger";
+import extractQueryOptions from "../query_extractor";
 import Scene from "../types/scene";
 import Studio from "../types/studio";
-import * as logger from "../logger";
-import ora from "ora";
-import extractQueryOptions from "../query_extractor";
-import argv from "../args";
-import SceneView from "../types/watch";
-import { Gianna } from "./internal/index";
 import { mapAsync } from "../types/utility";
+import SceneView from "../types/watch";
 import {
-  filterFavorites,
-  filterBookmark,
-  filterRating,
-  filterInclude,
-  filterExclude,
   filterActors,
-  filterStudios,
+  filterBookmark,
   filterDuration,
+  filterExclude,
+  filterFavorites,
+  filterInclude,
+  filterRating,
+  filterStudios,
 } from "./common";
+import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
@@ -65,21 +66,12 @@ async function createSceneSearchDoc(scene: Scene): Promise<ISceneSearchDoc> {
     studio: scene.studio,
     resolution: scene.meta.dimensions ? scene.meta.dimensions.height : 0,
     size: scene.meta.size,
-    studioName: scene.studio
-      ? ((await Studio.getById(scene.studio)) || { name: null }).name
-      : null,
+    studioName: scene.studio ? ((await Studio.getById(scene.studio)) || { name: null }).name : null,
     score: Scene.calculateScore(scene, numViews),
   };
 }
 
-const FIELDS = [
-  "name",
-  "labels",
-  "actors",
-  "studioName",
-  "actorNames",
-  "labelNames",
-];
+const FIELDS = ["name", "labels", "actors", "studioName", "actorNames", "labelNames"];
 
 async function addSceneSearchDocs(docs: ISceneSearchDoc[]) {
   logger.log(`Indexing ${docs.length} items...`);
@@ -118,7 +110,7 @@ export async function searchScenes(query: string, shuffleSeed = "default") {
   logger.log(`Searching scenes for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;

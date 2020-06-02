@@ -1,4 +1,5 @@
 import Handlebars from "handlebars";
+
 import { readFileAsync } from "./fs/async";
 
 export async function renderHandlebars(file: string, context: any) {

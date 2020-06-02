@@ -1,7 +1,7 @@
-import Scene from "../../types/scene";
-import Image from "../../types/image";
-import Studio from "../../types/studio";
 import CustomField, { CustomFieldTarget } from "../../types/custom_field";
+import Image from "../../types/image";
+import Scene from "../../types/scene";
+import Studio from "../../types/studio";
 import SceneView from "../../types/watch";
 
 export default {
@@ -31,9 +31,7 @@ export default {
   },
   async availableFields() {
     const fields = await CustomField.getAll();
-    return fields.filter((field) =>
-      field.target.includes(CustomFieldTarget.SCENES)
-    );
+    return fields.filter((field) => field.target.includes(CustomFieldTarget.SCENES));
   },
   async movies(scene: Scene) {
     return Scene.getMovies(scene);

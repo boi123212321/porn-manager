@@ -1,32 +1,29 @@
-import { IConfig } from "../config/index";
-import { existsAsync } from "../fs/async";
 import axios from "axios";
+import boxen from "boxen";
 import cheerio from "cheerio";
 import debug from "debug";
-import ora from "ora";
-import { Dictionary, libraryPath } from "../types/utility";
-import * as logger from "../logger";
-import moment from "moment";
-import * as fs from "fs";
-import * as nodepath from "path";
 import ffmpeg from "fluent-ffmpeg";
-import jimp from "jimp";
-import YAML from "yaml";
+import * as fs from "fs";
 import inquirer from "inquirer";
-import readline from "readline";
+import jimp from "jimp";
+import moment from "moment";
+import ora from "ora";
 import * as os from "os";
-import boxen from "boxen";
+import * as nodepath from "path";
+import readline from "readline";
+import YAML from "yaml";
+
+import { IConfig } from "../config/index";
+import { existsAsync } from "../fs/async";
+import * as logger from "../logger";
+import { Dictionary, libraryPath } from "../types/utility";
 
 function requireUncached(module: string) {
   delete require.cache[require.resolve(module)];
   return require(module);
 }
 
-export async function runPluginsSerial(
-  config: IConfig,
-  event: string,
-  inject?: Dictionary<any>
-) {
+export async function runPluginsSerial(config: IConfig, event: string, inject?: Dictionary<any>) {
   const result = {} as Dictionary<any>;
   if (!config.PLUGIN_EVENTS[event]) {
     logger.warn(`No plugins defined for event ${event}.`);
@@ -39,7 +36,7 @@ export async function runPluginsSerial(
     let pluginName;
     let pluginArgs;
 
-    if (typeof pluginItem == "string") pluginName = pluginItem;
+    if (typeof pluginItem === "string") pluginName = pluginItem;
     else {
       pluginName = pluginItem[0];
       pluginArgs = pluginItem[1];
@@ -61,14 +58,8 @@ export async function runPluginsSerial(
     }
   }
   logger.log(`Plugin run over...`);
-  if (!numErrors)
-    logger.success(
-      `Ran successfully ${config.PLUGIN_EVENTS[event].length} plugins.`
-    );
-  else
-    logger.warn(
-      `Ran ${config.PLUGIN_EVENTS[event].length} plugins with ${numErrors} errors.`
-    );
+  if (!numErrors) logger.success(`Ran successfully ${config.PLUGIN_EVENTS[event].length} plugins.`);
+  else logger.warn(`Ran ${config.PLUGIN_EVENTS[event].length} plugins with ${numErrors} errors.`);
   return result;
 }
 
@@ -90,8 +81,7 @@ export async function runPlugin(
 
     const func = requireUncached(path);
 
-    if (typeof func != "function")
-      throw new Error(`${pluginName}: not a valid plugin.`);
+    if (typeof func !== "function") throw new Error(`${pluginName}: not a valid plugin.`);
 
     logger.log(plugin);
 
@@ -110,8 +100,7 @@ export async function runPlugin(
         }, */
         // TODO: deprecate at some point, replace with ^
         $require: (partial: string) => {
-          if (typeof partial != "string")
-            throw new TypeError("$require: String required");
+          if (typeof partial !== "string") throw new TypeError("$require: String required");
           return requireUncached(nodepath.resolve(path, partial));
         },
         $os: os,
@@ -135,8 +124,7 @@ export async function runPlugin(
         ...inject,
       });
 
-      if (typeof result !== "object")
-        throw new Error(`${pluginName}: malformed output.`);
+      if (typeof result !== "object") throw new Error(`${pluginName}: malformed output.`);
 
       return result || {};
     } catch (error) {

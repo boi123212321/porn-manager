@@ -1,9 +1,9 @@
+import { processingCollection } from "../database/index";
+import * as logger from "../logger";
+
 export interface ISceneProcessingItem {
   _id: string;
 }
-
-import * as logger from "../logger";
-import { processingCollection } from "../database/index";
 
 let processing = false;
 

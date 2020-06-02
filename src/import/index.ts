@@ -1,21 +1,22 @@
-import { getConfig } from "../config";
-import { walk, existsAsync, readFileAsync } from "../fs/async";
+import { appendFileSync } from "fs";
 import { basename, extname, resolve } from "path";
+import YAML from "yaml";
+
+import args from "../args";
+import { getConfig } from "../config";
+import { existsAsync, readFileAsync, walk } from "../fs/async";
 import * as logger from "../logger";
 import { libraryPath } from "../types/utility";
-import YAML from "yaml";
-import { verifyFileData } from "./verify";
 import { createFromFileData } from "./create";
 import { validateImportFile } from "./validate";
-import { appendFileSync } from "fs";
-import args from "../args";
+import { verifyFileData } from "./verify";
 
 // Previously imported files
 let imported: string[] = [];
 
 async function processFile(file: string) {
   let parsed = null as any;
-  let fileContent = await readFileAsync(file, "utf-8");
+  const fileContent = await readFileAsync(file, "utf-8");
 
   if (extname(file) == ".json") {
     try {
@@ -69,8 +70,7 @@ export async function checkImportFolders() {
   // Files to process
   const newFiles = [] as string[];
 
-  if (config.EXCLUDE_FILES.length)
-    logger.log(`Will ignore files: ${config.EXCLUDE_FILES}`);
+  if (config.EXCLUDE_FILES.length) logger.log(`Will ignore files: ${config.EXCLUDE_FILES}`);
 
   for (const folder of config.BULK_IMPORT_PATHS) {
     const _path = resolve(folder);

@@ -20,15 +20,15 @@ export interface IQueryOptions {
 }
 
 const parseWords = (str = "") =>
-  //@ts-ignore
+  // @ts-ignore
   str
     .match(/\\?.|^$/g)
     .reduce(
       (p, c) => {
         if (c === "'") {
-          //@ts-ignore
+          // @ts-ignore
           p.quote ^= 1;
-          //@ts-ignore
+          // @ts-ignore
         } else if (!p.quote && c === " ") {
           p.a.push("");
         } else {
@@ -111,8 +111,7 @@ export default (query?: string) => {
         options[operation] = value;
         break;
       case "sortDir":
-        if (["asc", "desc"].includes(value))
-          options[operation] = <"asc" | "desc">value;
+        if (["asc", "desc"].includes(value)) options[operation] = <"asc" | "desc">value;
         else throw `Query error: Unsupported sort direction '${value}'`;
         break;
     }

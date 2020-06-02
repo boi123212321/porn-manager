@@ -1,6 +1,6 @@
-import Image from "../../../types/image";
 import * as logger from "../../../logger";
 import { searchImages } from "../../../search/image";
+import Image from "../../../types/image";
 
 export async function getImages(
   _,
@@ -15,9 +15,7 @@ export async function getImages(
     const result = await searchImages(query || "", seed);
 
     logger.log(
-      `Search results: ${result.max_items} hits found in ${
-        (Date.now() - timeNow) / 1000
-      }s`
+      `Search results: ${result.max_items} hits found in ${(Date.now() - timeNow) / 1000}s`
     );
 
     const images = await Promise.all(result.items.map(Image.getById));

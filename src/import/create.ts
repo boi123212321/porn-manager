@@ -1,44 +1,44 @@
-import { Dictionary } from "../types/utility";
-import {
-  IImportedScene,
-  IImportedActor,
-  IImportedLabel,
-  IImportedMovie,
-  IImportedStudio,
-  IImportedCustomField,
-  IImportedMarker,
-} from "./types";
-import Label from "../types/label";
-import Scene from "../types/scene";
-import Actor from "../types/actor";
-import Image from "../types/image";
-import { stripStr } from "../extractor";
-import * as logger from "../logger";
-import * as database from "../database/index";
-import CustomField, { CustomFieldTarget } from "../types/custom_field";
 import { inspect } from "util";
-import Movie from "../types/movie";
-import Studio from "../types/studio";
+
 import args from "../args";
-import { onActorCreate } from "../plugin_events/actor";
-import { isString } from "./schemas/common";
-import { onMovieCreate } from "../plugin_events/movie";
-import { isNumber, isBoolean } from "../types/utility";
+import * as database from "../database/index";
 import {
-  imageCollection,
   actorCollection,
   actorReferenceCollection,
-  //markerReferenceCollection,
-  labelCollection,
   customFieldCollection,
+  imageCollection,
+  // markerReferenceCollection,
+  labelCollection,
   markerCollection,
   studioCollection,
 } from "../database/index";
-import ActorReference from "../types/actor_reference";
+import { stripStr } from "../extractor";
 import { existsAsync } from "../fs/async";
+import * as logger from "../logger";
+import { onActorCreate } from "../plugin_events/actor";
+import { onMovieCreate } from "../plugin_events/movie";
 import { onSceneCreate } from "../plugin_events/scene";
+import Actor from "../types/actor";
+import ActorReference from "../types/actor_reference";
+import CustomField, { CustomFieldTarget } from "../types/custom_field";
+import Image from "../types/image";
+import Label from "../types/label";
 import Marker from "../types/marker";
 import MarkerReference from "../types/marker_reference";
+import Movie from "../types/movie";
+import Scene from "../types/scene";
+import Studio from "../types/studio";
+import { Dictionary, isBoolean, isNumber } from "../types/utility";
+import { isString } from "./schemas/common";
+import {
+  IImportedActor,
+  IImportedCustomField,
+  IImportedLabel,
+  IImportedMarker,
+  IImportedMovie,
+  IImportedScene,
+  IImportedStudio,
+} from "./types";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -50,18 +50,14 @@ export interface ICreateOptions {
   markers?: Dictionary<IImportedMarker>;
 }
 
-function normalizeCustomFields(
-  ids: Dictionary<string>,
-  newlyCreated: Dictionary<{ _id: string }>
-) {
+function normalizeCustomFields(ids: Dictionary<string>, newlyCreated: Dictionary<{ _id: string }>) {
   const fieldIds = Object.keys(ids);
 
   const newFields = {} as Dictionary<string>;
   for (const fieldId of fieldIds) {
     const value = ids[fieldId];
     // Newly created field
-    if (newlyCreated[fieldId] !== undefined)
-      newFields[newlyCreated[fieldId]._id] = value;
+    if (newlyCreated[fieldId] !== undefined) newFields[newlyCreated[fieldId]._id] = value;
     // Already existing field
     else newFields[fieldId] = value;
   }
@@ -69,10 +65,7 @@ function normalizeCustomFields(
   return newFields;
 }
 
-function normalizeCreatedObjects(
-  ids: string[],
-  newlyCreated: Dictionary<{ _id: string }>
-) {
+function normalizeCreatedObjects(ids: string[], newlyCreated: Dictionary<{ _id: string }>) {
   return ids.map((str) => {
     // Newly created object, get database ID instead
     if (newlyCreated[str] !== undefined) return newlyCreated[str]._id;
@@ -127,8 +120,7 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       field.values = [...new Set(fieldToCreate.values || [])];
 
-      if (args["commit-import"])
-        await customFieldCollection.upsert(field._id, field);
+      if (args["commit-import"]) await customFieldCollection.upsert(field._id, field);
       createdFields[fieldId] = field;
     }
   }
@@ -139,11 +131,9 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       const studio = new Studio(studioToCreate.name);
 
-      if (isNumber(studioToCreate.bookmark))
-        studio.bookmark = <number>studioToCreate.bookmark;
+      if (isNumber(studioToCreate.bookmark)) studio.bookmark = studioToCreate.bookmark;
 
-      if (isBoolean(studioToCreate.favorite))
-        studio.favorite = <boolean>studioToCreate.favorite;
+      if (isBoolean(studioToCreate.favorite)) studio.favorite = studioToCreate.favorite;
 
       /* if (isNumber(studioToCreate.rating))
         studio.rating = <number>studioToCreate.rating; */
@@ -173,23 +163,17 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       let actor = new Actor(actorToCreate.name, actorToCreate.aliases || []);
 
-      if (isString(actorToCreate.nationality))
-        actor.nationality = actorToCreate.nationality;
+      if (isString(actorToCreate.nationality)) actor.nationality = actorToCreate.nationality;
 
-      if (isNumber(actorToCreate.bookmark))
-        actor.bookmark = <number>actorToCreate.bookmark;
+      if (isNumber(actorToCreate.bookmark)) actor.bookmark = actorToCreate.bookmark;
 
-      if (isBoolean(actorToCreate.favorite))
-        actor.favorite = <boolean>actorToCreate.favorite;
+      if (isBoolean(actorToCreate.favorite)) actor.favorite = actorToCreate.favorite;
 
-      if (isNumber(actorToCreate.bornOn))
-        actor.bornOn = <number>actorToCreate.bornOn;
+      if (isNumber(actorToCreate.bornOn)) actor.bornOn = actorToCreate.bornOn;
 
-      if (isNumber(actorToCreate.rating))
-        actor.rating = <number>actorToCreate.rating;
+      if (isNumber(actorToCreate.rating)) actor.rating = actorToCreate.rating;
 
-      if (isString(actorToCreate.description))
-        actor.description = actorToCreate.description;
+      if (isString(actorToCreate.description)) actor.description = actorToCreate.description;
 
       if (actorToCreate.thumbnail) {
         const image = new Image(`${actor.name} (thumbnail)`);
@@ -207,18 +191,12 @@ export async function createFromFileData(opts: ICreateOptions) {
       let actorLabels = [] as string[];
 
       if (actorToCreate.labels) {
-        actorLabels = normalizeCreatedObjects(
-          actorToCreate.labels,
-          createdLabels
-        );
+        actorLabels = normalizeCreatedObjects(actorToCreate.labels, createdLabels);
         if (args["commit-import"]) await Actor.setLabels(actor, actorLabels);
       }
 
       if (actorToCreate.customFields) {
-        actor.customFields = normalizeCustomFields(
-          actorToCreate.customFields,
-          createdFields
-        );
+        actor.customFields = normalizeCustomFields(actorToCreate.customFields, createdFields);
       }
 
       try {
@@ -249,8 +227,7 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = sceneToCreate.thumbnail;
         thumbnail = image._id;
 
-        if (args["commit-import"])
-          await imageCollection.upsert(image._id, image);
+        if (args["commit-import"]) await imageCollection.upsert(image._id, image);
       }
 
       if (sceneToCreate.actors) {
@@ -262,10 +239,7 @@ export async function createFromFileData(opts: ICreateOptions) {
       }
 
       if (sceneToCreate.customFields) {
-        customFields = normalizeCustomFields(
-          sceneToCreate.customFields,
-          createdFields
-        );
+        customFields = normalizeCustomFields(sceneToCreate.customFields, createdFields);
       }
 
       if (await existsAsync(sceneToCreate.path)) {
@@ -292,24 +266,17 @@ export async function createFromFileData(opts: ICreateOptions) {
 
       let movie = new Movie(movieToCreate.name, Object.keys(createdScenes));
 
-      if (isNumber(movieToCreate.bookmark))
-        movie.bookmark = <number>movieToCreate.bookmark;
+      if (isNumber(movieToCreate.bookmark)) movie.bookmark = movieToCreate.bookmark;
 
-      if (isBoolean(movieToCreate.favorite))
-        movie.favorite = <boolean>movieToCreate.favorite;
+      if (isBoolean(movieToCreate.favorite)) movie.favorite = movieToCreate.favorite;
 
-      if (isNumber(movieToCreate.releaseDate))
-        movie.releaseDate = <number>movieToCreate.releaseDate;
+      if (isNumber(movieToCreate.releaseDate)) movie.releaseDate = movieToCreate.releaseDate;
 
-      if (isNumber(movieToCreate.rating))
-        movie.rating = <number>movieToCreate.rating;
+      if (isNumber(movieToCreate.rating)) movie.rating = movieToCreate.rating;
 
       if (movieToCreate.studio) {
         movie.studio =
-          normalizeCreatedObjects(
-            [movieToCreate.studio],
-            createdStudios
-          ).pop() || null;
+          normalizeCreatedObjects([movieToCreate.studio], createdStudios).pop() || null;
       }
 
       if (movieToCreate.frontCover) {
@@ -317,8 +284,7 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = movieToCreate.frontCover;
         movie.frontCover = image._id;
 
-        if (args["commit-import"])
-          await imageCollection.upsert(image._id, image);
+        if (args["commit-import"]) await imageCollection.upsert(image._id, image);
       }
 
       if (movieToCreate.backCover) {
@@ -326,8 +292,7 @@ export async function createFromFileData(opts: ICreateOptions) {
         image.path = movieToCreate.backCover;
         movie.backCover = image._id;
 
-        if (args["commit-import"])
-          await imageCollection.upsert(image._id, image);
+        if (args["commit-import"]) await imageCollection.upsert(image._id, image);
       }
 
       if (movieToCreate.spineCover) {
@@ -336,8 +301,7 @@ export async function createFromFileData(opts: ICreateOptions) {
 
         movie.spineCover = image._id;
 
-        if (args["commit-import"])
-          await imageCollection.upsert(image._id, image);
+        if (args["commit-import"]) await imageCollection.upsert(image._id, image);
       }
 
       let scenes = [] as string[];
@@ -363,20 +327,13 @@ export async function createFromFileData(opts: ICreateOptions) {
     for (const markerId in opts.markers) {
       const markerToCreate = opts.markers[markerId];
 
-      let marker = new Marker(
-        markerToCreate.name,
-        markerToCreate.scene,
-        markerToCreate.time
-      );
+      const marker = new Marker(markerToCreate.name, markerToCreate.scene, markerToCreate.time);
 
-      if (isNumber(markerToCreate.bookmark))
-        marker.bookmark = <number>markerToCreate.bookmark;
+      if (isNumber(markerToCreate.bookmark)) marker.bookmark = markerToCreate.bookmark;
 
-      if (isBoolean(markerToCreate.favorite))
-        marker.favorite = <boolean>markerToCreate.favorite;
+      if (isBoolean(markerToCreate.favorite)) marker.favorite = markerToCreate.favorite;
 
-      if (isNumber(markerToCreate.rating))
-        marker.rating = <number>markerToCreate.rating;
+      if (isNumber(markerToCreate.rating)) marker.rating = markerToCreate.rating;
 
       let labels = [] as string[];
 

@@ -1,8 +1,8 @@
-import { buildImageIndex } from "./image";
 import { buildActorIndex } from "./actor";
-import { buildStudioIndex } from "./studio";
+import { buildImageIndex } from "./image";
 import { buildMovieIndex } from "./movie";
 import { buildSceneIndex } from "./scene";
+import { buildStudioIndex } from "./studio";
 
 export async function buildIndices() {
   await buildSceneIndex();

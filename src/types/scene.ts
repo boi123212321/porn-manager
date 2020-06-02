@@ -1,39 +1,35 @@
-import mkdirp from "mkdirp";
-import { generateHash } from "../hash";
 import ffmpeg, { FfprobeData } from "fluent-ffmpeg";
-import asyncPool from "tiny-async-pool";
-import { getConfig } from "../config";
-import * as logger from "../logger";
-import { libraryPath, removeExtension } from "./utility";
-import Label from "./label";
-import Actor from "./actor";
-import { statAsync, readdirAsync, unlinkAsync, rimrafAsync } from "../fs/async";
-import path, { basename } from "path";
 import { existsSync } from "fs";
 import Jimp from "jimp";
 import mergeImg from "merge-img";
-import Marker from "./marker";
-import Image from "./image";
-import Movie from "./movie";
-import { singleScreenshot } from "../ffmpeg/screenshot";
-import { indexScenes } from "../search/scene";
+import mkdirp from "mkdirp";
+import path, { basename } from "path";
+import asyncPool from "tiny-async-pool";
+
+import { getConfig } from "../config";
 import {
-  extractStudios,
-  extractActors,
-  extractLabels,
-  extractMovies,
-} from "../extractor";
-import Studio from "./studio";
-import { onSceneCreate } from "../plugin_events/scene";
-import { enqueueScene } from "../queue/processing";
-import {
-  imageCollection,
-  sceneCollection,
   actorCollection,
   actorReferenceCollection,
+  imageCollection,
+  sceneCollection,
   viewCollection,
 } from "../database";
+import { extractActors, extractLabels, extractMovies, extractStudios } from "../extractor";
+import { singleScreenshot } from "../ffmpeg/screenshot";
+import { readdirAsync, rimrafAsync, statAsync, unlinkAsync } from "../fs/async";
+import { generateHash } from "../hash";
+import * as logger from "../logger";
+import { onSceneCreate } from "../plugin_events/scene";
+import { enqueueScene } from "../queue/processing";
+import { indexScenes } from "../search/scene";
+import Actor from "./actor";
 import ActorReference from "./actor_reference";
+import Image from "./image";
+import Label from "./label";
+import Marker from "./marker";
+import Movie from "./movie";
+import Studio from "./studio";
+import { libraryPath, removeExtension } from "./utility";
 import SceneView from "./watch";
 
 export function runFFprobe(file: string): Promise<FfprobeData> {
@@ -80,9 +76,9 @@ export default class Scene {
   releaseDate: number | null = null;
   thumbnail: string | null = null;
   preview: string | null = null;
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
-  rating: number = 0;
+  rating = 0;
   customFields: any = {};
   labels?: string[]; // backwards compatibility
   actors?: string[]; // backwards compatibility
@@ -122,7 +118,7 @@ export default class Scene {
     logger.log("Importing " + videoPath);
     const config = getConfig();
 
-    let sceneName = removeExtension(basename(videoPath));
+    const sceneName = removeExtension(basename(videoPath));
     let scene = new Scene(sceneName);
     scene.meta.dimensions = { width: -1, height: -1 };
     scene.path = videoPath;
@@ -154,8 +150,8 @@ export default class Scene {
       throw new Error("Could not get video stream...broken file?");
     }
 
-    let sceneActors = [] as string[];
-    let sceneLabels = [] as string[];
+    const sceneActors = [] as string[];
+    const sceneLabels = [] as string[];
 
     if (extractInfo) {
       // Extract actors
@@ -202,9 +198,7 @@ export default class Scene {
 
           if (studio) {
             logger.log("Applying studio labels to scene");
-            sceneLabels.push(
-              ...(await Studio.getLabels(studio)).map((l) => l._id)
-            );
+            sceneLabels.push(...(await Studio.getLabels(studio)).map((l) => l._id));
           }
         }
       }
@@ -352,9 +346,7 @@ export default class Scene {
 
   static async getActors(scene: Scene) {
     const references = await ActorReference.getByItem(scene._id);
-    return (
-      await actorCollection.getBulk(references.map((r) => r.actor))
-    ).filter(Boolean);
+    return (await actorCollection.getBulk(references.map((r) => r.actor))).filter(Boolean);
   }
 
   static async setActors(scene: Scene, actorIds: string[]) {
@@ -382,10 +374,7 @@ export default class Scene {
   }
 
   static async getSceneByPath(path: string) {
-    const scenes = await sceneCollection.query(
-      "path-index",
-      encodeURIComponent(path)
-    );
+    const scenes = await sceneCollection.query("path-index", encodeURIComponent(path));
     return scenes[0] as Scene | undefined;
   }
 
@@ -423,8 +412,7 @@ export default class Scene {
       const timestamps = [] as string[];
       const startPositionPercent = 2;
       const endPositionPercent = 100;
-      const addPercent =
-        (endPositionPercent - startPositionPercent) / (options.count - 1);
+      const addPercent = (endPositionPercent - startPositionPercent) / (options.count - 1);
 
       let i = 0;
       while (i < options.count) {
@@ -453,9 +441,7 @@ export default class Scene {
                 timestamps,
               });
               logger.error(err);
-              logger.error(
-                "Thumbnail generation failed for thumbnail " + index
-              );
+              logger.error("Thumbnail generation failed for thumbnail " + index);
               hadError = true;
               resolve();
             })
@@ -464,10 +450,7 @@ export default class Scene {
               timemarks: [timestamp],
               // Note: we can't use the FFMPEG index syntax
               // because we're generating 1 screenshot at a time instead of N
-              filename: options.pattern.replace(
-                "{{index}}",
-                index.toString().padStart(3, "0")
-              ),
+              filename: options.pattern.replace("{{index}}", index.toString().padStart(3, "0")),
               folder: options.thumbnailPath,
               size: "160x?",
             });
@@ -525,7 +508,7 @@ export default class Scene {
 
         await (() => {
           return new Promise(async (resolve, reject) => {
-            ffmpeg(<string>file)
+            ffmpeg(file)
               .on("end", async () => {
                 logger.success("Created thumbnail");
                 resolve();
@@ -551,9 +534,7 @@ export default class Scene {
 
         logger.success("Thumbnail generation done.");
 
-        const thumbnailFilenames = (await readdirAsync(folder)).filter((name) =>
-          name.includes(id)
-        );
+        const thumbnailFilenames = (await readdirAsync(folder)).filter((name) => name.includes(id));
 
         const thumbnailFiles = await Promise.all(
           thumbnailFilenames.map(async (name) => {
@@ -595,12 +576,7 @@ export default class Scene {
 
     logger.log("Generating screenshot for scene...");
 
-    await singleScreenshot(
-      scene.path,
-      imagePath,
-      sec,
-      config.COMPRESS_IMAGE_SIZE
-    );
+    await singleScreenshot(scene.path, imagePath, sec, config.COMPRESS_IMAGE_SIZE);
 
     logger.log("Screenshot done.");
     // await database.insert(database.store.images, image);
@@ -630,14 +606,9 @@ export default class Scene {
       let amount: number;
 
       if (scene.meta.duration) {
-        amount = Math.max(
-          2,
-          Math.floor((scene.meta.duration || 30) / config.SCREENSHOT_INTERVAL)
-        );
+        amount = Math.max(2, Math.floor((scene.meta.duration || 30) / config.SCREENSHOT_INTERVAL));
       } else {
-        logger.warn(
-          "No duration of scene found, defaulting to 10 thumbnails..."
-        );
+        logger.warn("No duration of scene found, defaulting to 10 thumbnails...");
         amount = 10;
       }
 
@@ -652,8 +623,7 @@ export default class Scene {
         const timestamps = [] as string[];
         const startPositionPercent = 2;
         const endPositionPercent = 100;
-        const addPercent =
-          (endPositionPercent - startPositionPercent) / (options.count - 1);
+        const addPercent = (endPositionPercent - startPositionPercent) / (options.count - 1);
 
         let i = 0;
         while (i < options.count) {
@@ -674,9 +644,7 @@ export default class Scene {
                 resolve();
               })
               .on("error", (err: Error) => {
-                logger.error(
-                  "Thumbnail generation failed for thumbnail " + index
-                );
+                logger.error("Thumbnail generation failed for thumbnail " + index);
                 logger.error({
                   options,
                   duration: scene.meta.duration,
@@ -689,10 +657,7 @@ export default class Scene {
                 timemarks: [timestamp],
                 // Note: we can't use the FFMPEG index syntax
                 // because we're generating 1 screenshot at a time instead of N
-                filename: options.pattern.replace(
-                  "{{index}}",
-                  index.toString().padStart(3, "0")
-                ),
+                filename: options.pattern.replace("{{index}}", index.toString().padStart(3, "0")),
                 folder: options.thumbnailPath,
                 size:
                   Math.min(
@@ -706,9 +671,9 @@ export default class Scene {
 
         logger.success("Thumbnail generation done.");
 
-        const thumbnailFilenames = (
-          await readdirAsync(options.thumbnailPath)
-        ).filter((name) => name.includes(scene._id));
+        const thumbnailFilenames = (await readdirAsync(options.thumbnailPath)).filter((name) =>
+          name.includes(scene._id)
+        );
 
         const thumbnailFiles = await Promise.all(
           thumbnailFilenames.map(async (name) => {
@@ -723,9 +688,7 @@ export default class Scene {
           })
         );
 
-        thumbnailFiles.sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { numeric: true })
-        );
+        thumbnailFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
         logger.success(`Generated ${thumbnailFiles.length} thumbnails.`);
 

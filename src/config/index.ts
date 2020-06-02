@@ -1,12 +1,13 @@
+import chokidar from "chokidar";
+import { exists, readFile, writeFile } from "fs";
+import inquirer from "inquirer";
+import { promisify } from "util";
+import YAML from "yaml";
+
+import { onConfigLoad } from "../index";
 import * as logger from "../logger";
 import setupFunction from "../setup";
-import { exists, writeFile, readFile } from "fs";
-import { promisify } from "util";
 import { Dictionary } from "../types/utility";
-import YAML from "yaml";
-import inquirer from "inquirer";
-import chokidar from "chokidar";
-import { onConfigLoad } from "../index";
 
 const existsAsync = promisify(exists);
 const readFileAsync = promisify(readFile);
@@ -155,11 +156,7 @@ export async function checkConfig() {
     }
 
     if (defaultOverride) {
-      await writeFileAsync(
-        configFile,
-        stringifyFormatted(loadedConfig),
-        "utf-8"
-      );
+      await writeFileAsync(configFile, stringifyFormatted(loadedConfig), "utf-8");
     }
     return;
   }
@@ -179,11 +176,7 @@ export async function checkConfig() {
     await writeFileAsync("config.yaml", YAML.stringify(loadedConfig), "utf-8");
     logger.warn("Created config.yaml. Please edit and restart.");
   } else {
-    await writeFileAsync(
-      "config.json",
-      stringifyFormatted(loadedConfig),
-      "utf-8"
-    );
+    await writeFileAsync("config.json", stringifyFormatted(loadedConfig), "utf-8");
     logger.warn("Created config.json. Please edit and restart.");
   }
 

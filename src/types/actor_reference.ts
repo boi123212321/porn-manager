@@ -31,10 +31,7 @@ export default class ActorReference {
   }
 
   static async get(from: string, to: string) {
-    const fromReferences = await actorReferenceCollection.query(
-      "item-index",
-      from
-    );
+    const fromReferences = await actorReferenceCollection.query("item-index", from);
     return fromReferences.find((r) => r.actor == to);
   }
 

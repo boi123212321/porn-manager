@@ -1,43 +1,35 @@
+import boxen from "boxen";
+import { spawn } from "child_process";
 import express from "express";
-import * as logger from "./logger";
-import Image from "./types/image";
-import Scene from "./types/scene";
+import { readFileSync } from "fs";
+import https from "https";
+import LRU from "lru-cache";
 import * as path from "path";
-import { checkPassword, passwordHandler } from "./password";
-import { getConfig, watchConfig } from "./config/index";
-import { checkVideoFolders, checkImageFolders } from "./queue/check";
-import {
-  loadStores,
-  actorCollection,
-  imageCollection,
-  sceneCollection,
-} from "./database/index";
-import { existsAsync } from "./fs/async";
+
+import { mountApolloServer } from "./apollo";
 import { createBackup } from "./backup";
 import BROKEN_IMAGE from "./broken_image";
-import { mountApolloServer } from "./apollo";
-import { buildIndices } from "./search";
-import { checkImportFolders } from "./import/index";
-import cors from "./middlewares/cors";
-import { httpLog } from "./logger";
-import { renderHandlebars } from "./render";
+import { getConfig, watchConfig } from "./config/index";
+import { actorCollection, imageCollection, loadStores, sceneCollection } from "./database/index";
 import { dvdRenderer } from "./dvd_renderer";
-import {
-  getLength,
-  isProcessing,
-  setProcessingStatus,
-} from "./queue/processing";
+import { existsAsync } from "./fs/async";
+import { giannaVersion, resetGianna, spawnGianna } from "./gianna";
+import { checkImportFolders } from "./import/index";
+import { izzyVersion, resetIzzy, spawnIzzy } from "./izzy";
+import * as logger from "./logger";
+import { httpLog } from "./logger";
+import cors from "./middlewares/cors";
+import { checkPassword, passwordHandler } from "./password";
 import queueRouter from "./queue_router";
-import { spawn } from "child_process";
-import { spawnIzzy, izzyVersion, resetIzzy } from "./izzy";
-import { spawnGianna, giannaVersion, resetGianna } from "./gianna";
-import https from "https";
-import { readFileSync } from "fs";
-import boxen from "boxen";
-import { index as sceneIndex } from "./search/scene";
+import { checkImageFolders, checkVideoFolders } from "./queue/check";
+import { getLength, isProcessing, setProcessingStatus } from "./queue/processing";
+import { renderHandlebars } from "./render";
+import { buildIndices } from "./search";
 import { index as imageIndex } from "./search/image";
+import { index as sceneIndex } from "./search/scene";
 import Actor from "./types/actor";
-import LRU from "lru-cache";
+import Image from "./types/image";
+import Scene from "./types/scene";
 
 const cache = new LRU({
   max: 500,
@@ -78,9 +70,7 @@ async function scanFolders() {
 }
 
 export default async () => {
-  logger.message(
-    "Check https://github.com/boi123212321/porn-vault for discussion & updates"
-  );
+  logger.message("Check https://github.com/boi123212321/porn-vault for discussion & updates");
 
   const app = express();
   app.use(express.json());
@@ -154,7 +144,7 @@ export default async () => {
   app.get("/broken", (_, res) => {
     const b64 = BROKEN_IMAGE;
 
-    var img = Buffer.from(b64, "base64");
+    const img = Buffer.from(b64, "base64");
 
     res.writeHead(200, {
       "Content-Type": "image/png",
@@ -240,13 +230,8 @@ export default async () => {
   mountApolloServer(app);
 
   app.use(
-    (
-      err: number,
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction
-    ) => {
-      if (typeof err == "number") return res.sendStatus(err);
+    (err: number, req: express.Request, res: express.Response, next: express.NextFunction) => {
+      if (typeof err === "number") return res.sendStatus(err);
       return res.sendStatus(500);
     }
   );
@@ -276,9 +261,7 @@ export default async () => {
   } catch (error) {
     logger.error(error);
     logger.error("Error while loading database: " + error.message);
-    logger.warn(
-      "Try restarting, if the error persists, your database may be corrupted"
-    );
+    logger.warn("Try restarting, if the error persists, your database may be corrupted");
     process.exit(1);
   }
 
@@ -314,9 +297,7 @@ export default async () => {
   if (config.SCAN_ON_STARTUP) {
     await scanFolders();
   } else {
-    logger.warn(
-      "Scanning folders is currently disabled. Enable in config.json & restart."
-    );
+    logger.warn("Scanning folders is currently disabled. Enable in config.json & restart.");
   }
 
   if (config.DO_PROCESSING) {

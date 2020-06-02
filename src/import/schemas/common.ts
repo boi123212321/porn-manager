@@ -11,7 +11,7 @@ export function stringArray(required: boolean) {
   return {
     required,
     type: Array,
-    each: { type: String }
+    each: { type: String },
   };
 }
 

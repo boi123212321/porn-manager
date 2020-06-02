@@ -1,5 +1,6 @@
-import readline from "readline";
 import * as fs from "fs";
+import readline from "readline";
+
 import { libraryPath } from "../types/utility";
 
 function getType(from) {

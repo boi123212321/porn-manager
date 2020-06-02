@@ -1,37 +1,35 @@
-import * as logger from "./logger";
 import Axios from "axios";
-import Scene from "./types/scene";
-import Image from "./types/image";
-import { statAsync } from "./fs/async";
+
 import { IConfig } from "./config/index";
+import { statAsync } from "./fs/async";
+import * as logger from "./logger";
+import Image from "./types/image";
+import Scene from "./types/scene";
 
 async function getQueueHead(config: IConfig) {
   logger.log("Getting queue head...");
-  return (
-    await Axios.get(
-      `http://localhost:${config.PORT}/queue/head?password=${config.PASSWORD}`
-    )
-  ).data;
+  return (await Axios.get(`http://localhost:${config.PORT}/queue/head?password=${config.PASSWORD}`))
+    .data;
 }
 
 export async function queueLoop(config: IConfig) {
   try {
     let queueHead = (await getQueueHead(config)) as Scene;
 
-    while (!!queueHead) {
+    while (queueHead) {
       try {
         logger.log("Processing " + queueHead.path + "...");
-        let data = {
+        const data = {
           processed: true,
         } as any;
-        let images = [] as any[];
-        let thumbs = [] as any[];
+        const images = [] as any[];
+        const thumbs = [] as any[];
 
         if (config.GENERATE_PREVIEWS && !queueHead.preview) {
           const preview = await Scene.generatePreview(queueHead);
 
           if (preview) {
-            let image = new Image(queueHead.name + " (preview)");
+            const image = new Image(queueHead.name + " (preview)");
             const stats = await statAsync(preview);
             image.path = preview;
             image.scene = queueHead._id;

@@ -1,5 +1,6 @@
 import Schema from "validate";
-import { stringArray, limitRating } from "./common";
+
+import { limitRating, stringArray } from "./common";
 
 export const markerSchema = new Schema({
   name: {

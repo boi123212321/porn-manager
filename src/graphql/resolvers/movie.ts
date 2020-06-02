@@ -1,5 +1,5 @@
-import Movie from "../../types/movie";
 import Image from "../../types/image";
+import Movie from "../../types/movie";
 import Studio from "../../types/studio";
 
 export default {
@@ -40,19 +40,16 @@ export default {
 
   async size(movie: Movie) {
     const scenesWithSource = (await Movie.getScenes(movie)).filter(
-      scene => scene.meta && scene.path
+      (scene) => scene.meta && scene.path
     );
 
     if (!scenesWithSource.length) return null;
 
-    return scenesWithSource.reduce(
-      (dur, scene) => dur + <number>scene.meta.size,
-      0
-    );
+    return scenesWithSource.reduce((dur, scene) => dur + <number>scene.meta.size, 0);
   },
 
   async studio(movie: Movie) {
     if (movie.studio) return Studio.getById(movie.studio);
     return null;
-  }
+  },
 };

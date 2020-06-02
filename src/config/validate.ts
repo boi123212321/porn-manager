@@ -1,6 +1,6 @@
+import { IConfig } from "../config/index";
 import { existsAsync } from "../fs/async";
 import * as logger from "../logger";
-import { IConfig } from "../config/index";
 
 export async function validateFFMPEGPaths(config: IConfig) {
   if (config.FFMPEG_PATH) {

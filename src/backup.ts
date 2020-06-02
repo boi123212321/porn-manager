@@ -1,13 +1,9 @@
-import {
-  copyFileAsync,
-  readdirAsync,
-  rimrafAsync,
-  existsAsync,
-} from "./fs/async";
-import { join } from "path";
-import { libraryPath, mapAsync } from "./types/utility";
-import * as log from "./logger";
 import { mkdirSync } from "fs";
+import { join } from "path";
+
+import { copyFileAsync, existsAsync, readdirAsync, rimrafAsync } from "./fs/async";
+import * as log from "./logger";
+import { libraryPath, mapAsync } from "./types/utility";
 
 async function checkBackupMax(amount = 10) {
   const backups = await readdirAsync("backups");

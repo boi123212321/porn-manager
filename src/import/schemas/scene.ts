@@ -1,55 +1,51 @@
 import Schema from "validate";
-import {
-  stringArray,
-  limitRating,
-  isValidDate,
-  validCustomFields
-} from "./common";
+
+import { isValidDate, limitRating, stringArray, validCustomFields } from "./common";
 
 export const sceneSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   path: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: false
+    required: false,
   },
   thumbnail: {
     type: String,
-    required: false
+    required: false,
   },
   studio: {
     type: String,
-    required: false
+    required: false,
   },
   releaseDate: {
     type: Number,
     required: false,
-    use: { isValidDate }
+    use: { isValidDate },
   },
   rating: {
     type: Number,
     required: false,
-    use: { limitRating }
+    use: { limitRating },
   },
   actors: stringArray(false),
   labels: stringArray(false),
   customFields: {
     required: false,
     type: Object,
-    use: { validCustomFields }
+    use: { validCustomFields },
   },
   bookmark: {
     required: false,
-    type: Number
+    type: Number,
   },
   favorite: {
     required: false,
-    type: Boolean
-  }
+    type: Boolean,
+  },
 });

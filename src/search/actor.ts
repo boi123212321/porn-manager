@@ -1,19 +1,20 @@
-import Actor from "../types/actor";
-import Scene from "../types/scene";
-import * as logger from "../logger";
 import ora from "ora";
-import { Gianna } from "./internal/index";
+
 import argv from "../args";
-import { mapAsync } from "../types/utility";
+import * as logger from "../logger";
 import extractQueryOptions from "../query_extractor";
+import Actor from "../types/actor";
 import { getNationality } from "../types/countries";
+import Scene from "../types/scene";
+import { mapAsync } from "../types/utility";
 import {
-  filterFavorites,
   filterBookmark,
-  filterRating,
-  filterInclude,
   filterExclude,
+  filterFavorites,
+  filterInclude,
+  filterRating,
 } from "./common";
+import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
@@ -40,9 +41,7 @@ export interface IActorSearchDoc {
   custom: string[];
 }
 
-export async function createActorSearchDoc(
-  actor: Actor
-): Promise<IActorSearchDoc> {
+export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDoc> {
   const labels = await Actor.getLabels(actor);
 
   const numViews = (await Actor.getWatches(actor)).length;
@@ -63,11 +62,9 @@ export async function createActorSearchDoc(
     bornOn: actor.bornOn,
     numScenes,
     age: Actor.getAge(actor),
-    nationality: actor.nationality
-      ? getNationality(actor.nationality).nationality
-      : null,
+    nationality: actor.nationality ? getNationality(actor.nationality).nationality : null,
     custom: Object.values(actor.customFields)
-      .filter((val) => typeof val != "number" && typeof val != "boolean")
+      .filter((val) => typeof val !== "number" && typeof val !== "boolean")
       .flat() as string[],
   };
 }
@@ -127,7 +124,7 @@ export async function searchActors(
   logger.log(`Searching actors for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;

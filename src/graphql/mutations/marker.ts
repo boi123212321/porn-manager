@@ -1,6 +1,6 @@
-import Marker from "../../types/marker";
-import LabelledItem from "../../types/labelled_item";
 import { markerCollection } from "../../database";
+import LabelledItem from "../../types/labelled_item";
+import Marker from "../../types/marker";
 
 interface ICreateMarkerArgs {
   scene: string;
@@ -21,14 +21,14 @@ export default {
 
     if (Array.isArray(labels)) await Marker.setLabels(marker, labels);
 
-    if (typeof rating == "number") {
+    if (typeof rating === "number") {
       if (rating < 0 || rating > 10) throw new Error("BAD_REQUEST");
       marker.rating = rating;
     }
 
-    if (typeof favorite == "boolean") marker.favorite = favorite;
+    if (typeof favorite === "boolean") marker.favorite = favorite;
 
-    if (typeof bookmark == "number") marker.bookmark = bookmark;
+    if (typeof bookmark === "number") marker.bookmark = bookmark;
 
     // await database.insert(database.store.markers, marker);
     await markerCollection.upsert(marker._id, marker);

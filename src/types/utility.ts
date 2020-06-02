@@ -1,5 +1,6 @@
-import { getConfig } from "../config/index";
 import * as path from "path";
+
+import { getConfig } from "../config/index";
 import * as logger from "../logger";
 
 export type Dictionary<T> = Record<string, T>;
@@ -10,19 +11,14 @@ export function extensionFromUrl(url: string) {
 }
 
 export function validRating(val: any) {
-  return (
-    typeof val === "number" && val >= 0 && val <= 10 && Number.isInteger(val)
-  );
+  return typeof val === "number" && val >= 0 && val <= 10 && Number.isInteger(val);
 }
 
 export function removeExtension(file: string) {
   return file.replace(/\.[^/.]+$/, "");
 }
 
-export function createObjectSet<T extends Record<string, any>>(
-  objs: T[],
-  key: keyof T & string
-) {
+export function createObjectSet<T extends Record<string, any>>(objs: T[], key: keyof T & string) {
   const dict = {} as { [key: string]: T };
   for (const obj of objs) {
     dict[obj[key]] = obj;

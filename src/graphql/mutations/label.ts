@@ -1,13 +1,13 @@
-import Label from "../../types/label";
-import Scene from "../../types/scene";
-import Image from "../../types/image";
-import { Dictionary } from "../../types/utility";
+import { labelCollection } from "../../database";
 import { isMatchingItem } from "../../extractor";
 import * as logger from "../../logger";
 import { isBlacklisted, updateImages } from "../../search/image";
-import LabelledItem from "../../types/labelled_item";
-import { labelCollection } from "../../database";
 import { updateScenes } from "../../search/scene";
+import Image from "../../types/image";
+import Label from "../../types/label";
+import LabelledItem from "../../types/labelled_item";
+import Scene from "../../types/scene";
+import { Dictionary } from "../../types/utility";
 
 type ILabelUpdateOpts = Partial<{
   name: string;
@@ -57,22 +57,18 @@ export default {
     return label;
   },
 
-  async updateLabels(
-    _,
-    { ids, opts }: { ids: string[]; opts: ILabelUpdateOpts }
-  ) {
+  async updateLabels(_, { ids, opts }: { ids: string[]; opts: ILabelUpdateOpts }) {
     const updatedLabels = [] as Label[];
 
     for (const id of ids) {
       const label = await Label.getById(id);
 
       if (label) {
-        if (Array.isArray(opts.aliases))
-          label.aliases = [...new Set(opts.aliases)];
+        if (Array.isArray(opts.aliases)) label.aliases = [...new Set(opts.aliases)];
 
-        if (typeof opts.name == "string") label.name = opts.name.trim();
+        if (typeof opts.name === "string") label.name = opts.name.trim();
 
-        if (typeof opts.thumbnail == "string") label.thumbnail = opts.thumbnail;
+        if (typeof opts.thumbnail === "string") label.thumbnail = opts.thumbnail;
 
         await labelCollection.upsert(label._id, label);
         updatedLabels.push(label);

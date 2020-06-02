@@ -1,18 +1,19 @@
-import startServer from "./server";
-import { checkConfig, getConfig, IConfig } from "./config/index";
-import inquirer from "inquirer";
-import * as logger from "./logger";
-import { isRegExp } from "./types/utility";
 import ffmpeg from "fluent-ffmpeg";
-import { validatePlugins, checkUnusedPlugins } from "./plugins/validate";
-import { printMaxMemory } from "./mem";
-import { validateFFMPEGPaths } from "./config/validate";
-const sha = require("js-sha512").sha512;
+import inquirer from "inquirer";
+
 import args from "./args";
-import { ensureIzzyExists, deleteIzzy } from "./izzy";
-import { queueLoop } from "./queue_loop";
-import { ensureGiannaExists, deleteGianna } from "./gianna";
+import { checkConfig, getConfig, IConfig } from "./config/index";
+import { validateFFMPEGPaths } from "./config/validate";
 import { applyExitHooks } from "./exit";
+import { deleteGianna, ensureGiannaExists } from "./gianna";
+import { deleteIzzy, ensureIzzyExists } from "./izzy";
+import * as logger from "./logger";
+import { printMaxMemory } from "./mem";
+import { checkUnusedPlugins, validatePlugins } from "./plugins/validate";
+import { queueLoop } from "./queue_loop";
+import startServer from "./server";
+import { isRegExp } from "./types/utility";
+const sha = require("js-sha512").sha512;
 
 export async function onConfigLoad(config: IConfig) {
   validatePlugins(config);

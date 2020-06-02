@@ -1,15 +1,13 @@
 import express from "express";
-import { getConfig } from "./config";
-const sha = require("js-sha512").sha512 as (str: string) => string;
-import * as logger from "./logger";
 import { readFileSync } from "fs";
+
+import { getConfig } from "./config";
+import * as logger from "./logger";
+const sha = require("js-sha512").sha512 as (str: string) => string;
 
 const SIGN_IN_HTML = readFileSync("./views/signin.html", "utf-8");
 
-export async function checkPassword(
-  req: express.Request,
-  res: express.Response
-) {
+export async function checkPassword(req: express.Request, res: express.Response) {
   if (!req.query.password) return res.sendStatus(400);
 
   const config = getConfig();
@@ -44,8 +42,7 @@ export async function passwordHandler(
 
   if (
     req.query.password &&
-    (req.query.password == config.PASSWORD ||
-      sha(req.query.password) == config.PASSWORD)
+    (req.query.password == config.PASSWORD || sha(req.query.password) == config.PASSWORD)
   ) {
     logger.log("Auth OK");
     return next();
@@ -55,6 +52,5 @@ export async function passwordHandler(
     return res.status(401).send(SIGN_IN_HTML);
   } catch (err) {
     console.error(err);
-    return;
   }
 }

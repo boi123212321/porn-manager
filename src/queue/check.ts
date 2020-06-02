@@ -1,14 +1,15 @@
-import { getConfig } from "../config";
-import { walk, statAsync } from "../fs/async";
-import Scene from "../types/scene";
-import Image from "../types/image";
-import { basename } from "path";
-import * as logger from "../logger";
-import { extractLabels, extractActors, extractScenes } from "../extractor";
 import Jimp from "jimp";
-import ora = require("ora");
-import { indexImages } from "../search/image";
+import { basename } from "path";
+
+import { getConfig } from "../config";
 import { imageCollection, sceneCollection } from "../database";
+import { extractActors, extractLabels, extractScenes } from "../extractor";
+import { statAsync, walk } from "../fs/async";
+import * as logger from "../logger";
+import { indexImages } from "../search/image";
+import Image from "../types/image";
+import Scene from "../types/scene";
+import ora = require("ora");
 
 const fileIsExcluded = (exclude: string[], file: string) =>
   exclude.some((regStr) => new RegExp(regStr, "i").test(file.toLowerCase()));
@@ -18,8 +19,7 @@ export async function checkVideoFolders() {
 
   const unknownVideos = [] as string[];
 
-  if (config.EXCLUDE_FILES.length)
-    logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
+  if (config.EXCLUDE_FILES.length) logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
 
   for (const folder of config.VIDEO_PATHS) {
     logger.message(`Scanning ${folder} for videos...`);
@@ -58,9 +58,7 @@ export async function checkVideoFolders() {
     }
   }
 
-  logger.warn(
-    `Queued ${unknownVideos.length} new videos for further processing.`
-  );
+  logger.warn(`Queued ${unknownVideos.length} new videos for further processing.`);
 }
 
 async function imageWithPathExists(path: string) {
@@ -113,11 +111,9 @@ export async function checkImageFolders() {
 
   let numAddedImages = 0;
 
-  if (!config.READ_IMAGES_ON_IMPORT)
-    logger.warn("Reading images on import is disabled.");
+  if (!config.READ_IMAGES_ON_IMPORT) logger.warn("Reading images on import is disabled.");
 
-  if (config.EXCLUDE_FILES.length)
-    logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
+  if (config.EXCLUDE_FILES.length) logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
 
   for (const folder of config.IMAGE_PATHS) {
     logger.message(`Scanning ${folder} for images...`);
@@ -152,9 +148,7 @@ export async function checkPreviews() {
   const config = getConfig();
 
   if (!config.GENERATE_PREVIEWS) {
-    logger.warn(
-      "Not generating previews because GENERATE_PREVIEWS is disabled."
-    );
+    logger.warn("Not generating previews because GENERATE_PREVIEWS is disabled.");
     return;
   }
 
@@ -167,10 +161,10 @@ export async function checkPreviews() {
       const loader = ora("Generating previews...").start();
 
       try {
-        let preview = await Scene.generatePreview(scene);
+        const preview = await Scene.generatePreview(scene);
 
         if (preview) {
-          let image = new Image(scene.name + " (preview)");
+          const image = new Image(scene.name + " (preview)");
           const stats = await statAsync(preview);
           image.path = preview;
           image.scene = scene._id;

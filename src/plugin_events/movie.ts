@@ -1,16 +1,17 @@
-import { runPluginsSerial } from "../plugins/index";
-import { libraryPath, extensionFromUrl } from "../types/utility";
-import { extractFields, extractStudios } from "../extractor";
-import { getConfig } from "../config";
 import { extname } from "path";
-import { downloadFile } from "../ffmpeg-download";
-import Image from "../types/image";
-import * as logger from "../logger";
-import { indexImages } from "../search/image";
-import Movie from "../types/movie";
+
+import { getConfig } from "../config";
 import { imageCollection, studioCollection } from "../database/index";
-import Studio from "../types/studio";
+import { extractFields, extractStudios } from "../extractor";
+import { downloadFile } from "../ffmpeg-download";
+import * as logger from "../logger";
+import { runPluginsSerial } from "../plugins/index";
+import { indexImages } from "../search/image";
 import { createStudioSearchDoc, indexStudios } from "../search/studio";
+import Image from "../types/image";
+import Movie from "../types/movie";
+import Studio from "../types/studio";
+import { extensionFromUrl, libraryPath } from "../types/utility";
 
 // This function has side effects
 export async function onMovieCreate(movie: Movie, event = "movieCreated") {
@@ -19,11 +20,7 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
   const pluginResult = await runPluginsSerial(config, event, {
     movie: JSON.parse(JSON.stringify(movie)),
     movieName: movie.name,
-    $createLocalImage: async (
-      path: string,
-      name: string,
-      thumbnail?: boolean
-    ) => {
+    $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       logger.log("Creating image from " + path);
       const img = new Image(name);
       if (thumbnail) img.name += " (thumbnail)";
@@ -56,21 +53,21 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
   });
 
   if (
-    typeof pluginResult.frontCover == "string" &&
+    typeof pluginResult.frontCover === "string" &&
     pluginResult.frontCover.startsWith("im_") &&
     (!movie.frontCover || config.ALLOW_PLUGINS_OVERWRITE_MOVIE_THUMBNAILS)
   )
     movie.frontCover = pluginResult.frontCover;
 
   if (
-    typeof pluginResult.backCover == "string" &&
+    typeof pluginResult.backCover === "string" &&
     pluginResult.backCover.startsWith("im_") &&
     (!movie.backCover || config.ALLOW_PLUGINS_OVERWRITE_MOVIE_THUMBNAILS)
   )
     movie.backCover = pluginResult.backCover;
 
   if (
-    typeof pluginResult.spineCover == "string" &&
+    typeof pluginResult.spineCover === "string" &&
     pluginResult.spineCover.startsWith("im_") &&
     (!movie.spineCover || config.ALLOW_PLUGINS_OVERWRITE_MOVIE_THUMBNAILS)
   )
@@ -78,8 +75,7 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
 
   if (typeof pluginResult.name === "string") movie.name = pluginResult.name;
 
-  if (typeof pluginResult.description === "string")
-    movie.description = pluginResult.description;
+  if (typeof pluginResult.description === "string") movie.description = pluginResult.description;
 
   if (typeof pluginResult.releaseDate === "number")
     movie.releaseDate = new Date(pluginResult.releaseDate).valueOf();
@@ -88,25 +84,18 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated") {
   if (typeof ra === "number" && ra >= 0 && ra <= 10 && Number.isInteger(ra))
     movie.rating = pluginResult.rating;
 
-  if (typeof pluginResult.favorite === "boolean")
-    movie.favorite = pluginResult.favorite;
+  if (typeof pluginResult.favorite === "boolean") movie.favorite = pluginResult.favorite;
 
-  if (typeof pluginResult.bookmark === "number")
-    movie.bookmark = pluginResult.bookmark;
+  if (typeof pluginResult.bookmark === "number") movie.bookmark = pluginResult.bookmark;
 
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length)
-        movie.customFields[fields[0]] = pluginResult.custom[key];
+      if (fields.length) movie.customFields[fields[0]] = pluginResult.custom[key];
     }
   }
 
-  if (
-    !movie.studio &&
-    pluginResult.studio &&
-    typeof pluginResult.studio === "string"
-  ) {
+  if (!movie.studio && pluginResult.studio && typeof pluginResult.studio === "string") {
     const studioId = (await extractStudios(pluginResult.studio))[0];
 
     if (studioId) movie.studio = studioId;

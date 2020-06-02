@@ -1,4 +1,5 @@
 import yargs from "yargs";
+
 import * as logger from "./logger";
 
 const argv = yargs

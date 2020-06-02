@@ -1,16 +1,14 @@
-import * as logger from "./logger";
 import fs from "fs";
-import readline from "readline";
 import * as nodepath from "path";
+import readline from "readline";
 
-export function transformFile(
-  file: string,
-  cb: (str: string) => string | false
-) {
+import * as logger from "./logger";
+
+export function transformFile(file: string, cb: (str: string) => string | false) {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(file)) return resolve();
 
-    let lines = [] as string[];
+    const lines = [] as string[];
     let modified = false;
 
     const readStream = fs.createReadStream(file);
@@ -67,7 +65,7 @@ export async function bookmarksToTimestamp(file: string) {
       addedOn: number;
     };
     if (item.bookmark !== undefined) {
-      if (typeof item.bookmark == "boolean") {
+      if (typeof item.bookmark === "boolean") {
         if (item.bookmark) item.bookmark = item.addedOn;
         else item.bookmark = null;
         modified = true;

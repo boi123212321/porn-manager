@@ -1,5 +1,5 @@
-import { izzyProcess } from "./izzy";
 import { giannaProcess } from "./gianna";
+import { izzyProcess } from "./izzy";
 import * as logger from "./logger";
 
 function killProcess(code = 0) {

@@ -1,5 +1,5 @@
-import Studio from "../../types/studio";
 import Image from "../../types/image";
+import Studio from "../../types/studio";
 
 export default {
   thumbnail(studio: Studio) {
@@ -24,15 +24,12 @@ export default {
   },
 
   async rating(studio: Studio) {
-    const scenesWithScore = (await Studio.getScenes(studio)).filter(
-      scene => !!scene.rating
-    );
+    const scenesWithScore = (await Studio.getScenes(studio)).filter((scene) => !!scene.rating);
 
     if (!scenesWithScore.length) return null;
 
     return Math.round(
-      scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) /
-        scenesWithScore.length
+      scenesWithScore.reduce((rating, scene) => rating + scene.rating, 0) / scenesWithScore.length
     );
   },
 
@@ -47,5 +44,5 @@ export default {
 
   async numScenes(studio: Studio) {
     return (await Studio.getScenes(studio)).length;
-  }
+  },
 };
