@@ -8,15 +8,15 @@ export default class MissingScene {
 }
 
 import { sceneCollection, missingSceneCollection } from "../database/index";
-import Marker from "../types/marker";
+import Marker from "./marker";
 import { removeSceneFromQueue } from "../queue/processing";
-import LabelledItem from "../types/labelled_item";
-import ActorReference from "../types/actor_reference";
-import MovieScene from "../types/movie_scene";
-import Image from "../types/image";
+import LabelledItem from "./labelled_item";
+import ActorReference from "./actor_reference";
+import MovieScene from "./movie_scene";
+import Image from "./image";
 import { index as sceneIndex } from "../search/scene";
 import * as logger from "../logger";
-export async function purgeMissingScenes() {
+export async function purgeMissingItems() {
   const missingScenes = await missingSceneCollection.getAll();
   for (const missingScene of missingScenes) {
     logger.log(`Deleting missing scene ${missingScene.path}`);
@@ -58,7 +58,7 @@ export async function purgeMissingScenes() {
     logger.success("Deleted scene " + missingScene._id);
   }
 }
-export async function resetMissingScenes() {
+export async function resetMissingItems() {
   const missingScenes = await missingSceneCollection.getAll();
   logger.log(`Clearing Recycle Bin`);
   for (const missingScene of missingScenes) {
