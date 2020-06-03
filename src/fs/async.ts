@@ -26,7 +26,7 @@ export interface IWalkOptions {
   exclude: string[];
 }
 
-export async function walk(options: IWalkOptions) {
+export async function walk(options: IWalkOptions): Promise<void> {
   const root = resolve(options.dir);
 
   const folderStack = [] as string[];
