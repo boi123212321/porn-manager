@@ -1,20 +1,18 @@
-import { extname } from "path";
-
 import { getConfig } from "../config";
-import { imageCollection, studioCollection } from "../database/index";
+import { imageCollection, studioCollection } from "../database";
 import { extractFields, extractStudios } from "../extractor";
 import { downloadFile } from "../ffmpeg-download";
 import * as logger from "../logger";
-import { runPluginsSerial } from "../plugins/index";
+import { runPluginsSerial } from "../plugins";
 import { indexImages } from "../search/image";
-import { createStudioSearchDoc, indexStudios } from "../search/studio";
+import { indexStudios } from "../search/studio";
 import Image from "../types/image";
 import Movie from "../types/movie";
 import Studio from "../types/studio";
 import { extensionFromUrl, libraryPath } from "../types/utility";
 
 // This function has side effects
-export async function onMovieCreate(movie: Movie, event = "movieCreated") {
+export async function onMovieCreate(movie: Movie, event = "movieCreated"): Promise<Movie> {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {

@@ -1,12 +1,10 @@
-import { extname } from "path";
-
 import { getConfig } from "../config";
 import countries from "../data/countries";
-import { imageCollection, labelCollection } from "../database/index";
+import { imageCollection, labelCollection } from "../database";
 import { extractFields, extractLabels } from "../extractor";
 import { downloadFile } from "../ffmpeg-download";
 import * as logger from "../logger";
-import { runPluginsSerial } from "../plugins/index";
+import { runPluginsSerial } from "../plugins";
 import { indexImages } from "../search/image";
 import Actor from "../types/actor";
 import { isValidCountryCode } from "../types/countries";
@@ -15,7 +13,11 @@ import Label from "../types/label";
 import { extensionFromUrl, libraryPath, validRating } from "../types/utility";
 
 // This function has side effects
-export async function onActorCreate(actor: Actor, actorLabels: string[], event = "actorCreated") {
+export async function onActorCreate(
+  actor: Actor,
+  actorLabels: string[],
+  event = "actorCreated"
+): Promise<Actor> {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {

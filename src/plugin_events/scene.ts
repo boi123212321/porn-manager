@@ -1,5 +1,3 @@
-import { extname } from "path";
-
 import { getConfig } from "../config";
 import {
   actorCollection,
@@ -8,7 +6,7 @@ import {
   movieCollection,
   studioCollection,
   viewCollection,
-} from "../database/index";
+} from "../database";
 import {
   extractActors,
   extractFields,
@@ -18,7 +16,7 @@ import {
 } from "../extractor";
 import { downloadFile } from "../ffmpeg-download";
 import * as logger from "../logger";
-import { runPluginsSerial } from "../plugins/index";
+import { runPluginsSerial } from "../plugins";
 import { indexActors } from "../search/actor";
 import { indexImages } from "../search/image";
 import { indexMovies } from "../search/movie";
@@ -40,7 +38,7 @@ export async function onSceneCreate(
   sceneLabels: string[],
   sceneActors: string[],
   event = "sceneCreated"
-) {
+): Promise<Scene> {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {
@@ -80,7 +78,7 @@ export async function onSceneCreate(
   });
 
   if (
-    event == "sceneCreated" &&
+    event === "sceneCreated" &&
     pluginResult.watches &&
     Array.isArray(pluginResult.watches) &&
     pluginResult.watches.every((v) => typeof v === "number")

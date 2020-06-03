@@ -23,7 +23,11 @@ function requireUncached(module: string) {
   return require(module);
 }
 
-export async function runPluginsSerial(config: IConfig, event: string, inject?: Dictionary<any>) {
+export async function runPluginsSerial(
+  config: IConfig,
+  event: string,
+  inject?: Dictionary<any>
+): Promise<Record<string, any>> {
   const result = {} as Dictionary<any>;
   if (!config.PLUGIN_EVENTS[event]) {
     logger.warn(`No plugins defined for event ${event}.`);
@@ -68,7 +72,7 @@ export async function runPlugin(
   pluginName: string,
   inject?: Dictionary<any>,
   args?: Dictionary<any>
-) {
+): Promise<any> {
   const plugin = config.PLUGINS[pluginName];
 
   if (!plugin) throw new Error(`${pluginName}: plugin not found.`);
