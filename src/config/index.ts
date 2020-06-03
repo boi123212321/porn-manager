@@ -143,7 +143,7 @@ export const defaultConfig: IConfig = {
 let loadedConfig;
 export let configFile;
 
-export async function checkConfig() {
+export async function checkConfig(): Promise<undefined> {
   const hasReadFile = await loadConfig();
 
   if (hasReadFile) {
@@ -183,7 +183,7 @@ export async function checkConfig() {
   return process.exit(0);
 }
 
-export async function loadConfig() {
+export async function loadConfig(): Promise<boolean> {
   if (await existsAsync("config.json")) {
     logger.message("Loading config.json...");
     try {
@@ -209,11 +209,11 @@ export async function loadConfig() {
   return false;
 }
 
-export function getConfig() {
+export function getConfig(): IConfig {
   return loadedConfig as IConfig;
 }
 
-export function watchConfig() {
+export function watchConfig(): void {
   chokidar.watch(configFile).on("change", async () => {
     logger.message(`${configFile} changed, reloading...`);
 

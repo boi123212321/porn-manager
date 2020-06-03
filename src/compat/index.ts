@@ -3,7 +3,7 @@ import readline from "readline";
 
 import { libraryPath } from "../types/utility";
 
-function getType(from) {
+function getType(from: string) {
   if (from.startsWith("ac_")) return "actor";
   if (from.startsWith("sc_")) return "scene";
   if (from.startsWith("im_")) return "image";
@@ -65,7 +65,7 @@ function transferLabel(obj) {
   );
 }
 
-export function convertCrossReferences() {
+export function convertCrossReferences(): Promise<void> {
   return new Promise((resolve) => {
     const rl = readline.createInterface({
       input: fs.createReadStream(libraryPath("cross_references.db")),
@@ -74,7 +74,7 @@ export function convertCrossReferences() {
     let lineCount = 0;
     rl.on("line", (line) => {
       lineCount++;
-      if (lineCount % 1000 == 0) {
+      if (lineCount % 1000 === 0) {
         console.log(`Line ${lineCount}`);
       }
       if (line.length) {
