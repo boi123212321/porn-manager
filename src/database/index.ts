@@ -40,7 +40,7 @@ export let markerCollection!: Izzy.Collection<Marker>;
 export let studioCollection!: Izzy.Collection<Studio>;
 export let processingCollection!: Izzy.Collection<ISceneProcessingItem>;
 
-export async function loadStores() {
+export async function loadStores(): Promise<void> {
   const crossReferencePath = libraryPath("cross_references.db");
   if (await existsAsync(crossReferencePath)) {
     logger.message("Making DB compatible...");
