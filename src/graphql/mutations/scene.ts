@@ -61,11 +61,14 @@ export default {
     return runScenePlugins(ids);
   },
 
-  async runScenePlugins(_, { ids }: { ids: string[] }): Promise<Scene[]> {
+  async runScenePlugins(_: unknown, { ids }: { ids: string[] }): Promise<Scene[]> {
     return runScenePlugins(ids);
   },
 
-  async screenshotScene(_, { id, sec }: { id: string; sec: number }): Promise<Image | null> {
+  async screenshotScene(
+    _: unknown,
+    { id, sec }: { id: string; sec: number }
+  ): Promise<Image | null> {
     const scene = await Scene.getById(id);
 
     if (scene) {
@@ -75,7 +78,7 @@ export default {
     return null;
   },
 
-  async unwatchScene(_, { id }: { id: string }): Promise<Scene | null> {
+  async unwatchScene(_: unknown, { id }: { id: string }): Promise<Scene | null> {
     const scene = await Scene.getById(id);
 
     if (scene) {
@@ -85,7 +88,7 @@ export default {
     return null;
   },
 
-  async watchScene(_, { id }: { id: string }): Promise<Scene | null> {
+  async watchScene(_: unknown, { id }: { id: string }): Promise<Scene | null> {
     const scene = await Scene.getById(id);
 
     if (scene) {
@@ -95,7 +98,7 @@ export default {
     return null;
   },
 
-  async addScene(_, args: Dictionary<any>): Promise<Scene> {
+  async addScene(_: unknown, args: Dictionary<any>): Promise<Scene> {
     for (const actor of args.actors || []) {
       const actorInDb = await Actor.getById(actor);
       if (!actorInDb) throw new Error(`Actor ${actor} not found`);
@@ -154,7 +157,7 @@ export default {
   },
 
   async updateScenes(
-    _,
+    _: unknown,
     { ids, opts }: { ids: string[]; opts: ISceneUpdateOpts }
   ): Promise<Scene[]> {
     const config = getConfig();
@@ -233,7 +236,7 @@ export default {
   },
 
   async removeScenes(
-    _,
+    _: unknown,
     { ids, deleteImages }: { ids: string[]; deleteImages?: boolean }
   ): Promise<boolean> {
     for (const id of ids) {

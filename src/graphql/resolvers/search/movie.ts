@@ -3,7 +3,7 @@ import { searchMovies } from "../../../search/movie";
 import Movie from "../../../types/movie";
 
 export async function getMovies(
-  _,
+  _: unknown,
   { query, seed }: { query?: string; seed?: string }
 ): Promise<
   | {

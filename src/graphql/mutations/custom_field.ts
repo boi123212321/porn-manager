@@ -3,7 +3,7 @@ import CustomField, { CustomFieldTarget, CustomFieldType } from "../../types/cus
 
 export default {
   async updateCustomField(
-    _,
+    _: unknown,
     {
       id,
       name,
@@ -33,14 +33,14 @@ export default {
     } else throw new Error("Custom field not found");
   },
 
-  async removeCustomField(_, { id }: { id: string }): Promise<boolean> {
+  async removeCustomField(_: unknown, { id }: { id: string }): Promise<boolean> {
     await CustomField.remove(id);
 
     return true;
   },
 
   async createCustomField(
-    _,
+    _: unknown,
     {
       name,
       target,

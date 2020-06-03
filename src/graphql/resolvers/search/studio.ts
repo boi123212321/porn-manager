@@ -3,7 +3,7 @@ import { searchStudios } from "../../../search/studio";
 import Studio from "../../../types/studio";
 
 export async function getStudios(
-  _,
+  _: unknown,
   { query, seed }: { query?: string; seed?: string }
 ): Promise<
   | {

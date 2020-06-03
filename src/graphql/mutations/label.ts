@@ -16,7 +16,7 @@ type ILabelUpdateOpts = Partial<{
 }>;
 
 export default {
-  async removeLabels(_, { ids }: { ids: string[] }): Promise<boolean> {
+  async removeLabels(_: unknown, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       const label = await Label.getById(id);
 
@@ -28,7 +28,7 @@ export default {
     return true;
   },
 
-  async addLabel(_, args: Dictionary<any>): Promise<Label> {
+  async addLabel(_: unknown, args: Dictionary<any>): Promise<Label> {
     const label = new Label(args.name, args.aliases);
 
     for (const scene of await Scene.getAll()) {
@@ -58,7 +58,7 @@ export default {
   },
 
   async updateLabels(
-    _,
+    _: unknown,
     { ids, opts }: { ids: string[]; opts: ILabelUpdateOpts }
   ): Promise<Label[]> {
     const updatedLabels = [] as Label[];

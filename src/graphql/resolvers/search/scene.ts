@@ -3,7 +3,7 @@ import { searchScenes } from "../../../search/scene";
 import Scene from "../../../types/scene";
 
 export async function getScenes(
-  _,
+  _: unknown,
   { query, seed }: { query: string | undefined; seed?: string }
 ): Promise<
   | {

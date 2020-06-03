@@ -37,7 +37,7 @@ function isHexColorString(str: string) {
 }
 
 export default {
-  async uploadImage(_, args: Dictionary<any>): Promise<Image> {
+  async uploadImage(_: unknown, args: Dictionary<any>): Promise<Image> {
     for (const actor of args.actors || []) {
       const actorInDb = await Actor.getById(actor);
 
@@ -208,7 +208,7 @@ export default {
   },
 
   async updateImages(
-    _,
+    _: unknown,
     { ids, opts }: { ids: string[]; opts: IImageUpdateOpts }
   ): Promise<Image[]> {
     const config = getConfig();
@@ -271,7 +271,7 @@ export default {
     return updatedImages;
   },
 
-  async removeImages(_, { ids }: { ids: string[] }): Promise<boolean> {
+  async removeImages(_: unknown, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       const image = await Image.getById(id);
 

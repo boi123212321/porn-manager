@@ -3,7 +3,7 @@ import { searchActors } from "../../../search/actor";
 import Actor from "../../../types/actor";
 
 export async function getUnwatchedActors(
-  _,
+  _: unknown,
   { skip, take, seed }: { take?: number; skip?: number; seed?: string }
 ): Promise<(Actor | null)[] | undefined> {
   try {
@@ -37,7 +37,7 @@ export async function getUnwatchedActors(
 }
 
 export async function getActors(
-  _,
+  _: unknown,
   { query, seed }: { query?: string; seed?: string }
 ): Promise<
   | {

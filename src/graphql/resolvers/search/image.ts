@@ -3,7 +3,7 @@ import { searchImages } from "../../../search/image";
 import Image from "../../../types/image";
 
 export async function getImages(
-  _,
+  _: unknown,
   {
     query,
     auto, // TODO: deprecated?

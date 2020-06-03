@@ -33,14 +33,14 @@ export default {
     );
   },
 
-  async getScenesWithoutStudios(_, { num }: { num: number }): Promise<Scene[]> {
+  async getScenesWithoutStudios(_: unknown, { num }: { num: number }): Promise<Scene[]> {
     const numStudios = await studioCollection.count();
     if (numStudios === 0) return [];
 
     return (await Scene.getAll()).filter((s) => s.studio === null).slice(0, num || 12);
   },
 
-  async getScenesWithoutLabels(_, { num }: { num: number }): Promise<Scene[]> {
+  async getScenesWithoutLabels(_: unknown, { num }: { num: number }): Promise<Scene[]> {
     return (
       await mapAsync(await Scene.getAll(), async (scene) => ({
         scene,
@@ -52,7 +52,7 @@ export default {
       .slice(0, num || 12);
   },
 
-  async getActorsWithoutLabels(_, { num }: { num: number }): Promise<Actor[]> {
+  async getActorsWithoutLabels(_: unknown, { num }: { num: number }): Promise<Actor[]> {
     return (
       await mapAsync(await Actor.getAll(), async (actor) => ({
         actor,
@@ -64,7 +64,7 @@ export default {
       .slice(0, num || 12);
   },
 
-  async getScenesWithoutActors(_, { num }: { num: number }): Promise<Scene[]> {
+  async getScenesWithoutActors(_: unknown, { num }: { num: number }): Promise<Scene[]> {
     return (
       await mapAsync(await Scene.getAll(), async (scene) => ({
         scene,
@@ -76,7 +76,7 @@ export default {
       .slice(0, num || 12);
   },
 
-  async getActorsWithoutScenes(_, { num }: { num: number }): Promise<Actor[]> {
+  async getActorsWithoutScenes(_: unknown, { num }: { num: number }): Promise<Actor[]> {
     return (
       await mapAsync(await Actor.getAll(), async (actor) => ({
         actor,
@@ -88,7 +88,10 @@ export default {
       .slice(0, num || 12);
   },
 
-  async topActors(_, { skip, take }: { skip: number; take: number }): Promise<(Actor | null)[]> {
+  async topActors(
+    _: unknown,
+    { skip, take }: { skip: number; take: number }
+  ): Promise<(Actor | null)[]> {
     return await Actor.getTopActors(skip, take);
   },
 
@@ -110,33 +113,33 @@ export default {
   getScenes,
   getImages,
 
-  async getImageById(_, { id }: { id: string }): Promise<Image | null> {
+  async getImageById(_: unknown, { id }: { id: string }): Promise<Image | null> {
     return await Image.getById(id);
   },
 
-  async getSceneById(_, { id }: { id: string }): Promise<Scene | null> {
+  async getSceneById(_: unknown, { id }: { id: string }): Promise<Scene | null> {
     return await Scene.getById(id);
   },
 
-  async getActorById(_, { id }: { id: string }): Promise<Actor | null> {
+  async getActorById(_: unknown, { id }: { id: string }): Promise<Actor | null> {
     return await Actor.getById(id);
   },
 
-  async getMovieById(_, { id }: { id: string }): Promise<Movie | null> {
+  async getMovieById(_: unknown, { id }: { id: string }): Promise<Movie | null> {
     return await Movie.getById(id);
   },
 
-  async getStudioById(_, { id }: { id: string }): Promise<Studio | null> {
+  async getStudioById(_: unknown, { id }: { id: string }): Promise<Studio | null> {
     return await Studio.getById(id);
   },
 
-  async getLabelById(_, { id }: { id: string }): Promise<Label | null> {
+  async getLabelById(_: unknown, { id }: { id: string }): Promise<Label | null> {
     return await Label.getById(id);
   },
   async getCustomFields(): Promise<CustomField[]> {
     return await CustomField.getAll();
   },
-  async getLabels(_, { type }: { type?: string | null }): Promise<Label[]> {
+  async getLabels(_: unknown, { type }: { type?: string | null }): Promise<Label[]> {
     let labels = await Label.getAll();
 
     if (type) {
