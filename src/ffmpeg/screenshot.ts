@@ -12,7 +12,7 @@ export function singleScreenshot(
       .output(output)
       .outputOptions("-frames", "1")
       .size(`"${maxWidth}x?"`)
-      .on("end", async () => {
+      .on("end", () => {
         resolve(output);
       })
       .on("error", (err) => {

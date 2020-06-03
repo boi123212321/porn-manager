@@ -180,7 +180,7 @@ export default {
         if (opts.customFields) {
           for (const key in opts.customFields) {
             const value = opts.customFields[key] !== undefined ? opts.customFields[key] : null;
-            logger.log(`Set actor custom.${key} to ${value}`);
+            logger.log(`Set actor custom.${key} to ${JSON.stringify(value)}`);
             opts.customFields[key] = value;
           }
           actor.customFields = opts.customFields;

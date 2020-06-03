@@ -7,10 +7,10 @@ const sha = require("js-sha512").sha512 as (str: string) => string;
 
 const SIGN_IN_HTML = readFileSync("./views/signin.html", "utf-8");
 
-export async function checkPassword(
+export function checkPassword(
   req: express.Request,
   res: express.Response
-): Promise<express.Response<any> | undefined> {
+): express.Response<any> | undefined {
   if (!req.query.password) return res.sendStatus(400);
 
   const config = getConfig();
@@ -26,11 +26,11 @@ export async function checkPassword(
   res.sendStatus(401);
 }
 
-export async function passwordHandler(
+export function passwordHandler(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
-): Promise<void | express.Response<any>> {
+): void | express.Response<any> {
   const config = getConfig();
   if (!config.PASSWORD) return next();
 

@@ -55,7 +55,8 @@ export default class Image {
 
           if (color) {
             image.color = color;
-            imageCollection.upsert(image._id, image).catch((err) => {});
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            imageCollection.upsert(image._id, image).catch(() => {});
           }
         } catch (err) {
           logger.error(image.path, err);
@@ -112,7 +113,7 @@ export default class Image {
     return (await actorCollection.getBulk(references.map((r) => r.actor))).filter(Boolean);
   }
 
-  static async setActors(image: Image, actorIds: string[]): Promise<Actor[]> {
+  static async setActors(image: Image, actorIds: string[]): Promise<void> {
     const references = await ActorReference.getByItem(image._id);
 
     const oldActorReferences = references.map((r) => r._id);

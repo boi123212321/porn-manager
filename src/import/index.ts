@@ -70,7 +70,8 @@ export async function checkImportFolders(): Promise<void> {
   // Files to process
   const newFiles = [] as string[];
 
-  if (config.EXCLUDE_FILES.length) logger.log(`Will ignore files: ${config.EXCLUDE_FILES}`);
+  if (config.EXCLUDE_FILES.length)
+    logger.log(`Will ignore files: ${JSON.stringify(config.EXCLUDE_FILES)}`);
 
   for (const folder of config.BULK_IMPORT_PATHS) {
     const _path = resolve(folder);
@@ -85,7 +86,7 @@ export async function checkImportFolders(): Promise<void> {
       dir: _path,
       extensions: [".json", ".yaml"],
       exclude: [],
-      cb: async (path) => {
+      cb: (path) => {
         if (basename(path).startsWith(".")) return;
         if (imported.includes(path)) return;
         newFiles.push(path);

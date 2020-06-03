@@ -22,7 +22,7 @@ const validExtension = (exts: string[], path: string) => exts.includes(extname(p
 export interface IWalkOptions {
   dir: string;
   extensions: string[];
-  cb: (file: string) => Promise<void>;
+  cb: (file: string) => void | Promise<void>;
   exclude: string[];
 }
 

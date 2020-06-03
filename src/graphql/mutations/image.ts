@@ -79,7 +79,7 @@ export default {
 
     const pipe = read.pipe(write);
 
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       pipe.on("close", () => resolve());
     });
 
@@ -253,7 +253,7 @@ export default {
         if (opts.customFields) {
           for (const key in opts.customFields) {
             const value = opts.customFields[key] !== undefined ? opts.customFields[key] : null;
-            logger.log(`Set scene custom.${key} to ${value}`);
+            logger.log(`Set scene custom.${key} to ${JSON.stringify(value)}`);
             opts.customFields[key] = value;
           }
           image.customFields = opts.customFields;

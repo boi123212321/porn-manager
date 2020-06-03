@@ -14,7 +14,7 @@ interface ICreateMarkerArgs {
 
 export default {
   async createMarker(
-    _: any,
+    _: unknown,
     { scene, name, time, rating, favorite, bookmark, labels }: ICreateMarkerArgs
   ): Promise<Marker> {
     const marker = new Marker(name, scene, time);
@@ -41,7 +41,7 @@ export default {
     return marker;
   },
 
-  async removeMarkers(_: any, { ids }: { ids: string[] }): Promise<boolean> {
+  async removeMarkers(_: unknown, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       await Marker.remove(id);
       // await MarkerReference.removeByMarker(id);

@@ -5,7 +5,7 @@ import readline from "readline";
 import * as logger from "./logger";
 
 export function transformFile(file: string, cb: (str: string) => string | false): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!fs.existsSync(file)) return resolve();
 
     const lines = [] as string[];

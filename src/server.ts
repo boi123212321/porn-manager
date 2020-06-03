@@ -182,7 +182,7 @@ export default async (): Promise<void> => {
   app.use("/assets", express.static("./assets"));
   app.get("/dvd-renderer/:id", dvdRenderer);
 
-  app.get("/flag/:code", async (req, res) => {
+  app.get("/flag/:code", (req, res) => {
     res.redirect(`/assets/flags/${req.params.code.toLowerCase()}.svg`);
   });
 
@@ -223,7 +223,7 @@ export default async (): Promise<void> => {
     } else res.redirect("/broken");
   });
 
-  app.get("/log", async (req, res) => {
+  app.get("/log", (req, res) => {
     res.json(logger.getLog());
   });
 

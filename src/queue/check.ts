@@ -16,7 +16,8 @@ export async function checkVideoFolders(): Promise<void> {
 
   const unknownVideos = [] as string[];
 
-  if (config.EXCLUDE_FILES.length) logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
+  if (config.EXCLUDE_FILES.length)
+    logger.log(`Will ignore files: ${JSON.stringify(config.EXCLUDE_FILES)}.`);
 
   for (const folder of config.VIDEO_PATHS) {
     logger.message(`Scanning ${folder} for videos...`);
@@ -110,7 +111,8 @@ export async function checkImageFolders(): Promise<void> {
 
   if (!config.READ_IMAGES_ON_IMPORT) logger.warn("Reading images on import is disabled.");
 
-  if (config.EXCLUDE_FILES.length) logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
+  if (config.EXCLUDE_FILES.length)
+    logger.log(`Will ignore files: ${JSON.stringify(config.EXCLUDE_FILES)}.`);
 
   for (const folder of config.IMAGE_PATHS) {
     logger.message(`Scanning ${folder} for images...`);
