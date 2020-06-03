@@ -5,7 +5,7 @@ import Actor from "../../../types/actor";
 export async function getUnwatchedActors(
   _,
   { skip, take, seed }: { take?: number; skip?: number; seed?: string }
-) {
+): Promise<(Actor | null)[] | undefined> {
   try {
     const timeNow = +new Date();
     const result = await searchActors(
@@ -36,7 +36,17 @@ export async function getUnwatchedActors(
   }
 }
 
-export async function getActors(_, { query, seed }: { query?: string; seed?: string }) {
+export async function getActors(
+  _,
+  { query, seed }: { query?: string; seed?: string }
+): Promise<
+  | {
+      numItems: number;
+      numPages: number;
+      items: (Actor | null)[];
+    }
+  | undefined
+> {
   try {
     const timeNow = +new Date();
     const result = await searchActors(query || "", seed);

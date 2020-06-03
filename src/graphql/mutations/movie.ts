@@ -23,7 +23,7 @@ type IMovieUpdateOpts = Partial<{
 }>;
 
 export default {
-  async addMovie(_, args: Dictionary<any>) {
+  async addMovie(_, args: Dictionary<any>): Promise<Movie> {
     let movie = new Movie(args.name, args.scenes);
 
     if (args.scenes) {
@@ -43,7 +43,7 @@ export default {
     return movie;
   },
 
-  async removeMovies(_, { ids }: { ids: string[] }) {
+  async removeMovies(_, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       const movie = await Movie.getById(id);
 
@@ -58,7 +58,10 @@ export default {
     return true;
   },
 
-  async updateMovies(_, { ids, opts }: { ids: string[]; opts: IMovieUpdateOpts }) {
+  async updateMovies(
+    _,
+    { ids, opts }: { ids: string[]; opts: IMovieUpdateOpts }
+  ): Promise<Movie[]> {
     const updatedScenes = [] as Movie[];
 
     for (const id of ids) {

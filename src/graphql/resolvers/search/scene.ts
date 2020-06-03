@@ -2,7 +2,17 @@ import * as logger from "../../../logger";
 import { searchScenes } from "../../../search/scene";
 import Scene from "../../../types/scene";
 
-export async function getScenes(_, { query, seed }: { query: string | undefined; seed?: string }) {
+export async function getScenes(
+  _,
+  { query, seed }: { query: string | undefined; seed?: string }
+): Promise<
+  | {
+      numItems: number;
+      numPages: number;
+      items: (Scene | null)[];
+    }
+  | undefined
+> {
   try {
     const timeNow = +new Date();
     const result = await searchScenes(query || "", seed);

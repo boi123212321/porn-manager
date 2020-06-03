@@ -9,7 +9,14 @@ export async function getImages(
     auto, // TODO: deprecated?
     seed,
   }: { query: string | undefined; auto?: boolean | null; seed?: string }
-) {
+): Promise<
+  | {
+      numItems: number;
+      numPages: number;
+      items: (Image | null)[];
+    }
+  | undefined
+> {
   try {
     const timeNow = +new Date();
     const result = await searchImages(query || "", seed);

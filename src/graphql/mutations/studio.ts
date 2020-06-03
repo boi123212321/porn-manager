@@ -22,7 +22,7 @@ type IStudioUpdateOpts = Partial<{
 }>;
 
 export default {
-  async addStudio(_, { name }: { name: string }) {
+  async addStudio(_, { name }: { name: string }): Promise<Studio> {
     const studio = new Studio(name);
 
     for (const scene of await Scene.getAll()) {
@@ -41,7 +41,10 @@ export default {
     return studio;
   },
 
-  async updateStudios(_, { ids, opts }: { ids: string[]; opts: IStudioUpdateOpts }) {
+  async updateStudios(
+    _,
+    { ids, opts }: { ids: string[]; opts: IStudioUpdateOpts }
+  ): Promise<Studio[]> {
     const updatedStudios = [] as Studio[];
 
     for (const id of ids) {
@@ -75,7 +78,7 @@ export default {
     return updatedStudios;
   },
 
-  async removeStudios(_, { ids }: { ids: string[] }) {
+  async removeStudios(_, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       const studio = await Studio.getById(id);
 

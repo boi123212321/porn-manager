@@ -16,7 +16,7 @@ export default {
   async createMarker(
     _: any,
     { scene, name, time, rating, favorite, bookmark, labels }: ICreateMarkerArgs
-  ) {
+  ): Promise<Marker> {
     const marker = new Marker(name, scene, time);
 
     if (Array.isArray(labels)) await Marker.setLabels(marker, labels);
@@ -40,7 +40,8 @@ export default {
 
     return marker;
   },
-  async removeMarkers(_: any, { ids }: { ids: string[] }) {
+
+  async removeMarkers(_: any, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       await Marker.remove(id);
       // await MarkerReference.removeByMarker(id);

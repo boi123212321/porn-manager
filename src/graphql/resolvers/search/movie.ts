@@ -2,7 +2,17 @@ import * as logger from "../../../logger";
 import { searchMovies } from "../../../search/movie";
 import Movie from "../../../types/movie";
 
-export async function getMovies(_, { query, seed }: { query?: string; seed?: string }) {
+export async function getMovies(
+  _,
+  { query, seed }: { query?: string; seed?: string }
+): Promise<
+  | {
+      numItems: number;
+      numPages: number;
+      items: (Movie | null)[];
+    }
+  | undefined
+> {
   try {
     const timeNow = +new Date();
     const result = await searchMovies(query || "", seed);

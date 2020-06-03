@@ -56,16 +56,16 @@ async function runScenePlugins(ids: string[]) {
 }
 
 export default {
-  async runAllScenePlugins() {
+  async runAllScenePlugins(): Promise<Scene[]> {
     const ids = (await Scene.getAll()).map((a) => a._id);
     return runScenePlugins(ids);
   },
 
-  async runScenePlugins(_, { ids }: { ids: string[] }) {
+  async runScenePlugins(_, { ids }: { ids: string[] }): Promise<Scene[]> {
     return runScenePlugins(ids);
   },
 
-  async screenshotScene(_, { id, sec }: { id: string; sec: number }) {
+  async screenshotScene(_, { id, sec }: { id: string; sec: number }): Promise<Image | null> {
     const scene = await Scene.getById(id);
 
     if (scene) {
@@ -75,7 +75,7 @@ export default {
     return null;
   },
 
-  async unwatchScene(_, { id }: { id: string }) {
+  async unwatchScene(_, { id }: { id: string }): Promise<Scene | null> {
     const scene = await Scene.getById(id);
 
     if (scene) {
@@ -85,7 +85,7 @@ export default {
     return null;
   },
 
-  async watchScene(_, { id }: { id: string }) {
+  async watchScene(_, { id }: { id: string }): Promise<Scene | null> {
     const scene = await Scene.getById(id);
 
     if (scene) {
@@ -95,7 +95,7 @@ export default {
     return null;
   },
 
-  async addScene(_, args: Dictionary<any>) {
+  async addScene(_, args: Dictionary<any>): Promise<Scene> {
     for (const actor of args.actors || []) {
       const actorInDb = await Actor.getById(actor);
       if (!actorInDb) throw new Error(`Actor ${actor} not found`);
@@ -153,9 +153,12 @@ export default {
     return scene;
   },
 
-  async updateScenes(_, { ids, opts }: { ids: string[]; opts: ISceneUpdateOpts }) {
+  async updateScenes(
+    _,
+    { ids, opts }: { ids: string[]; opts: ISceneUpdateOpts }
+  ): Promise<Scene[]> {
     const config = getConfig();
-    const updatedScenes = [] as Scene[];
+    const updatedScenes: Scene[] = [];
 
     for (const id of ids) {
       const scene = await Scene.getById(id);
@@ -229,7 +232,10 @@ export default {
     return updatedScenes;
   },
 
-  async removeScenes(_, { ids, deleteImages }: { ids: string[]; deleteImages?: boolean }) {
+  async removeScenes(
+    _,
+    { ids, deleteImages }: { ids: string[]; deleteImages?: boolean }
+  ): Promise<boolean> {
     for (const id of ids) {
       const scene = await Scene.getById(id);
 

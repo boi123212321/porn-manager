@@ -56,16 +56,16 @@ async function runActorPlugins(ids: string[]) {
 }
 
 export default {
-  async runAllActorPlugins() {
+  async runAllActorPlugins(): Promise<Actor[]> {
     const ids = (await Actor.getAll()).map((a) => a._id);
     return runActorPlugins(ids);
   },
 
-  async runActorPlugins(_, { ids }: { ids: string[] }) {
+  async runActorPlugins(_, { ids }: { ids: string[] }): Promise<Actor[]> {
     return runActorPlugins(ids);
   },
 
-  async addActor(_, args: Dictionary<any>) {
+  async addActor(_, args: Dictionary<any>): Promise<Actor> {
     let actor = new Actor(args.name, args.aliases);
     const config = getConfig();
 
@@ -132,7 +132,10 @@ export default {
     return actor;
   },
 
-  async updateActors(_, { ids, opts }: { ids: string[]; opts: IActorUpdateOpts }) {
+  async updateActors(
+    _,
+    { ids, opts }: { ids: string[]; opts: IActorUpdateOpts }
+  ): Promise<Actor[]> {
     const updatedActors = [] as Actor[];
 
     for (const id of ids) {
@@ -195,7 +198,7 @@ export default {
     return updatedActors;
   },
 
-  async removeActors(_, { ids }: { ids: string[] }) {
+  async removeActors(_, { ids }: { ids: string[] }): Promise<boolean> {
     for (const id of ids) {
       const actor = await Actor.getById(id);
 
