@@ -127,7 +127,7 @@
           class="pa-1"
           v-for="(actor, i) in actors"
           :key="actor._id"
-          cols="12"
+          cols="6"
           sm="6"
           md="4"
           lg="3"

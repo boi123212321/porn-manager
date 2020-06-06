@@ -1,6 +1,6 @@
-import Scene from "../../../types/scene";
 import * as logger from "../../../logger";
 import { searchScenes } from "../../../search/scene";
+import { sceneCollection } from "../../../database";
 
 export async function getScenes(
   _,
@@ -16,7 +16,8 @@ export async function getScenes(
       }s`
     );
 
-    const scenes = await Promise.all(result.items.map(Scene.getById));
+    const scenes = await sceneCollection.getBulk(result.items);
+
     logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
 
     return {

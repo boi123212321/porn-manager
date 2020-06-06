@@ -1,6 +1,6 @@
-import Studio from "../../../types/studio";
 import * as logger from "../../../logger";
 import { searchStudios } from "../../../search/studio";
+import { studioCollection } from "../../../database";
 
 export async function getStudios(
   _,
@@ -16,7 +16,8 @@ export async function getStudios(
       }s`
     );
 
-    const studios = await Promise.all(result.items.map(Studio.getById));
+    const studios = await studioCollection.getBulk(result.items);
+
     logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
 
     return {

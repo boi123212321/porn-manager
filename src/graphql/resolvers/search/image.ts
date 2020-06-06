@@ -1,6 +1,6 @@
-import Image from "../../../types/image";
 import * as logger from "../../../logger";
 import { searchImages } from "../../../search/image";
+import { imageCollection } from "../../../database";
 
 export async function getImages(
   _,
@@ -20,7 +20,8 @@ export async function getImages(
       }s`
     );
 
-    const images = await Promise.all(result.items.map(Image.getById));
+    const images = await imageCollection.getBulk(result.items);
+
     logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
 
     return {

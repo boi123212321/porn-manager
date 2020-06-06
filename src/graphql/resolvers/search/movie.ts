@@ -1,6 +1,6 @@
-import Movie from "../../../types/movie";
 import * as logger from "../../../logger";
 import { searchMovies } from "../../../search/movie";
+import { movieCollection } from "../../../database";
 
 export async function getMovies(
   _,
@@ -16,7 +16,8 @@ export async function getMovies(
       }s`
     );
 
-    const movies = await Promise.all(result.items.map(Movie.getById));
+    const movies = await movieCollection.getBulk(result.items);
+
     logger.log(`Search done in ${(Date.now() - timeNow) / 1000}s.`);
 
     return {

@@ -135,7 +135,7 @@
           v-for="(scene, i) in scenes"
           :key="scene._id"
           class="pa-1"
-          cols="12"
+          cols="6"
           sm="6"
           md="4"
           lg="3"
