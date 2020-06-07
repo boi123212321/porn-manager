@@ -28,6 +28,7 @@ export interface IConfig {
   VIDEO_EXTENSIONS: string[];
   TRANSCODE_VIDEOS: boolean;
   TRANSCODE_OPTIONS: string[];
+  TRANSCODE_PRESERVE_DATES:boolean;
   IMAGE_PATHS: string[];
 
   BULK_IMPORT_PATHS: string[];
@@ -92,6 +93,7 @@ export const defaultConfig: IConfig = {
   VIDEO_EXTENSIONS: ['.mp4','.webm'],
   TRANSCODE_VIDEOS: false,
   TRANSCODE_OPTIONS:[],
+  TRANSCODE_PRESERVE_DATES:true,
   IMAGE_PATHS: [],
 
   BULK_IMPORT_PATHS: [],

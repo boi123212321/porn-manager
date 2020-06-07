@@ -3,7 +3,7 @@ import ffmpeg, { FfprobeData, ffprobe } from "fluent-ffmpeg";
 import { getConfig, IConfig } from "../config";
 import * as logger from "../logger";
 import path, { basename } from "path";
-import { existsSync, renameSync } from "fs";
+import { existsSync, renameSync, statSync, utimes, utimesSync } from "fs";
 import mkdirp from "mkdirp";
 
 let config: IConfig;
@@ -37,10 +37,15 @@ export const transcode = async (scene:Scene):Promise<string|null>=>{
           ffmpeg(scene.path)
           .on('end', async ()=>{
             process.stdout.write('\n');
-            logger.success(`Transcoded file ${scene.path} to ${outfile}`);
+            logger.success(`Transcoded file ${scene.path} to ${outfile}`);            
+            const oldPath = scene.path!;
+            if(config.TRANSCODE_PRESERVE_DATES){
+              //update the modified/accessed date of our new copy
+              const fsStats =  statSync(oldPath);
+              utimesSync(outfile, fsStats.atime, fsStats.mtime);
+            }
             //rename the old file with a leading '$_' so we ignore it on the next scan
             //also so we can easily search for and remove it later
-            const oldPath = scene.path!;          
             renameSync(oldPath, path.join(path.dirname(oldPath), `$_${basename(oldPath)}`));         
             resolve(outfile);
           })
@@ -53,7 +58,7 @@ export const transcode = async (scene:Scene):Promise<string|null>=>{
           .addOptions(config.TRANSCODE_OPTIONS)
           .save(outfile);
         }else{
-          logger.message(`Skipping transcoding of compatible file: ${scene.path}`);
+          logger.success(`Skipping transcoding of compatible file: ${scene.path}`);
           resolve(scene.path);
         }
       });
