@@ -35,6 +35,7 @@ import {
 } from "../database";
 import ActorReference from "./actor_reference";
 import SceneView from "./watch";
+import { transcode } from "../import/transcode";
 
 export function runFFprobe(file: string): Promise<FfprobeData> {
   return new Promise((resolve, reject) => {
@@ -127,7 +128,7 @@ export default class Scene {
     scene.meta.dimensions = { width: -1, height: -1 };
     scene.path = videoPath;
 
-    const streams = (await runFFprobe(videoPath)).streams;
+    const streams = (await runFFprobe(scene.path)).streams;
 
     let foundCorrectStream = false;
     for (const stream of streams) {
@@ -143,7 +144,7 @@ export default class Scene {
           }
         }
         scene.meta.duration = parseInt(stream.duration || "") || null;
-        scene.meta.size = (await statAsync(videoPath)).size;
+        scene.meta.size = (await statAsync(scene.path)).size;
         foundCorrectStream = true;
         break;
       }
@@ -154,13 +155,17 @@ export default class Scene {
       throw new Error("Could not get video stream...broken file?");
     }
 
+    if(config.TRANSCODE_VIDEOS) {
+      scene.path = await transcode(scene);     
+    }
+
     let sceneActors = [] as string[];
     let sceneLabels = [] as string[];
 
     if (extractInfo) {
       // Extract actors
       let extractedActors = [] as string[];
-      extractedActors = await extractActors(videoPath);
+      extractedActors = await extractActors(scene.path!);
       sceneActors.push(...extractedActors);
 
       logger.log(`Found ${extractedActors.length} actors in scene path.`);
@@ -183,14 +188,14 @@ export default class Scene {
 
     if (extractInfo) {
       // Extract labels
-      const extractedLabels = await extractLabels(videoPath);
+      const extractedLabels = await extractLabels(scene.path!);
       sceneLabels.push(...extractedLabels);
       logger.log(`Found ${extractedLabels.length} labels in scene path.`);
     }
 
     if (extractInfo) {
       // Extract studio
-      const extractedStudios = await extractStudios(videoPath);
+      const extractedStudios = await extractStudios(scene.path!);
 
       scene.studio = extractedStudios[0] || null;
 
@@ -212,7 +217,7 @@ export default class Scene {
 
     if (extractInfo) {
       // Extract movie
-      const extractedMovies = await extractMovies(videoPath);
+      const extractedMovies = await extractMovies(scene.path!);
 
       if (extractedMovies.length) {
         logger.log("Found movie in scene path");
@@ -234,7 +239,7 @@ export default class Scene {
     if (!scene.thumbnail) {
       const thumbnail = await Scene.generateSingleThumbnail(
         scene._id,
-        videoPath,
+        scene.path!,
         // @ts-ignore
         scene.meta.dimensions
       );

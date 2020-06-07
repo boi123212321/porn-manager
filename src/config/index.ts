@@ -23,8 +23,11 @@ interface IPlugin {
 
 type PluginCallWithArgument = [string, Dictionary<any>];
 
-export interface IConfig {
+export interface IConfig {  
   VIDEO_PATHS: string[];
+  VIDEO_EXTENSIONS: string[];
+  TRANSCODE_VIDEOS: boolean;
+  TRANSCODE_OPTIONS: string[];
   IMAGE_PATHS: string[];
 
   BULK_IMPORT_PATHS: string[];
@@ -86,6 +89,9 @@ export interface IConfig {
 
 export const defaultConfig: IConfig = {
   VIDEO_PATHS: [],
+  VIDEO_EXTENSIONS: ['.mp4','.webm'],
+  TRANSCODE_VIDEOS: false,
+  TRANSCODE_OPTIONS:[],
   IMAGE_PATHS: [],
 
   BULK_IMPORT_PATHS: [],
@@ -97,7 +103,7 @@ export const defaultConfig: IConfig = {
   FFMPEG_PATH: "",
   FFPROBE_PATH: "",
   GENERATE_SCREENSHOTS: false,
-  GENERATE_PREVIEWS: true,
+  GENERATE_PREVIEWS: true,  
   SCREENSHOT_INTERVAL: 120,
   PASSWORD: null,
   PORT: 3000,

@@ -29,10 +29,10 @@ export async function checkVideoFolders() {
     await walk({
       dir: folder,
       exclude: config.EXCLUDE_FILES,
-      extensions: [".mp4", ".webm"],
+      extensions: config.VIDEO_EXTENSIONS,
       cb: async (path) => {
         loader.text = `Scanned ${++numFiles} videos`;
-        if (basename(path).startsWith(".")) {
+        if (basename(path).startsWith(".") || basename(path).startsWith('$_')) {
           logger.log(`Ignoring file ${path}`);
         } else {
           logger.log(`Found matching file ${path}`);
