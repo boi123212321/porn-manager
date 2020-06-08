@@ -1,10 +1,9 @@
 import Scene, { runFFprobe } from "../types/scene";
-import ffmpeg, { FfprobeData, ffprobe } from "fluent-ffmpeg";
+import ffmpeg from "fluent-ffmpeg";
 import { getConfig, IConfig } from "../config";
 import * as logger from "../logger";
 import path, { basename } from "path";
-import { existsSync, renameSync, statSync, utimes, utimesSync } from "fs";
-import mkdirp from "mkdirp";
+import { existsSync, renameSync, statSync, utimesSync } from "fs";
 
 let config: IConfig;
 let currentProgress = 0;
@@ -19,11 +18,7 @@ export const transcode = async (scene:Scene):Promise<string|null>=>{
           logger.warn("No scene path, aborting transcoding.");
           return resolve(scene.path);
         }
-  
-        const tmpFolder = path.join("tmp", scene._id);
-        if (!existsSync(tmpFolder)) mkdirp.sync(tmpFolder);
-  
-        const extension = scene.path.slice((Math.max(0, scene.path.lastIndexOf(".")) || Infinity) + 1);
+          
         config = getConfig();
 
         if(!(await canPlayInputVideo(scene.path))){
