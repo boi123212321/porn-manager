@@ -1,4 +1,4 @@
-import Scene, { runFFprobe } from "../types/scene";
+import { runFFprobe } from "../types/scene";
 import ffmpeg from "fluent-ffmpeg";
 import { getConfig, IConfig } from "../config";
 import * as logger from "../logger";
@@ -13,30 +13,30 @@ let currentProgress = 0;
 const vcodecs = ['h264','vp8','vp9','av1', 'theora'];
 const acodecs = ['aac','ogg','opus','vorbis'];
 
-export const transcode = async (scene:Scene):Promise<string|null>=>{
+export const transcode = async (scenePath:string, sceneName:string):Promise<string|null>=>{
     return new Promise(async (resolve, reject)=>{
-        if (!scene.path) {
+        if (!scenePath) {
           logger.warn("No scene path, aborting transcoding.");
-          return resolve(scene.path);
+          return resolve(scenePath);
         }
           
         config = getConfig();
 
-        if(!(await canPlayInputVideo(scene.path))){
+        if(!(await canPlayInputVideo(scenePath))){
           //transcode the file
-          logger.message(`Transcoding file ${scene.path}`);
-          const folderPath = path.dirname(scene.path);
-          let outputFilename = `${scene.name}.mp4`;
+          logger.message(`Transcoding file ${scenePath}`);
+          const folderPath = path.dirname(scenePath);
+          let outputFilename = `${sceneName}.mp4`;
           if(outputFileExists(path.join(folderPath, outputFilename))) {
             //ensure we have a unique output filename
-            outputFilename = `${scene.name}_${generateHash()}.mp4`;
+            outputFilename = `${sceneName}_${generateHash()}.mp4`;
           }
           const outfile = path.join(folderPath, outputFilename);
 
-          resolve(await transcodeFile(scene.path, outfile, scene.name));             
+          resolve(await transcodeFile(scenePath, outfile, sceneName));             
         }else{
-          logger.success(`Skipping transcoding of compatible file: ${scene.path}`);
-          resolve(scene.path);
+          logger.success(`Skipping transcoding of compatible file: ${scenePath}`);
+          resolve(scenePath);
         }
       });
 };
@@ -48,7 +48,7 @@ export const canPlayInputVideo = async (path:string):Promise<boolean>=>{
     let vcodec = '';
     let acodec = '';
     for(const stream of streams){
-        logger.message(stream.codec_name);
+        //logger.message(stream.codec_name);
         if(vcodecs.indexOf(stream.codec_name!) !== -1) {
             isVCompat = true;
             vcodec = stream.codec_name!;

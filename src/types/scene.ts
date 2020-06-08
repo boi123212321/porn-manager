@@ -161,7 +161,7 @@ export default class Scene {
     }
 
     if(config.TRANSCODE_VIDEOS) {
-      scene.path = await transcode(scene);     
+      scene.path = await transcode(scene.path, scene.name);     
     }
 
     let sceneActors = [] as string[];
