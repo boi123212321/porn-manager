@@ -12,8 +12,6 @@ import {
   filterExclude,
 } from "./common";
 
-const PAGE_SIZE = 24;
-
 export let index!: Gianna.Index<IStudioSearchDoc>;
 
 const FIELDS = ["name", "labelNames"];
@@ -134,10 +132,13 @@ export async function searchStudios(query: string, shuffleSeed = "default") {
     }
   }
 
+  // Cast to Number to prevent error in query syntax
+  const numTake = Number(options.take);
+  
   return index.search({
     query: options.query,
-    skip: options.skip || options.page * 24,
-    take: options.take || options.take || PAGE_SIZE,
+    skip: options.skip || options.page * numTake,
+    take: options.take || options.take || numTake,
     sort,
     filter,
   });
