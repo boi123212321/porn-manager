@@ -231,6 +231,31 @@ export default class App extends Vue {
       contextModule.setActorAspectRatio(parseFloat(actorRatioLocalStorage));
     }
 
+    const scenesPerPageLocalStorage = localStorage.getItem("pm_scenesPerPage");
+    if (scenesPerPageLocalStorage) {
+      contextModule.setScenesPerPage(parseFloat(scenesPerPageLocalStorage));
+    }
+
+    const actorsPerPageLocalStorage = localStorage.getItem("pm_actorsPerPage");
+    if (actorsPerPageLocalStorage) {
+      contextModule.setActorsPerPage(parseFloat(actorsPerPageLocalStorage));
+    }
+
+    const moviesPerPageLocalStorage = localStorage.getItem("pm_moviesPerPage");
+    if (moviesPerPageLocalStorage) {
+      contextModule.setMoviesPerPage(parseFloat(moviesPerPageLocalStorage));
+    }
+
+    const studiosPerPageLocalStorage = localStorage.getItem("pm_studiosPerPage");
+    if (studiosPerPageLocalStorage) {
+      contextModule.setStudiosPerPage(parseFloat(studiosPerPageLocalStorage));
+    }
+
+    const imagesPerPageLocalStorage = localStorage.getItem("pm_imagesPerPage");
+    if (imagesPerPageLocalStorage) {
+      contextModule.setImagesPerPage(parseFloat(imagesPerPageLocalStorage));
+    }
+
     const scenePauseOnUnfocusLocalStorage = localStorage.getItem(
       "pm_scenePauseOnUnfocus"
     );
