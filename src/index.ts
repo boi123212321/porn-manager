@@ -66,7 +66,7 @@ if (!process.env.PREVENT_STARTUP)
                 },
               ])
             ).password;
-          } while (sha(password) != config.PASSWORD);
+          } while (sha512(password) != config.PASSWORD);
         }
       }
 
