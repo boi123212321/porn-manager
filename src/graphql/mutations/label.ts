@@ -1,9 +1,7 @@
 import { labelCollection } from "../../database";
 import { isMatchingItem } from "../../extractor";
 import * as logger from "../../logger";
-import { isBlacklisted, updateImages } from "../../search/image";
 import { updateScenes } from "../../search/scene";
-import Image from "../../types/image";
 import Label from "../../types/label";
 import LabelledItem from "../../types/labelled_item";
 import Scene from "../../types/scene";
@@ -28,7 +26,7 @@ export default {
     return true;
   },
 
-  async addLabel(_: unknown, args: Dictionary<any>): Promise<Label> {
+  async addLabel(_: unknown, args: { name: string; aliases?: string[] }): Promise<Label> {
     const label = new Label(args.name, args.aliases);
 
     for (const scene of await Scene.getAll()) {

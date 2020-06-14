@@ -23,7 +23,7 @@ type IMovieUpdateOpts = Partial<{
 }>;
 
 export default {
-  async addMovie(_: unknown, args: Dictionary<any>): Promise<Movie> {
+  async addMovie(_: unknown, args: { name: string; scenes: string[] }): Promise<Movie> {
     let movie = new Movie(args.name);
 
     if (args.scenes) {

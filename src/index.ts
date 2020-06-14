@@ -54,7 +54,7 @@ if (!process.env.PREVENT_STARTUP)
       await queueLoop(config);
     } else {
       if (config.PASSWORD && process.env.NODE_ENV !== "development") {
-        let password;
+        let password: string;
         do {
           password = (
             await inquirer.prompt([

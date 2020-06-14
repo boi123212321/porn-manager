@@ -28,8 +28,8 @@ export async function resetIzzy(): Promise<void> {
 
 export async function izzyVersion(): Promise<string | null> {
   try {
-    const res = await Axios.get(`http://localhost:${getConfig().IZZY_PORT}/`);
-    return res.data.version as string;
+    const res = await Axios.get<{ version: string }>(`http://localhost:${getConfig().IZZY_PORT}/`);
+    return res.data.version;
   } catch (error) {
     return null;
   }
