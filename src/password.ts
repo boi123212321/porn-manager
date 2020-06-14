@@ -1,9 +1,9 @@
 import express from "express";
 import { readFileSync } from "fs";
+import { sha512 } from "js-sha512";
 
 import { getConfig } from "./config";
 import * as logger from "./logger";
-import { sha512 } from "./types/utility";
 
 const SIGN_IN_HTML = readFileSync("./views/signin.html", "utf-8");
 

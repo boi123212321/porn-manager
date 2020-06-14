@@ -1,5 +1,6 @@
 import ffmpeg from "fluent-ffmpeg";
 import inquirer from "inquirer";
+import { sha512 } from "js-sha512";
 
 import args from "./args";
 import { checkConfig, getConfig, IConfig } from "./config";
@@ -12,7 +13,7 @@ import { printMaxMemory } from "./mem";
 import { checkUnusedPlugins, validatePlugins } from "./plugins/validate";
 import { queueLoop } from "./queue_loop";
 import startServer from "./server";
-import { isRegExp, sha512 } from "./types/utility";
+import { isRegExp } from "./types/utility";
 
 export async function onConfigLoad(config: IConfig): Promise<void> {
   validatePlugins(config);
@@ -53,7 +54,9 @@ if (!process.env.PREVENT_STARTUP)
     if (args["process-queue"] === true) {
       await queueLoop(config);
     } else {
-      if (config.PASSWORD && process.env.NODE_ENV !== "development") {
+      const promptPassword =
+        !args["no-password"] && !!config.PASSWORD && process.env.NODE_ENV !== "development";
+      if (promptPassword) {
         let password: string;
         do {
           password = (

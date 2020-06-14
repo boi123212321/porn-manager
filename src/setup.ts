@@ -1,11 +1,11 @@
 import { chmodSync, existsSync } from "fs";
 import inquirer from "inquirer";
+import { sha512 } from "js-sha512";
 import * as path from "path";
 
 import { defaultConfig, IConfig } from "./config/index";
 import { downloadFile, getFFMpegURL, getFFProbeURL } from "./ffmpeg-download";
 import * as logger from "./logger";
-import { sha512 } from "./types/utility";
 
 export default async (): Promise<IConfig> => {
   const { downloadFFMPEG } = await inquirer.prompt([
