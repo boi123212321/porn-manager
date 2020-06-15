@@ -253,19 +253,19 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import ActorCard from "../components/ActorCard.vue";
-import LabelSelector from "../components/LabelSelector.vue";
-import actorFragment from "../fragments/actor";
-import { contextModule } from "../store/context";
+import ActorCard from "@/components/Cards/Actor.vue";
+import LabelSelector from "@/components/LabelSelector.vue";
+import actorFragment from "@/fragments/actor";
+import { contextModule } from "@/store/context";
 import InfiniteLoading from "vue-infinite-loading";
-import IActor from "../types/actor";
-import ILabel from "../types/label";
-import DrawerMixin from "../mixins/drawer";
+import IActor from "@/types/actor";
+import ILabel from "@/types/label";
+import DrawerMixin from "@/mixins/drawer";
 import { mixins } from "vue-class-component";
-import { actorModule } from "../store/actor";
-import CustomFieldFilter from "../components/CustomFieldFilter.vue";
+import { actorModule } from "@/store/actor";
+import CustomFieldFilter from "@/components/CustomFieldFilter.vue";
 
 @Component({
   components: {

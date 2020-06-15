@@ -23,7 +23,6 @@ export default class Movie {
   favorite: boolean = false;
   bookmark: number | null = null;
   rating: number = 0;
-  scenes?: string[]; // backwards compatibility
   customFields: any = {};
   studio: string | null = null;
 
@@ -131,9 +130,8 @@ export default class Movie {
     );
   }
 
-  constructor(name: string, scenes: string[] = []) {
+  constructor(name: string) {
     this._id = "mo_" + generateHash();
     this.name = name.trim();
-    this.scenes = scenes;
   }
 }

@@ -228,28 +228,28 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import sceneFragment from "../fragments/scene";
-import { studioModule } from "../store/studio";
-import actorFragment from "../fragments/actor";
-import imageFragment from "../fragments/image";
-import movieFragment from "../fragments/movie";
+import sceneFragment from "@/fragments/scene";
+import { studioModule } from "@/store/studio";
+import actorFragment from "@/fragments/actor";
+import imageFragment from "@/fragments/image";
+import movieFragment from "@/fragments/movie";
 import moment from "moment";
-import Lightbox from "../components/Lightbox.vue";
-import SceneCard from "../components/SceneCard.vue";
-import MovieCard from "../components/MovieCard.vue";
-import ActorCard from "../components/ActorCard.vue";
+import Lightbox from "@/components/Lightbox.vue";
+import SceneCard from "@/components/SceneCard.vue";
+import MovieCard from "@/components/MovieCard.vue";
+import ActorCard from "@/components/Cards/Actor.vue";
 import InfiniteLoading from "vue-infinite-loading";
-import { actorModule } from "../store/actor";
-import IActor from "../types/actor";
-import IImage from "../types/image";
-import ILabel from "../types/label";
-import studioFragment from "../fragments/studio";
-import IScene from "../types/scene";
-import IMovie from "../types/movie";
-import StudioCard from "../components/StudioCard.vue";
-import LabelSelector from "../components/LabelSelector.vue";
+import { actorModule } from "@/store/actor";
+import IActor from "@/types/actor";
+import IImage from "@/types/image";
+import ILabel from "@/types/label";
+import studioFragment from "@/fragments/studio";
+import IScene from "@/types/scene";
+import IMovie from "@/types/movie";
+import StudioCard from "@/components/StudioCard.vue";
+import LabelSelector from "@/components/LabelSelector.vue";
 
 @Component({
   components: {

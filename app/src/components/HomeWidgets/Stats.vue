@@ -32,7 +32,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient from "../apollo";
+import ApolloClient from "@/apollo";
 import gql from "graphql-tag";
 
 @Component({

@@ -194,21 +194,21 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import LabelSelector from "../components/LabelSelector.vue";
+import LabelSelector from "@/components/LabelSelector.vue";
 import InfiniteLoading from "vue-infinite-loading";
-import { contextModule } from "../store/context";
-import ImageCard from "../components/ImageCard.vue";
-import Lightbox from "../components/Lightbox.vue";
-import actorFragment from "../fragments/actor";
-import imageFragment from "../fragments/image";
-import ImageUploader from "../components/ImageUploader.vue";
-import IImage from "../types/image";
-import ILabel from "../types/label";
-import DrawerMixin from "../mixins/drawer";
+import { contextModule } from "@/store/context";
+import ImageCard from "@/components/ImageCard.vue";
+import Lightbox from "@/components/Lightbox.vue";
+import actorFragment from "@/fragments/actor";
+import imageFragment from "@/fragments/image";
+import ImageUploader from "@/components/ImageUploader.vue";
+import IImage from "@/types/image";
+import ILabel from "@/types/label";
+import DrawerMixin from "@/mixins/drawer";
 import { mixins } from "vue-class-component";
-import { imageModule } from "../store/image";
+import { imageModule } from "@/store/image";
 
 @Component({
   components: {

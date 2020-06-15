@@ -38,7 +38,6 @@ import ActorReference from "../types/actor_reference";
 import { existsAsync } from "../fs/async";
 import { onSceneCreate } from "../plugin_events/scene";
 import Marker from "../types/marker";
-import MarkerReference from "../types/marker_reference";
 
 export interface ICreateOptions {
   scenes?: Dictionary<IImportedScene>;
@@ -290,7 +289,7 @@ export async function createFromFileData(opts: ICreateOptions) {
     for (const movieId in opts.movies) {
       const movieToCreate = opts.movies[movieId];
 
-      let movie = new Movie(movieToCreate.name, Object.keys(createdScenes));
+      let movie = new Movie(movieToCreate.name);
 
       if (isNumber(movieToCreate.bookmark))
         movie.bookmark = <number>movieToCreate.bookmark;

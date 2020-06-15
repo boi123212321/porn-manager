@@ -49,6 +49,9 @@ let serverReady = false;
 let setupMessage = "Setting up...";
 
 async function tryStartProcessing() {
+  const config = getConfig();
+  if (!config.DO_PROCESSING) return;
+
   const queueLen = await getLength();
   if (queueLen > 0 && !isProcessing()) {
     logger.message("Starting processing worker...");
@@ -340,5 +343,14 @@ export default async () => {
     });
   }
 
-  if (config.SCAN_INTERVAL > 0) setInterval(scanFolders, config.SCAN_INTERVAL);
+  if (config.SCAN_INTERVAL > 0) {
+    function printNextScanDate() {
+      const nextScanDate = new Date(Date.now() + config.SCAN_INTERVAL);
+      logger.message(`Next scan at ${nextScanDate.toLocaleString()}`);
+    }
+    printNextScanDate();
+    setInterval(() => {
+      scanFolders().then(printNextScanDate);
+    }, config.SCAN_INTERVAL);
+  }
 };

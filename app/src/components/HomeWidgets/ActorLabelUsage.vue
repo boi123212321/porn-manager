@@ -15,7 +15,7 @@ import { Component, Vue } from "vue-property-decorator";
 import gql from "graphql-tag";
 import Chart from "chart.js";
 import Axios from "axios";
-import { serverBase } from "../apollo";
+import { serverBase } from "@/apollo";
 
 @Component
 export default class ActorLabelUsage extends Vue {

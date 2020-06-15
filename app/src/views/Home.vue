@@ -21,28 +21,18 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
-import gql from "graphql-tag";
-import actorFragment from "../fragments/actor";
-import sceneFragment from "../fragments/scene";
-import ActorCard from "../components/ActorCard.vue";
-import IActor from "../types/actor";
-import IScene from "../types/scene";
-import QueueInfo from "../components/QueueInfo.vue";
-import ActorGrid from "../components/ActorGrid.vue";
-import { contextModule } from "../store/context";
-import TopActors from "../components/TopActors.vue";
-import RandomActors from "../components/RandomActors.vue";
-import Stats from "../components/Stats.vue";
-import SearchTimes from "../components/SearchTimes.vue";
-import ActorLabelUsage from "../components/ActorLabelUsage.vue";
-import SceneLabelUsage from "../components/SceneLabelUsage.vue";
+
+import QueueInfo from "@/components/HomeWidgets/QueueInfo.vue";
+import TopActors from "@/components/HomeWidgets/TopActors.vue";
+import RandomActors from "@/components/HomeWidgets/RandomActors.vue";
+import Stats from "@/components/HomeWidgets/Stats.vue";
+import SearchTimes from "@/components/HomeWidgets/SearchTimes.vue";
+import ActorLabelUsage from "@/components/HomeWidgets/ActorLabelUsage.vue";
+import SceneLabelUsage from "@/components/HomeWidgets/SceneLabelUsage.vue";
 
 @Component({
   components: {
-    ActorCard,
     QueueInfo,
-    ActorGrid,
     TopActors,
     RandomActors,
     Stats,

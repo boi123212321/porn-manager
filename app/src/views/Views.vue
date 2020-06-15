@@ -52,12 +52,12 @@
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
 import Axios from "axios";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import SceneCard from "../components/SceneCard.vue";
-import sceneFragment from "../fragments/scene";
-import actorFragment from "../fragments/actor";
-import studioFragment from "../fragments/studio";
+import SceneCard from "@/components/SceneCard.vue";
+import sceneFragment from "@/fragments/scene";
+import actorFragment from "@/fragments/actor";
+import studioFragment from "@/fragments/studio";
 import Chart from "chart.js";
 
 @Component({

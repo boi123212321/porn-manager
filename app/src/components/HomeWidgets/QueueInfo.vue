@@ -18,12 +18,12 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient from "../apollo";
+import ApolloClient from "@/apollo";
 import gql from "graphql-tag";
 
 @Component
 export default class QueueInfo extends Vue {
-  info = null as null | { length: number, processing: boolean };
+  info = null as null | { length: number; processing: boolean };
   infoInterval = null as NodeJS.Timeout | null;
 
   created() {

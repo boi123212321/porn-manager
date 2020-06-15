@@ -6,7 +6,7 @@ import { writeFileAsync } from "./fs/async";
 
 if (process.env.NODE_ENV == "development") {
   debug.enable("vault:*");
-} else {
+} else if (!process.env.DEBUG) {
   debug.enable(
     "vault:success,vault:warn,vault:error,vault:message,vault:plugin"
   );

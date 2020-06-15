@@ -260,24 +260,24 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import SceneCard from "../components/SceneCard.vue";
-import sceneFragment from "../fragments/scene";
-import actorFragment from "../fragments/actor";
-import studioFragment from "../fragments/studio";
-import LabelSelector from "../components/LabelSelector.vue";
-import { contextModule } from "../store/context";
+import SceneCard from "@/components/SceneCard.vue";
+import sceneFragment from "@/fragments/scene";
+import actorFragment from "@/fragments/actor";
+import studioFragment from "@/fragments/studio";
+import LabelSelector from "@/components/LabelSelector.vue";
+import { contextModule } from "@/store/context";
 import InfiniteLoading from "vue-infinite-loading";
-import ActorSelector from "../components/ActorSelector.vue";
-import SceneUploader from "../components/SceneUploader.vue";
-import IScene from "../types/scene";
-import IActor from "../types/actor";
-import ILabel from "../types/label";
+import ActorSelector from "@/components/ActorSelector.vue";
+import SceneUploader from "@/components/SceneUploader.vue";
+import IScene from "@/types/scene";
+import IActor from "@/types/actor";
+import ILabel from "@/types/label";
 import moment from "moment";
-import DrawerMixin from "../mixins/drawer";
+import DrawerMixin from "@/mixins/drawer";
 import { mixins } from "vue-class-component";
-import { sceneModule } from "../store/scene";
+import { sceneModule } from "@/store/scene";
 
 @Component({
   components: {

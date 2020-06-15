@@ -644,31 +644,31 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import sceneFragment from "../fragments/scene";
-import actorFragment from "../fragments/actor";
-import imageFragment from "../fragments/image";
-import movieFragment from "../fragments/movie";
-import studioFragment from "../fragments/studio";
-import { actorModule } from "../store/actor";
-import SceneCard from "../components/SceneCard.vue";
+import sceneFragment from "@/fragments/scene";
+import actorFragment from "@/fragments/actor";
+import imageFragment from "@/fragments/image";
+import movieFragment from "@/fragments/movie";
+import studioFragment from "@/fragments/studio";
+import { actorModule } from "@/store/actor";
+import SceneCard from "@/components/SceneCard.vue";
 import moment from "moment";
-import LabelSelector from "../components/LabelSelector.vue";
-import Lightbox from "../components/Lightbox.vue";
-import MovieCard from "../components/MovieCard.vue";
-import ImageCard from "../components/ImageCard.vue";
+import LabelSelector from "@/components/LabelSelector.vue";
+import Lightbox from "@/components/Lightbox.vue";
+import MovieCard from "@/components/MovieCard.vue";
+import ImageCard from "@/components/ImageCard.vue";
 import InfiniteLoading from "vue-infinite-loading";
 import { Cropper, CircleStencil } from "vue-advanced-cropper";
-import ImageUploader from "../components/ImageUploader.vue";
-import IScene from "../types/scene";
-import IMovie from "../types/movie";
-import IImage from "../types/image";
-import ILabel from "../types/label";
-import { contextModule } from "../store/context";
-import CustomFieldSelector from "../components/CustomFieldSelector.vue";
-import Collabs from "../components/Collabs.vue";
-import { ICollabActor } from "../types/actor";
+import ImageUploader from "@/components/ImageUploader.vue";
+import IScene from "@/types/scene";
+import IMovie from "@/types/movie";
+import IImage from "@/types/image";
+import ILabel from "@/types/label";
+import { contextModule } from "@/store/context";
+import CustomFieldSelector from "@/components/CustomFieldSelector.vue";
+import Collabs from "@/components/Collabs.vue";
+import { ICollabActor } from "@/types/actor";
 
 interface ICropCoordinates {
   left: number;

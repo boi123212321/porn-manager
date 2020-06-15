@@ -76,13 +76,13 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import IActor from "../types/actor";
-import { contextModule } from "../store/context";
+import IActor from "@/types/actor";
+import { contextModule } from "@/store/context";
 import moment from "moment";
-import { copy } from "../util/object";
-import { ensureDarkColor } from "../util/color";
+import { copy } from "@/util/object";
+import { ensureDarkColor } from "@/util/color";
 
 @Component
 export default class ActorCard extends Vue {

@@ -17,7 +17,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Axios from "axios";
-import { serverBase } from "../apollo";
+import { serverBase } from "@/apollo";
 
 @Component
 export default class About extends Vue {
