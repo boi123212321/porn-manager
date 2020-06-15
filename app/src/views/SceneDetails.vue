@@ -144,7 +144,7 @@
               <v-subheader style="min-width: 150px">Video duration</v-subheader>
               {{ videoDuration }}
             </div>
-            <div v-if="currentScene.path" class="px-2 d-flex align-center">
+            <div style="word-break: break-all" v-if="currentScene.path" class="px-2 d-flex align-center">
               <v-subheader style="min-width: 150px">Filesystem path</v-subheader>
               {{ currentScene.path}}
             </div>
@@ -506,7 +506,6 @@ import { sceneModule } from "../store/scene";
 import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
 import movieFragment from "../fragments/movie";
-import ActorCard from "../components/ActorCard.vue";
 import MovieCard from "../components/MovieCard.vue";
 import moment from "moment";
 import LabelSelector from "../components/LabelSelector.vue";
@@ -543,7 +542,6 @@ interface ICropResult {
   components: {
     MovieCard,
     ActorGrid,
-    ActorCard,
     LabelSelector,
     Lightbox,
     ImageCard,

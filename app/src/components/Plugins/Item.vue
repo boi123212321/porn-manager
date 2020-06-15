@@ -38,7 +38,7 @@ interface IPlugin {
 @Component({
   components: {}
 })
-export default class Plugin extends Vue {
+export default class PluginItem extends Vue {
   @Prop() value!: IPlugin;
 
   readValue() {

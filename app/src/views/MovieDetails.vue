@@ -256,7 +256,6 @@ import actorFragment from "../fragments/actor";
 import imageFragment from "../fragments/image";
 import studioFragment from "../fragments/studio";
 import MovieItem from "../components/MovieItem.vue";
-import ActorCard from "../components/ActorCard.vue";
 import moment from "moment";
 import SceneSelector from "../components/SceneSelector.vue";
 import Lightbox from "../components/Lightbox.vue";
@@ -274,7 +273,6 @@ import DVDRenderer from "@/components/DVDRenderer.vue";
 
 @Component({
   components: {
-    ActorCard,
     Lightbox,
     ImageCard,
     InfiniteLoading,

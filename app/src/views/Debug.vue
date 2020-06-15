@@ -10,9 +10,9 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import ILabel from "../types/label";
+import ILabel from "@/types/label";
 import Axios from "axios";
 import Chart from "chart.js";
 

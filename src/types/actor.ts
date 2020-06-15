@@ -25,8 +25,6 @@ export default class Actor {
     string,
     boolean | string | number | string[] | null
   > = {};
-  labels?: string[]; // backwards compatibility
-  studio?: string | null; // backwards compatibility
   description?: string | null = null;
   nationality?: string | null = null;
 

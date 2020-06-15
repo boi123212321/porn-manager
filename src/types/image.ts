@@ -2,15 +2,12 @@ import { generateHash } from "../hash";
 import Label from "./label";
 import * as logger from "../logger";
 import { unlinkAsync } from "../fs/async";
-import { mapAsync } from "./utility";
 import Vibrant from "node-vibrant";
 import {
   imageCollection,
   actorCollection,
-  labelledItemCollection,
   actorReferenceCollection,
 } from "../database";
-import LabelledItem from "./labelled_item";
 import ActorReference from "./actor_reference";
 
 export class ImageDimensions {
@@ -33,7 +30,6 @@ export default class Image {
   bookmark: number | null = null;
   rating: number = 0;
   customFields: Record<string, any> = {};
-  labels?: string[]; // backwards compatibility
   meta = new ImageMeta();
   actors?: string[];
   studio: string | null = null;

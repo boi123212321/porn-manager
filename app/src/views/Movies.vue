@@ -214,21 +214,21 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient, { serverBase } from "@/apollo";
 import gql from "graphql-tag";
-import actorFragment from "../fragments/actor";
-import { contextModule } from "../store/context";
+import actorFragment from "@/fragments/actor";
+import { contextModule } from "@/store/context";
 import InfiniteLoading from "vue-infinite-loading";
-import SceneSelector from "../components/SceneSelector.vue";
-import IScene from "../types/scene";
-import IActor from "../types/actor";
-import ILabel from "../types/label";
-import MovieCard from "../components/MovieCard.vue";
-import IMovie from "../types/movie";
-import movieFragment from "../fragments/movie";
-import DrawerMixin from "../mixins/drawer";
+import SceneSelector from "@/components/SceneSelector.vue";
+import IScene from "@/types/scene";
+import IActor from "@/types/actor";
+import ILabel from "@/types/label";
+import MovieCard from "@/components/MovieCard.vue";
+import IMovie from "@/types/movie";
+import movieFragment from "@/fragments/movie";
+import DrawerMixin from "@/mixins/drawer";
 import { mixins } from "vue-class-component";
-import { movieModule } from "../store/movie";
+import { movieModule } from "@/store/movie";
 
 @Component({
   components: {

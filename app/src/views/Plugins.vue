@@ -60,7 +60,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import Plugin from "@/components/Plugins/plugin.vue";
+import Plugin from "@/components/Plugins/Item.vue";
 import YAML from "yaml";
 
 interface IPlugin {

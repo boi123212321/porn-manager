@@ -1,4 +1,3 @@
-import * as database from "../database";
 import { generateHash } from "../hash";
 import * as logger from "../logger";
 import LabelledItem from "./labelled_item";

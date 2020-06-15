@@ -16,9 +16,9 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient from "../apollo";
+import ApolloClient from "@/apollo";
 import gql from "graphql-tag";
-import ActorGrid from "./ActorGrid.vue";
+import ActorGrid from "@/components/ActorGrid.vue";
 
 @Component({
   components: {

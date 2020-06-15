@@ -141,10 +141,10 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import ApolloClient from "../apollo";
+import ApolloClient from "@/apollo";
 import gql from "graphql-tag";
-import LabelSelector from "../components/LabelSelector.vue";
-import ILabel from "../types/label";
+import LabelSelector from "@/components/LabelSelector.vue";
+import ILabel from "@/types/label";
 
 @Component({
   components: {
