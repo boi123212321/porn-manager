@@ -19,15 +19,17 @@ router.post("/:id", async (req, res) => {
   await removeSceneFromQueue(req.params.id);
   const scene = await Scene.getById(req.params.id);
 
+  const reqBody = req.body as Record<string, unknown>;
+
   if (scene) {
-    if (req.body.scene) {
-      Object.assign(scene, req.body.scene);
-      logger.log("Merging scene data:", req.body.scene);
+    if (reqBody.scene) {
+      Object.assign(scene, reqBody.scene);
+      logger.log("Merging scene data:", reqBody.scene);
       await sceneCollection.upsert(req.params.id, scene);
       await updateScenes([scene]);
     }
-    if (req.body.images) {
-      for (const image of req.body.images) {
+    if (reqBody.images) {
+      for (const image of <Image[]>reqBody.images) {
         logger.log("New image!", image);
         await imageCollection.upsert(image._id, image);
         await indexImages([image]);
@@ -43,8 +45,8 @@ router.post("/:id", async (req, res) => {
         );
       }
     }
-    if (req.body.thumbs) {
-      for (const thumb of req.body.thumbs) {
+    if (reqBody.thumbs) {
+      for (const thumb of <Image[]>reqBody.thumbs) {
         logger.log("New thumbnail!", thumb);
         await imageCollection.upsert(thumb._id, thumb);
       }

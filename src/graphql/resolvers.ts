@@ -14,8 +14,8 @@ import SceneViewResolver from "./resolvers/scene_view";
 import StudioResolver from "./resolvers/studio";
 
 const resolvers = {
-  Long: GraphQLLong,
-  Object: GraphQLJSONObject,
+  Long: <unknown>GraphQLLong,
+  Object: <unknown>GraphQLJSONObject,
 
   Actor: ActorResolver,
   Scene: SceneResolver,

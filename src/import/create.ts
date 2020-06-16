@@ -49,7 +49,10 @@ export interface ICreateOptions {
   markers?: Dictionary<IImportedMarker>;
 }
 
-function normalizeCustomFields(ids: Dictionary<string>, newlyCreated: Dictionary<{ _id: string }>) {
+function normalizeCustomFields(
+  ids: Dictionary<string>,
+  newlyCreated: Dictionary<{ _id: string }>
+): Dictionary<string> {
   const fieldIds = Object.keys(ids);
 
   const newFields = {} as Dictionary<string>;
@@ -216,15 +219,15 @@ export async function createFromFileData(opts: ICreateOptions) {
       let newScene = new Scene(sceneToCreate.name);
       logger.log(`Creating scene with id ${newScene._id}...`);
 
-      let thumbnail = null as string | null;
+      // let thumbnail = null as string | null;
       let labels = [] as string[];
       let actors = [] as string[];
-      let customFields = {} as Dictionary<string>;
+      // let customFields = {} as Dictionary<string>;
 
       if (sceneToCreate.thumbnail) {
         const image = new Image(`${sceneToCreate.name} (thumbnail)`);
         image.path = sceneToCreate.thumbnail;
-        thumbnail = image._id;
+        // thumbnail = image._id;
 
         if (args["commit-import"]) await imageCollection.upsert(image._id, image);
       }
@@ -238,7 +241,7 @@ export async function createFromFileData(opts: ICreateOptions) {
       }
 
       if (sceneToCreate.customFields) {
-        customFields = normalizeCustomFields(sceneToCreate.customFields, createdFields);
+        /* customFields = */ normalizeCustomFields(sceneToCreate.customFields, createdFields);
       }
 
       if (existsSync(sceneToCreate.path)) {

@@ -9,7 +9,7 @@ import { indexStudios } from "../search/studio";
 import Image from "../types/image";
 import Movie from "../types/movie";
 import Studio from "../types/studio";
-import { extensionFromUrl, libraryPath } from "../types/utility";
+import { extensionFromUrl, libraryPath, validRating } from "../types/utility";
 
 // This function has side effects
 export async function onMovieCreate(movie: Movie, event = "movieCreated"): Promise<Movie> {
@@ -78,9 +78,7 @@ export async function onMovieCreate(movie: Movie, event = "movieCreated"): Promi
   if (typeof pluginResult.releaseDate === "number")
     movie.releaseDate = new Date(pluginResult.releaseDate).valueOf();
 
-  const ra = pluginResult.rating;
-  if (typeof ra === "number" && ra >= 0 && ra <= 10 && Number.isInteger(ra))
-    movie.rating = pluginResult.rating;
+  if (validRating(pluginResult.rating)) movie.rating = pluginResult.rating;
 
   if (typeof pluginResult.favorite === "boolean") movie.favorite = pluginResult.favorite;
 

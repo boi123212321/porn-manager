@@ -18,7 +18,7 @@ import { IConfig } from "../config/index";
 import * as logger from "../logger";
 import { Dictionary, libraryPath } from "../types/utility";
 
-function requireUncached(module: string) {
+function requireUncached(module: string): unknown {
   delete require.cache[require.resolve(module)];
   return require(module);
 }
@@ -26,9 +26,9 @@ function requireUncached(module: string) {
 export async function runPluginsSerial(
   config: IConfig,
   event: string,
-  inject?: Dictionary<any>
-): Promise<Record<string, any>> {
-  const result = {} as Dictionary<any>;
+  inject?: Dictionary<unknown>
+): Promise<Record<string, unknown>> {
+  const result = {} as Dictionary<unknown>;
   if (!config.PLUGIN_EVENTS[event]) {
     logger.warn(`No plugins defined for event ${event}.`);
     return result;
@@ -70,9 +70,9 @@ export async function runPluginsSerial(
 export async function runPlugin(
   config: IConfig,
   pluginName: string,
-  inject?: Dictionary<any>,
-  args?: Dictionary<any>
-): Promise<any> {
+  inject?: Dictionary<unknown>,
+  args?: Dictionary<unknown>
+): Promise<unknown> {
   const plugin = config.PLUGINS[pluginName];
 
   if (!plugin) throw new Error(`${pluginName}: plugin not found.`);

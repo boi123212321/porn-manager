@@ -20,6 +20,6 @@ export default {
     return null;
   },
   async color(image: Image): Promise<string | null> {
-    return (await Image.color(image)) || null;
+    return Image.color(image) || null;
   },
 };

@@ -35,32 +35,34 @@ export default class Image {
   hash: string | null = null;
   color: string | null = null;
 
-  static async color(image: Image): Promise<string | null> {
+  static async extractColor(image: Image): Promise<void> {
+    if (!image.path) return;
+
+    const palette = await Vibrant.from(image.path).getPalette();
+
+    const color =
+      palette.DarkVibrant?.getHex() ||
+      palette.DarkMuted?.getHex() ||
+      palette.Vibrant?.getHex() ||
+      palette.Vibrant?.getHex();
+
+    if (color) {
+      image.color = color;
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      imageCollection.upsert(image._id, image).catch(() => {});
+    }
+  }
+
+  static color(image: Image): string | null {
     if (!image.path) return null;
     if (image.color) return image.color;
 
     if (image.path) {
-      (async () => {
-        if (!image.path) return;
-
-        try {
-          const palette = await Vibrant.from(image.path).getPalette();
-
-          const color =
-            palette.DarkVibrant?.getHex() ||
-            palette.DarkMuted?.getHex() ||
-            palette.Vibrant?.getHex() ||
-            palette.Vibrant?.getHex();
-
-          if (color) {
-            image.color = color;
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            imageCollection.upsert(image._id, image).catch(() => {});
-          }
-        } catch (err) {
-          logger.error(image.path, err);
-        }
-      })();
+      Image.extractColor(image).catch((err) => {
+        logger.error("Image color extraction failed");
+        logger.log(err);
+        logger.error(image.path, err.message);
+      });
     }
 
     return null;

@@ -61,7 +61,7 @@ async function checkDuplicates(opts: ICreateOptions) {
   }
 }
 
-async function checkIfActorsExist(actors: string[], actorDict?: Dictionary<any>) {
+async function checkIfActorsExist(actors: string[], actorDict?: Dictionary<unknown>) {
   for (const actorId of actors) {
     if (!(await Actor.getById(actorId))) {
       if (!actorDict) throw new Error(`Actor ${actorId} does not exist`);
@@ -70,7 +70,7 @@ async function checkIfActorsExist(actors: string[], actorDict?: Dictionary<any>)
   }
 }
 
-async function checkIfScenesExist(scenes: string[], sceneDict?: Dictionary<any>) {
+async function checkIfScenesExist(scenes: string[], sceneDict?: Dictionary<unknown>) {
   for (const sceneId of scenes) {
     if (!(await Scene.getById(sceneId))) {
       if (!sceneDict) throw new Error(`Scene ${sceneId} does not exist`);
@@ -79,7 +79,7 @@ async function checkIfScenesExist(scenes: string[], sceneDict?: Dictionary<any>)
   }
 }
 
-async function checkIfLabelsExist(labels: string[], labelDict?: Dictionary<any>) {
+async function checkIfLabelsExist(labels: string[], labelDict?: Dictionary<unknown>) {
   for (const labelId of labels) {
     if (!(await Label.getById(labelId))) {
       if (!labelDict) throw new Error(`Label ${labelId} does not exist`);
@@ -88,14 +88,14 @@ async function checkIfLabelsExist(labels: string[], labelDict?: Dictionary<any>)
   }
 }
 
-async function checkIfStudioExists(studioId: string, studioDict?: Dictionary<any>) {
+async function checkIfStudioExists(studioId: string, studioDict?: Dictionary<unknown>) {
   if (!(await Studio.getById(studioId))) {
     if (!studioDict) throw new Error(`Studio ${studioId} does not exist`);
     else if (!studioDict[studioId]) throw new Error(`Studio ${studioId} does not exist`);
   }
 }
 
-async function checkIfCustomFieldsExist(fields: string[], fieldDict?: Dictionary<any>) {
+async function checkIfCustomFieldsExist(fields: string[], fieldDict?: Dictionary<unknown>) {
   for (const fieldId of fields) {
     if (!(await CustomField.getById(fieldId))) {
       if (!fieldDict) throw new Error(`Custom field ${fieldId} does not exist`);

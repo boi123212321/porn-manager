@@ -10,7 +10,7 @@ const SIGN_IN_HTML = readFileSync("./views/signin.html", "utf-8");
 export function checkPassword(
   req: express.Request,
   res: express.Response
-): express.Response<any> | undefined {
+): express.Response<unknown> | undefined {
   if (!req.query.password) return res.sendStatus(400);
 
   const config = getConfig();
@@ -30,7 +30,7 @@ export function passwordHandler(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
-): void | express.Response<any> {
+): void | express.Response<unknown> {
   const config = getConfig();
   if (!config.PASSWORD) return next();
 

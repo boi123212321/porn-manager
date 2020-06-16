@@ -4,26 +4,27 @@ import { IConfig } from "./config/index";
 import { statAsync } from "./fs/async";
 import * as logger from "./logger";
 import Image from "./types/image";
-import Scene from "./types/scene";
+import Scene, { ThumbnailFile } from "./types/scene";
 
-async function getQueueHead(config: IConfig) {
+async function getQueueHead(config: IConfig): Promise<Scene> {
   logger.log("Getting queue head...");
-  return (await Axios.get(`http://localhost:${config.PORT}/queue/head?password=${config.PASSWORD}`))
-    .data;
+  return (
+    await Axios.get<Scene>(`http://localhost:${config.PORT}/queue/head?password=${config.PASSWORD}`)
+  ).data;
 }
 
 export async function queueLoop(config: IConfig): Promise<void> {
   try {
-    let queueHead = (await getQueueHead(config)) as Scene;
+    let queueHead = await getQueueHead(config);
 
     while (queueHead) {
       try {
         logger.log(`Processing ${queueHead.path}...`);
         const data = {
           processed: true,
-        } as any;
-        const images = [] as any[];
-        const thumbs = [] as any[];
+        } as Record<string, unknown>;
+        const images = [] as Image[];
+        const thumbs = [] as Image[];
 
         if (config.GENERATE_PREVIEWS && !queueHead.preview) {
           const preview = await Scene.generatePreview(queueHead);
@@ -44,7 +45,7 @@ export async function queueLoop(config: IConfig): Promise<void> {
         }
 
         if (config.GENERATE_SCREENSHOTS) {
-          let screenshots = [] as any[];
+          let screenshots = [] as ThumbnailFile[];
           try {
             screenshots = await Scene.generateThumbnails(queueHead);
           } catch (error) {

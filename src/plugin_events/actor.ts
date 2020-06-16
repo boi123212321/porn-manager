@@ -20,7 +20,7 @@ export async function onActorCreate(
 ): Promise<Actor> {
   const config = getConfig();
 
-  const pluginResult = (await runPluginsSerial(config, event, {
+  const pluginResult = await runPluginsSerial(config, event, {
     actor: JSON.parse(JSON.stringify(actor)),
     actorName: actor.name,
     countries: JSON.parse(JSON.stringify(countries)),
@@ -56,7 +56,7 @@ export async function onActorCreate(
       }
       return img._id;
     },
-  })) as Record<string, unknown>;
+  });
 
   if (
     typeof pluginResult.thumbnail === "string" &&
