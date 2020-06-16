@@ -8,7 +8,7 @@ import { downloadFile, getFFMpegURL, getFFProbeURL } from "./ffmpeg-download";
 import * as logger from "./logger";
 
 export default async (): Promise<IConfig> => {
-  const { downloadFFMPEG } = await inquirer.prompt([
+  const { downloadFFMPEG } = await inquirer.prompt<{ downloadFFMPEG: boolean }>([
     {
       type: "confirm",
       name: "downloadFFMPEG",
@@ -17,7 +17,7 @@ export default async (): Promise<IConfig> => {
     },
   ]);
 
-  const { usePassword } = await inquirer.prompt([
+  const { usePassword } = await inquirer.prompt<{ usePassword: boolean }>([
     {
       type: "confirm",
       name: "usePassword",
@@ -30,7 +30,7 @@ export default async (): Promise<IConfig> => {
 
   if (usePassword) {
     password = (
-      await inquirer.prompt([
+      await inquirer.prompt<{ password: string }>([
         {
           type: "password",
           name: "password",
@@ -43,7 +43,7 @@ export default async (): Promise<IConfig> => {
 
     do {
       confirmPassword = (
-        await inquirer.prompt([
+        await inquirer.prompt<{ password: string }>([
           {
             type: "password",
             name: "password",
@@ -54,7 +54,7 @@ export default async (): Promise<IConfig> => {
     } while (password !== confirmPassword);
   }
 
-  const { useVideoFolders } = await inquirer.prompt([
+  const { useVideoFolders } = await inquirer.prompt<{ useVideoFolders: boolean }>([
     {
       type: "confirm",
       name: "useVideoFolders",
@@ -66,11 +66,11 @@ export default async (): Promise<IConfig> => {
   const videoFolders = [] as string[];
 
   if (useVideoFolders) {
-    let path;
+    let path: string;
 
     do {
       path = (
-        await inquirer.prompt([
+        await inquirer.prompt<{ path: string }>([
           {
             type: "input",
             name: "path",
@@ -87,7 +87,7 @@ export default async (): Promise<IConfig> => {
     } while (path !== "done");
   }
 
-  const { useImageFolders } = await inquirer.prompt([
+  const { useImageFolders } = await inquirer.prompt<{ useImageFolders: boolean }>([
     {
       type: "confirm",
       name: "useImageFolders",
@@ -99,11 +99,11 @@ export default async (): Promise<IConfig> => {
   const imageFolders = [] as string[];
 
   if (useImageFolders) {
-    let path;
+    let path: string;
 
     do {
       path = (
-        await inquirer.prompt([
+        await inquirer.prompt<{ path: string }>([
           {
             type: "input",
             name: "path",

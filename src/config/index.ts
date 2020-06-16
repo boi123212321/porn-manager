@@ -160,7 +160,7 @@ export async function checkConfig(): Promise<undefined> {
     return;
   }
 
-  const { yaml } = await inquirer.prompt([
+  const { yaml } = await inquirer.prompt<{ yaml: boolean }>([
     {
       type: "confirm",
       name: "yaml",

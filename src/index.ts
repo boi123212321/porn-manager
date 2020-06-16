@@ -60,7 +60,7 @@ if (!process.env.PREVENT_STARTUP)
         let password: string;
         do {
           password = (
-            await inquirer.prompt([
+            await inquirer.prompt<{ password: string }>([
               {
                 type: "password",
                 name: "password",
