@@ -5,7 +5,6 @@ import Scene from "./types/scene";
 import * as path from "path";
 import { checkPassword, passwordHandler } from "./password";
 import { getConfig, watchConfig } from "./config/index";
-import { checkVideoFolders, checkImageFolders } from "./queue/check";
 import {
   loadStores,
   actorCollection,
@@ -20,16 +19,9 @@ import { buildIndices } from "./search";
 import { checkImportFolders } from "./import/index";
 import cors from "./middlewares/cors";
 import { httpLog } from "./logger";
+import queueRouter from "./queue_router";
 import { renderHandlebars } from "./render";
 import { dvdRenderer } from "./dvd_renderer";
-import {
-  getLength,
-  isProcessing,
-  setProcessingStatus,
-} from "./queue/processing";
-import { purgeMissingItems } from "./types/missing_item";
-import queueRouter from "./queue_router";
-import { spawn } from "child_process";
 import { spawnIzzy, izzyVersion, resetIzzy } from "./izzy";
 import { spawnGianna, giannaVersion, resetGianna } from "./gianna";
 import https from "https";
@@ -39,6 +31,8 @@ import { index as sceneIndex } from "./search/scene";
 import { index as imageIndex } from "./search/image";
 import Actor from "./types/actor";
 import LRU from "lru-cache";
+import { scanFolders, startScanInterval, nextScanTimestamp } from "./scanner";
+import { tryStartProcessing } from "./queue/processing";
 
 const cache = new LRU({
   max: 500,
@@ -48,45 +42,7 @@ const cache = new LRU({
 let serverReady = false;
 let setupMessage = "Setting up...";
 
-async function tryStartProcessing() {
-  const config = getConfig();
-  if (!config.DO_PROCESSING) return;
-
-  const queueLen = await getLength();
-  if (queueLen > 0 && !isProcessing()) {
-    logger.message("Starting processing worker...");
-    setProcessingStatus(true);
-    spawn(process.argv[0], process.argv.slice(1).concat(["--process-queue"]), {
-      cwd: process.cwd(),
-      detached: false,
-      stdio: "inherit",
-    }).on("exit", code => {
-      logger.warn("Processing process exited with code " + code);
-      setProcessingStatus(false);
-    });
-  } else if (!queueLen) {
-    logger.success("No more videos to process.");
-  }
-}
-
-async function scanFolders() {
-  logger.message("Scanning folders...");
-  await checkVideoFolders();
-  logger.success("Scan done.");
-  checkImageFolders();
-
-  tryStartProcessing().catch(err => {
-    logger.error("Couldn't start processing...");
-    logger.error(err.message);
-  });
-}
-async function emptyRecycle() {
-  logger.message("Emptying recycle bin...");
-  await purgeMissingItems();
-  logger.success("Scan done.");
-}
-
-export default async () => {
+export default async (): Promise<void> => {
   logger.message(
     "Check https://github.com/boi123212321/porn-vault for discussion & updates"
   );
@@ -275,6 +231,14 @@ export default async () => {
     }
   });
 
+  app.get("/next-scan", (req, res) => {
+    if (!nextScanTimestamp) return res.send("No scan planned");
+    res.json({
+      nextScanDate: new Date(nextScanTimestamp).toLocaleString(),
+      nextScanTimestamp,
+    });
+  });
+
   if (config.BACKUP_ON_STARTUP === true) {
     setupMessage = "Creating backup...";
     await createBackup(config.MAX_BACKUP_AMOUNT || 10);
@@ -324,8 +288,6 @@ export default async () => {
     })
   );
 
-  // checkPreviews();
-
   watchConfig();
 
   if (config.SCAN_ON_STARTUP) {
@@ -334,9 +296,6 @@ export default async () => {
     logger.warn(
       "Scanning folders is currently disabled. Enable in config.json & restart."
     );
-  }
-
-  if (config.DO_PROCESSING) {
     tryStartProcessing().catch(err => {
       logger.error("Couldn't start processing...");
       logger.error(err.message);
@@ -344,13 +303,6 @@ export default async () => {
   }
 
   if (config.SCAN_INTERVAL > 0) {
-    function printNextScanDate() {
-      const nextScanDate = new Date(Date.now() + config.SCAN_INTERVAL);
-      logger.message(`Next scan at ${nextScanDate.toLocaleString()}`);
-    }
-    printNextScanDate();
-    setInterval(() => {
-      scanFolders().then(printNextScanDate);
-    }, config.SCAN_INTERVAL);
+    startScanInterval(config.SCAN_INTERVAL);
   }
 };
