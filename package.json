@@ -91,7 +91,7 @@
     "pkg": "^4.4.7",
     "sinon": "^9.0.2",
     "ts-node": "^8.10.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.5"
   },
   "nodemonConfig": {
     "ignore": [
