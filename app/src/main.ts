@@ -16,6 +16,7 @@ import Divider from "./components/Divider.vue";
 import NoResults from "./components/NoResults.vue";
 import Loading from "./components/Loading.vue";
 import Flag from "./components/Flag.vue";
+import WidgetCard from "./components/HomeWidgets/Base.vue";
 
 Vue.use(vueScrollBehavior, { router: router });
 Vue.use(VueTheMask);
@@ -28,6 +29,7 @@ Vue.component("Divider", Divider);
 Vue.component("NoResults", NoResults);
 Vue.component("Loading", Loading);
 Vue.component("Flag", Flag);
+Vue.component("WidgetCard", WidgetCard);
 
 Vue.config.productionTip = false;
 

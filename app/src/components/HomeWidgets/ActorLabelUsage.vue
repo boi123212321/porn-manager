@@ -1,13 +1,7 @@
 <template>
-  <v-card class="mb-3" style="border-radius: 10px">
-    <v-card-title>
-      <v-icon medium class="mr-2">mdi-label</v-icon>Actor label usage
-    </v-card-title>
-
-    <v-card-text>
-      <canvas id="actor-labels"></canvas>
-    </v-card-text>
-  </v-card>
+  <WidgetCard class="mb-3" title="Actor label usage" icon="mdi-label">
+    <canvas id="actor-labels"></canvas>
+  </WidgetCard>
 </template>
 
 <script lang="ts">
