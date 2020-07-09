@@ -96,8 +96,10 @@ export async function runPlugin(
         $cwd: process.cwd(),
         $library: libraryPath(""),
         $require: (partial: string) => {
-          if (typeof partial != "string")
+          if (typeof partial !== "string") {
             throw new TypeError("$require: String required");
+          }
+
           return requireUncached(nodepath.resolve(path, partial));
         },
         /* $modules: {

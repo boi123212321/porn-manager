@@ -1,8 +1,8 @@
-import { spawn } from 'child_process';
+import { spawn } from "child_process";
 
-import { getConfig } from '../config';
-import { processingCollection } from '../database';
-import * as logger from '../logger';
+import { getConfig } from "../config";
+import { processingCollection } from "../database";
+import * as logger from "../logger";
 
 export interface ISceneProcessingItem {
   _id: string;

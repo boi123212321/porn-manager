@@ -1,6 +1,6 @@
-import { tryStartProcessing } from "./queue/processing";
-import { checkVideoFolders, checkImageFolders } from "./queue/check";
 import * as logger from "./logger";
+import { checkImageFolders, checkVideoFolders } from "./queue/check";
+import { tryStartProcessing } from "./queue/processing";
 
 export let nextScanTimestamp = null as number | null;
 

@@ -29,8 +29,7 @@ export default {
     { min, max }: { min: number | null; max: number | null }
   ): Promise<SceneView[]> {
     return (await SceneView.getAll()).filter(
-      (w) =>
-        w.date >= (min || -99999999999999) && w.date <= (max || 99999999999999)
+      (w) => w.date >= (min || -99999999999999) && w.date <= (max || 99999999999999)
     );
   },
 
