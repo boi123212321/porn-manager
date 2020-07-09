@@ -20,7 +20,7 @@ const PAGE_SIZE = 24;
 
 export let index!: Gianna.Index<IActorSearchDoc>;
 
-const FIELDS = ["name", "aliases", "labelNames", "custom"];
+const FIELDS = ["name", "aliases", "labelNames", "custom", "nationalityName"];
 
 export interface IActorSearchDoc {
   _id: string;
@@ -37,7 +37,8 @@ export interface IActorSearchDoc {
   bornOn: number | null;
   age: number | null;
   numScenes: number;
-  nationality: string | null;
+  nationalityName: string | null;
+  countryCode: string | null;
   custom: string[];
 }
 
@@ -46,6 +47,8 @@ export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDo
 
   const numViews = (await Actor.getWatches(actor)).length;
   const numScenes = (await Scene.getByActor(actor._id)).length;
+
+  const nationality = actor.nationality ? getNationality(actor.nationality) : null;
 
   return {
     _id: actor._id,
@@ -62,7 +65,8 @@ export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDo
     bornOn: actor.bornOn,
     numScenes,
     age: Actor.getAge(actor),
-    nationality: actor.nationality ? getNationality(actor.nationality).nationality : null,
+    nationalityName: nationality ? nationality.nationality : null,
+    countryCode: nationality ? nationality.alpha2 : null,
     custom: Object.values(actor.customFields)
       .filter((val) => typeof val !== "number" && typeof val !== "boolean")
       .flat() as string[],
@@ -137,6 +141,17 @@ export async function searchActors(
 
   if (transformFilter) {
     transformFilter(filter);
+  }
+
+  if (options.nationality) {
+    filter.children.push({
+      condition: {
+        operation: "=",
+        property: "countryCode",
+        type: "string",
+        value: options.nationality,
+      },
+    });
   }
 
   if (options.sortBy) {
