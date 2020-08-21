@@ -1,33 +1,28 @@
 <template>
-  <v-card class="mb-3" style="border-radius: 10px">
-    <v-card-title>
-      <v-icon medium class="mr-2">mdi-counter</v-icon>Stats
-    </v-card-title>
-    <v-card-text>
-      <div class="my-4">
-        <span class="mr-2 d-inline-block display-1">{{ numScenes }}</span>
-        <span class="subtitle-1">scenes</span>
-      </div>
-      <v-divider></v-divider>
+  <WidgetCard title="Stats" icon="mdi-counter">
+    <div class="my-4">
+      <span class="mr-2 d-inline-block display-1">{{ numScenes }}</span>
+      <span class="subtitle-1">scenes</span>
+    </div>
+    <v-divider></v-divider>
 
-      <div class="my-4">
-        <span class="mr-2 d-inline-block display-1">{{ numActors }}</span>
-        <span class="subtitle-1">actors</span>
-      </div>
-      <v-divider></v-divider>
+    <div class="my-4">
+      <span class="mr-2 d-inline-block display-1">{{ numActors }}</span>
+      <span class="subtitle-1">actors</span>
+    </div>
+    <v-divider></v-divider>
 
-      <div class="my-4">
-        <span class="mr-2 d-inline-block display-1">{{ numMovies }}</span>
-        <span class="subtitle-1">movies</span>
-      </div>
-      <v-divider></v-divider>
+    <div class="my-4">
+      <span class="mr-2 d-inline-block display-1">{{ numMovies }}</span>
+      <span class="subtitle-1">movies</span>
+    </div>
+    <v-divider></v-divider>
 
-      <div class="my-4">
-        <span class="mr-2 d-inline-block display-1">{{ numImages }}</span>
-        <span class="subtitle-1">images</span>
-      </div>
-    </v-card-text>
-  </v-card>
+    <div class="my-4">
+      <span class="mr-2 d-inline-block display-1">{{ numImages }}</span>
+      <span class="subtitle-1">images</span>
+    </div>
+  </WidgetCard>
 </template>
 
 <script lang="ts">

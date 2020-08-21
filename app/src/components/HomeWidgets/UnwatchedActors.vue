@@ -1,17 +1,15 @@
 <template>
-  <v-card v-if="actors && actors.length" class="mb-3" style="border-radius: 10px">
-    <v-card-title>
-      <v-icon medium class="mr-2">mdi-shuffle</v-icon>Actors you haven't watched yet
-    </v-card-title>
+  <WidgetCard
+    v-if="actors && actors.length"
+    title="Actors you haven't watched yet"
+    icon="mdi-shuffle"
+  >
+    <ActorGrid :value="actors" />
 
-    <v-card-text>
-      <ActorGrid :value="actors" />
-    </v-card-text>
-
-    <v-card-actions>
+    <template v-slot:actions>
       <v-btn block class="text-none" color="primary" text @click="nextPage">Show more</v-btn>
-    </v-card-actions>
-  </v-card>
+    </template>
+  </WidgetCard>
 </template>
 
 <script lang="ts">

@@ -1,19 +1,13 @@
 <template>
-  <v-card v-if="info" class="mb-3" style="border-radius: 10px">
-    <v-card-title>
-      <v-icon medium class="mr-2">mdi-progress-wrench</v-icon>Video processing queue
-    </v-card-title>
-
-    <v-card-text>
-      <div class="my-2">
-        <span class="mr-2 d-inline-block headline">{{ info.length }}</span>
-        <span class="subtitle-1">videos</span>
-        <span v-if="info.processing" class="ml-3">
-          <v-progress-circular size="20" width="2" indeterminate></v-progress-circular>
-        </span>
-      </div>
-    </v-card-text>
-  </v-card>
+  <WidgetCard v-if="info" title="Video processing queue" icon="mdi-progress-wrench">
+    <div class="my-2">
+      <span class="mr-2 d-inline-block headline">{{ info.length }}</span>
+      <span class="subtitle-1">videos</span>
+      <span v-if="info.processing" class="ml-3">
+        <v-progress-circular size="20" width="2" indeterminate></v-progress-circular>
+      </span>
+    </div>
+  </WidgetCard>
 </template>
 
 <script lang="ts">

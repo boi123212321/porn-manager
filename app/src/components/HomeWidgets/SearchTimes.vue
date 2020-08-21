@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mb-3" style="border-radius: 10px">
+  <v-card style="border-radius: 10px">
     <v-card-text>
       <canvas id="scene-search-times"></canvas>
     </v-card-text>
