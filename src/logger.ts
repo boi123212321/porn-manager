@@ -1,15 +1,13 @@
 import debug from "debug";
-import * as url from "url";
 import express from "express";
+
 import { getConfig } from "./config/index";
 import { writeFileAsync } from "./fs/async";
 
-if (process.env.NODE_ENV == "development") {
+if (process.env.NODE_ENV === "development") {
   debug.enable("vault:*");
 } else if (!process.env.DEBUG) {
-  debug.enable(
-    "vault:success,vault:warn,vault:error,vault:message,vault:plugin"
-  );
+  debug.enable("vault:success,vault:warn,vault:error,vault:message,vault:plugin");
 }
 
 enum LogType {
@@ -31,7 +29,7 @@ interface ILogData {
 }
 
 const logArray = [] as ILogData[];
-export function getLog() {
+export function getLog(): ILogData[] {
   return logArray;
 }
 
@@ -49,19 +47,16 @@ function appendToLog(item: ILogData) {
   // causing undefined.getConfig() to throw an error
   if (process.env.NODE_ENV !== "test") {
     const config = getConfig();
-    if (config && logArray.length == config.MAX_LOG_SIZE) logArray.shift();
+    if (config && logArray.length === config.MAX_LOG_SIZE) logArray.shift();
   }
   logArray.push(item);
 }
 
-export async function logToFile() {
-  return writeFileAsync(
-    `log-${new Date().toISOString()}`,
-    JSON.stringify(logArray),
-    "utf-8"
-  );
+export async function logToFile(): Promise<void> {
+  return writeFileAsync(`log-${new Date().toISOString()}`, JSON.stringify(logArray), "utf-8");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function merge(...args: any[]) {
   return args
     .map((a) => {
@@ -72,42 +67,50 @@ function merge(...args: any[]) {
     .join("\n");
 }
 
-export const log = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const log = (...args: any): void => {
   const text = merge(...args);
   debug("vault:log")(text);
   appendToLog(createItem(LogType.LOG, text));
 };
-export const success = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const success = (...args: any): void => {
   const text = merge(...args);
   debug("vault:success")(text);
   appendToLog(createItem(LogType.SUCCESS, text));
 };
-export const http = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const http = (...args: any): void => {
   const text = merge(...args);
   debug("vault:http")(text);
   appendToLog(createItem(LogType.HTTP, text));
 };
-export const warn = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const warn = (...args: any): void => {
   const text = merge(...args);
   debug("vault:warn")(text);
   appendToLog(createItem(LogType.WARN, text));
 };
-export const error = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const error = (...args: any): void => {
   const text = merge(...args);
   debug("vault:error")(text);
   appendToLog(createItem(LogType.ERROR, text));
 };
-export const message = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const message = (...args: any): void => {
   const text = merge(...args);
   debug("vault:message")(text);
   appendToLog(createItem(LogType.MESSAGE, text));
 };
-export const izzy = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const izzy = (...args: any): void => {
   const text = merge(...args);
   debug("vault:izzy")(text);
   appendToLog(createItem(LogType.IZZY, text));
 };
-export const gianna = (...args: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const gianna = (...args: any): void => {
   const text = merge(...args);
   debug("vault:gianna")(text);
   appendToLog(createItem(LogType.GIANNA, text));

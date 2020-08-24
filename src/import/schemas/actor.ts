@@ -1,11 +1,7 @@
 import Schema from "validate";
-import {
-  stringArray,
-  limitRating,
-  isValidDate,
-  validCustomFields,
-} from "./common";
+
 import { isValidCountryCode } from "../../types/countries";
+import { isValidDate, limitRating, stringArray, validCustomFields } from "./common";
 
 export const actorSchema = new Schema({
   name: {

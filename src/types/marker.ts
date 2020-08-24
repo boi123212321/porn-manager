@@ -1,49 +1,41 @@
-import { generateHash } from "../hash";
-import Scene from "./scene";
-import * as logger from "../logger";
-import { mapAsync, libraryPath } from "./utility";
-import Label from "./label";
-import Image from "./image";
 import * as path from "path";
+
+import { imageCollection, markerCollection } from "../database";
 import { singleScreenshot } from "../ffmpeg/screenshot";
-import {
-  imageCollection,
-  labelledItemCollection,
-  markerCollection,
-} from "../database";
-import LabelledItem from "./labelled_item";
+import { generateHash } from "../hash";
+import * as logger from "../logger";
+import Image from "./image";
+import Label from "./label";
+import Scene from "./scene";
+import { libraryPath } from "./utility";
 
 export default class Marker {
   _id: string;
   name: string;
   addedOn = +new Date();
-  favorite: boolean = false;
+  favorite = false;
   bookmark: number | null = null;
-  rating: number = 0;
-  customFields: any = {};
+  rating = 0;
+  customFields: Record<string, boolean | string | number | string[] | null> = {};
   scene: string;
   time: number; // Time in scene in seconds
   thumbnail?: string | null = null;
 
-  static async getAll() {
+  static async getAll(): Promise<Marker[]> {
     return markerCollection.getAll();
   }
 
-  static async checkIntegrity() {
+  static async checkIntegrity(): Promise<void> {
     const allMarkers = await Marker.getAll();
 
     for (const marker of allMarkers) {
-      const markerId = marker._id.startsWith("st_")
-        ? marker._id
-        : `st_${marker._id}`;
-
       if (!marker.thumbnail) {
         await this.createMarkerThumbnail(marker);
       }
     }
   }
 
-  static async createMarkerThumbnail(marker: Marker) {
+  static async createMarkerThumbnail(marker: Marker): Promise<void> {
     const scene = await Scene.getById(marker.scene);
     if (!scene || !scene.path) return;
 
@@ -65,11 +57,11 @@ export default class Marker {
     await markerCollection.upsert(marker._id, marker);
   }
 
-  static async setLabels(marker: Marker, labelIds: string[]) {
+  static async setLabels(marker: Marker, labelIds: string[]): Promise<void> {
     return Label.setForItem(marker._id, labelIds, "marker");
   }
 
-  static async getLabels(marker: Marker) {
+  static async getLabels(marker: Marker): Promise<Label[]> {
     return Label.getForItem(marker._id);
   }
 
@@ -80,19 +72,19 @@ export default class Marker {
     this.time = Math.round(time);
   }
 
-  static async getByScene(sceneId: string) {
+  static async getByScene(sceneId: string): Promise<Marker[]> {
     return markerCollection.query("scene-index", sceneId);
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<Marker | null> {
     return markerCollection.get(_id);
   }
 
-  static async remove(_id: string) {
+  static async remove(_id: string): Promise<void> {
     await markerCollection.remove(_id);
   }
 
-  static async removeByScene(sceneId: string) {
+  static async removeByScene(sceneId: string): Promise<void> {
     for (const marker of await Marker.getByScene(sceneId)) {
       await Marker.remove(marker._id);
     }

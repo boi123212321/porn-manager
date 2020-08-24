@@ -1,37 +1,36 @@
-import Scene from "../types/scene";
-import { runPluginsSerial } from "../plugins/index";
-import { libraryPath, validRating, extensionFromUrl } from "../types/utility";
+import { getConfig } from "../config";
 import {
-  extractLabels,
-  extractStudios,
+  actorCollection,
+  imageCollection,
+  labelCollection,
+  movieCollection,
+  studioCollection,
+  viewCollection,
+} from "../database";
+import {
   extractActors,
   extractFields,
+  extractLabels,
   extractMovies,
+  extractStudios,
 } from "../extractor";
-import { getConfig } from "../config";
-import { extname } from "path";
 import { downloadFile } from "../ffmpeg-download";
-import Image from "../types/image";
 import * as logger from "../logger";
-import Studio from "../types/studio";
-import Label from "../types/label";
-import Actor from "../types/actor";
-import { onActorCreate } from "./actor";
+import { runPluginsSerial } from "../plugins";
 import { indexActors } from "../search/actor";
 import { indexImages } from "../search/image";
-import {
-  imageCollection,
-  actorCollection,
-  movieCollection,
-  viewCollection,
-  labelCollection,
-  studioCollection,
-} from "../database/index";
-import Movie from "../types/movie";
-import { onMovieCreate } from "./movie";
 import { indexMovies } from "../search/movie";
 import { indexStudios } from "../search/studio";
+import Actor from "../types/actor";
+import Image from "../types/image";
+import Label from "../types/label";
+import Movie from "../types/movie";
+import Scene from "../types/scene";
+import Studio from "../types/studio";
+import { extensionFromUrl, libraryPath, validRating } from "../types/utility";
 import SceneView from "../types/watch";
+import { onActorCreate } from "./actor";
+import { onMovieCreate } from "./movie";
 
 // This function has side effects
 export async function onSceneCreate(
@@ -39,18 +38,14 @@ export async function onSceneCreate(
   sceneLabels: string[],
   sceneActors: string[],
   event = "sceneCreated"
-) {
+): Promise<Scene> {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {
-    scene: JSON.parse(JSON.stringify(scene)),
+    scene: JSON.parse(JSON.stringify(scene)) as Scene,
     sceneName: scene.name,
     scenePath: scene.path,
-    $createLocalImage: async (
-      path: string,
-      name: string,
-      thumbnail?: boolean
-    ) => {
+    $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       logger.log("Creating image from " + path);
       const img = new Image(name);
       if (thumbnail) img.name += " (thumbnail)";
@@ -83,7 +78,7 @@ export async function onSceneCreate(
   });
 
   if (
-    event == "sceneCreated" &&
+    event === "sceneCreated" &&
     pluginResult.watches &&
     Array.isArray(pluginResult.watches) &&
     pluginResult.watches.every((v) => typeof v === "number")
@@ -95,7 +90,7 @@ export async function onSceneCreate(
   }
 
   if (
-    typeof pluginResult.thumbnail == "string" &&
+    typeof pluginResult.thumbnail === "string" &&
     pluginResult.thumbnail.startsWith("im_") &&
     (!scene.thumbnail || config.ALLOW_PLUGINS_OVERWRITE_SCENE_THUMBNAILS)
   )
@@ -105,8 +100,7 @@ export async function onSceneCreate(
 
   if (typeof pluginResult.path === "string") scene.path = pluginResult.path;
 
-  if (typeof pluginResult.description === "string")
-    scene.description = pluginResult.description;
+  if (typeof pluginResult.description === "string") scene.description = pluginResult.description;
 
   if (typeof pluginResult.releaseDate === "number")
     scene.releaseDate = new Date(pluginResult.releaseDate).valueOf();
@@ -114,18 +108,16 @@ export async function onSceneCreate(
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length)
-        scene.customFields[fields[0]] = pluginResult.custom[key];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      if (fields.length) scene.customFields[fields[0]] = pluginResult.custom[key];
     }
   }
 
   if (validRating(pluginResult.rating)) scene.rating = pluginResult.rating;
 
-  if (typeof pluginResult.favorite === "boolean")
-    scene.favorite = pluginResult.favorite;
+  if (typeof pluginResult.favorite === "boolean") scene.favorite = pluginResult.favorite;
 
-  if (typeof pluginResult.bookmark === "number")
-    scene.bookmark = pluginResult.bookmark;
+  if (typeof pluginResult.bookmark === "number") scene.bookmark = pluginResult.bookmark;
 
   if (pluginResult.actors && Array.isArray(pluginResult.actors)) {
     const actorIds = [] as string[];
@@ -138,8 +130,9 @@ export async function onSceneCreate(
         try {
           actor = await onActorCreate(actor, []);
         } catch (error) {
-          logger.log(error);
-          logger.error(error.message);
+          const _err = error as Error;
+          logger.log(_err);
+          logger.error(_err.message);
         }
         await actorCollection.upsert(actor._id, actor);
         await indexActors([actor]);
@@ -155,7 +148,7 @@ export async function onSceneCreate(
       const extractedIds = await extractLabels(labelName);
       if (extractedIds.length) {
         labelIds.push(...extractedIds);
-        logger.log(`Found ${extractedIds.length} labels for ${labelName}:`);
+        logger.log(`Found ${extractedIds.length} labels for ${<string>labelName}:`);
         logger.log(extractedIds);
       } else if (config.CREATE_MISSING_LABELS) {
         const label = new Label(labelName);
@@ -167,11 +160,7 @@ export async function onSceneCreate(
     sceneLabels.push(...labelIds);
   }
 
-  if (
-    !scene.studio &&
-    pluginResult.studio &&
-    typeof pluginResult.studio === "string"
-  ) {
+  if (!scene.studio && pluginResult.studio && typeof pluginResult.studio === "string") {
     const studioId = (await extractStudios(pluginResult.studio))[0];
 
     if (studioId) scene.studio = studioId;
@@ -198,8 +187,9 @@ export async function onSceneCreate(
       try {
         movie = await onMovieCreate(movie, "movieCreated");
       } catch (error) {
-        logger.log(error);
-        logger.error(error.message);
+        const _err = error as Error;
+        logger.log(_err);
+        logger.error(_err.message);
       }
 
       await movieCollection.upsert(movie._id, movie);

@@ -1,34 +1,26 @@
-import Image from "../types/image";
 import ora from "ora";
-import Axios from "axios";
-import extractQueryOptions from "../query_extractor";
-import * as logger from "../logger";
 import asyncPool from "tiny-async-pool";
-import { Gianna } from "./internal/index";
+
+import * as logger from "../logger";
+import extractQueryOptions from "../query_extractor";
+import Image from "../types/image";
 import { mapAsync } from "../types/utility";
 import {
-  filterFavorites,
-  filterBookmark,
-  filterRating,
-  filterInclude,
-  filterExclude,
   filterActors,
+  filterBookmark,
+  filterExclude,
+  filterFavorites,
+  filterInclude,
+  filterRating,
   filterStudios,
 } from "./common";
+import { Gianna } from "./internal";
 
 const PAGE_SIZE = 24;
 
 export let index!: Gianna.Index<IImageSearchDoc>;
 
-const FIELDS = [
-  "name",
-  "labels",
-  "actors",
-  "studioName",
-  "sceneName",
-  "actorNames",
-  "labelNames",
-];
+const FIELDS = ["name", "labels", "actors", "studioName", "sceneName", "actorNames", "labelNames"];
 
 export interface IImageSearchDoc {
   _id: string;
@@ -46,7 +38,7 @@ export interface IImageSearchDoc {
   studioName: string | null;
 }
 
-export async function updateImages(images: Image[]) {
+export async function updateImages(images: Image[]): Promise<void> {
   return index.update(await mapAsync(images, createImageSearchDoc));
 }
 
@@ -61,25 +53,25 @@ const blacklist = [
   "(avatar)",
 ];
 
-export function isBlacklisted(name: string) {
+export function isBlacklisted(name: string): boolean {
   return blacklist.some((ending) => name.endsWith(ending));
 }
 
 export const sliceArray = (size: number) => <T>(
   arr: T[],
-  cb: (value: T[], index: number, arr: T[]) => any
-) => {
+  cb: (value: T[], index: number, arr: T[]) => unknown
+): void => {
   let index = 0;
-  let slice = arr.slice(index, index + size) as T[];
+  let slice = arr.slice(index, index + size);
   while (slice.length) {
     const result = cb(slice, index, arr);
-    if (!!result) break;
+    if (result) break;
     index += size;
     slice = arr.slice(index, index + size);
   }
 };
 
-export const getSlices = (size: number) => <T>(arr: T[]) => {
+export const getSlices = (size: number) => <T>(arr: T[]): T[][] => {
   const slices = [] as T[][];
   sliceArray(size)(arr, (slice) => {
     slices.push(slice);
@@ -87,15 +79,14 @@ export const getSlices = (size: number) => <T>(arr: T[]) => {
   return slices;
 };
 
-export async function indexImages(images: Image[]) {
+export async function indexImages(images: Image[]): Promise<number> {
   if (!images.length) return 0;
   const slices = getSlices(2500)(images);
 
   await asyncPool(4, slices, async (slice) => {
     const docs = [] as IImageSearchDoc[];
     await asyncPool(16, slice, async (image) => {
-      if (!isBlacklisted(image.name))
-        docs.push(await createImageSearchDoc(image));
+      if (!isBlacklisted(image.name)) docs.push(await createImageSearchDoc(image));
     });
     await addImageSearchDocs(docs);
   });
@@ -103,7 +94,7 @@ export async function indexImages(images: Image[]) {
   return images.length;
 }
 
-export async function addImageSearchDocs(docs: IImageSearchDoc[]) {
+export async function addImageSearchDocs(docs: IImageSearchDoc[]): Promise<void> {
   logger.log(`Indexing ${docs.length} items...`);
   const timeNow = +new Date();
   const res = await index.index(docs);
@@ -111,7 +102,7 @@ export async function addImageSearchDocs(docs: IImageSearchDoc[]) {
   return res;
 }
 
-export async function buildImageIndex() {
+export async function buildImageIndex(): Promise<Gianna.Index<IImageSearchDoc>> {
   index = await Gianna.createIndex("images", FIELDS);
 
   const timeNow = +new Date();
@@ -125,9 +116,7 @@ export async function buildImageIndex() {
   return index;
 }
 
-export async function createImageSearchDoc(
-  image: Image
-): Promise<IImageSearchDoc> {
+export async function createImageSearchDoc(image: Image): Promise<IImageSearchDoc> {
   const labels = await Image.getLabels(image);
   const actors = await Image.getActors(image);
 
@@ -148,12 +137,15 @@ export async function createImageSearchDoc(
   };
 }
 
-export async function searchImages(query: string, shuffleSeed = "default") {
+export async function searchImages(
+  query: string,
+  shuffleSeed = "default"
+): Promise<Gianna.ISearchResults> {
   const options = extractQueryOptions(query);
   logger.log(`Searching images for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;
@@ -183,20 +175,27 @@ export async function searchImages(query: string, shuffleSeed = "default") {
   if (options.sortBy) {
     if (options.sortBy === "$shuffle") {
       sort = {
+        // eslint-disable-next-line camelcase
         sort_by: "$shuffle",
+        // eslint-disable-next-line camelcase
         sort_asc: false,
+        // eslint-disable-next-line camelcase
         sort_type: shuffleSeed,
       };
     } else {
-      const sortType = {
+      // eslint-disable-next-line
+      const sortType: string = {
         name: "string",
         addedOn: "number",
         rating: "number",
         bookmark: "number",
       }[options.sortBy];
       sort = {
+        // eslint-disable-next-line camelcase
         sort_by: options.sortBy,
+        // eslint-disable-next-line camelcase
         sort_asc: options.sortDir === "asc",
+        // eslint-disable-next-line camelcase
         sort_type: sortType,
       };
     }

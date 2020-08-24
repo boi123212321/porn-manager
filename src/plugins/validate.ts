@@ -1,19 +1,20 @@
-import { IConfig } from "../config/index";
 import { existsSync } from "fs";
+
+import { IConfig } from "../config/index";
 import { isDirectory } from "../fs/index";
 import * as logger from "../logger";
 
-export function checkUnusedPlugins(config: IConfig) {
+export function checkUnusedPlugins(config: IConfig): void {
   for (const pluginName of Object.keys(config.PLUGINS)) {
     let pluginUsed = false;
     for (const event of Object.values(config.PLUGIN_EVENTS)) {
-      if (event.some(name => name == pluginName)) pluginUsed = true;
+      if (event.some((name) => name === pluginName)) pluginUsed = true;
     }
     if (!pluginUsed) logger.warn(`Unused plugin '${pluginName}'.`);
   }
 }
 
-export function validatePlugins(config: IConfig) {
+export function validatePlugins(config: IConfig): void {
   for (const name in config.PLUGINS) {
     const plugin = config.PLUGINS[name];
     const path = plugin.path;
@@ -29,7 +30,7 @@ export function validatePlugins(config: IConfig) {
     }
 
     if (plugin.args) {
-      if (plugin.args === null || typeof plugin.args != "object") {
+      if (plugin.args === null || typeof plugin.args !== "object") {
         logger.error(`Invalid arguments for ${name}.`);
         process.exit(1);
       }
@@ -39,22 +40,18 @@ export function validatePlugins(config: IConfig) {
   for (const eventName in config.PLUGIN_EVENTS) {
     const event = config.PLUGIN_EVENTS[eventName];
     for (const pluginItem of event) {
-      if (typeof pluginItem == "string") {
+      if (typeof pluginItem === "string") {
         const pluginName = pluginItem;
         if (config.PLUGINS[pluginName] === undefined) {
-          logger.error(
-            `Undefined plugin '${pluginName}' in use in event '${eventName}'.`
-          );
+          logger.error(`Undefined plugin '${pluginName}' in use in event '${eventName}'.`);
           process.exit(1);
         }
-      } else if (Array.isArray(pluginItem) && pluginItem.length == 2) {
+      } else if (Array.isArray(pluginItem) && pluginItem.length === 2) {
         const pluginName = pluginItem[0];
         const pluginArgs = pluginItem[1];
 
         if (config.PLUGINS[pluginName] === undefined) {
-          logger.error(
-            `Undefined plugin '${pluginName}' in use in event '${eventName}'.`
-          );
+          logger.error(`Undefined plugin '${pluginName}' in use in event '${eventName}'.`);
           process.exit(1);
         }
 
@@ -63,7 +60,7 @@ export function validatePlugins(config: IConfig) {
           process.exit(1);
         }
 
-        if (typeof pluginArgs != "object") {
+        if (typeof pluginArgs !== "object") {
           logger.error(`Invalid arguments for '${pluginName}'.`);
           process.exit(1);
         }

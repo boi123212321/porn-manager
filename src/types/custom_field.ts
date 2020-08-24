@@ -1,5 +1,5 @@
-import { generateHash } from "../hash";
 import { customFieldCollection } from "../database";
+import { generateHash } from "../hash";
 
 export enum CustomFieldType {
   NUMBER = "NUMBER",
@@ -33,21 +33,21 @@ export default class CustomField {
     this.target = target;
   }
 
-  static async find(name: string) {
+  static async find(name: string): Promise<CustomField | undefined> {
     name = name.toLowerCase().trim();
     const allFields = await CustomField.getAll();
     return allFields.find((field) => field.name === name);
   }
 
-  static async remove(_id: string) {
+  static async remove(_id: string): Promise<void> {
     await customFieldCollection.remove(_id);
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<CustomField | null> {
     return customFieldCollection.get(_id);
   }
 
-  static async getAll() {
+  static async getAll(): Promise<CustomField[]> {
     const fields = await customFieldCollection.getAll();
     return fields.sort((a, b) => a.name.localeCompare(b.name));
   }

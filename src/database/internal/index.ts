@@ -1,8 +1,7 @@
 // TS bindings for Izzy
+import Axios, { AxiosError, AxiosResponse } from "axios";
 
-import Axios from "axios";
-import * as logger from "../../logger";
-import { getConfig } from "../../config/index";
+import { getConfig } from "../../config";
 
 export namespace Izzy {
   export interface IIndexCreation {
@@ -10,116 +9,99 @@ export namespace Izzy {
     key: string;
   }
 
-  export class Collection<T = any> {
+  export class Collection<T> {
     name: string;
 
-    constructor(name) {
+    constructor(name: string) {
       this.name = name;
     }
 
-    async count() {
-      const res = await Axios.get(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/${
-          this.name
-        }/count`
+    async count(): Promise<number> {
+      const res = await Axios.get<{ count: number }>(
+        `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/count`
       );
-      return res.data.count as number;
+      return res.data.count;
     }
 
-    async compact() {
+    async compact(): Promise<AxiosResponse<unknown>> {
       return Axios.post(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/compact/${
-          this.name
-        }`
+        `http://localhost:${getConfig().IZZY_PORT}/collection/compact/${this.name}`
       );
     }
 
-    async upsert(id: string, obj: T) {
-      const res = await Axios.post(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/${
-          this.name
-        }/${id}`,
+    async upsert(id: string, obj: T): Promise<T> {
+      const res = await Axios.post<T>(
+        `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/${id}`,
         obj
       );
-      return res.data as T;
+      return res.data;
     }
 
-    async remove(id: string) {
-      const res = await Axios.delete(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/${
-          this.name
-        }/${id}`
+    async remove(id: string): Promise<T> {
+      const res = await Axios.delete<T>(
+        `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/${id}`
       );
-      return res.data as T;
+      return res.data;
     }
 
-    async getAll() {
-      const res = await Axios.get(
+    async getAll(): Promise<T[]> {
+      const res = await Axios.get<{ items: T[] }>(
         `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}`
       );
-      return res.data.items as T[];
+      return res.data.items;
     }
 
-    async get(id: string) {
-      //logger.log(`Getting ${this.name}/${id}...`);
+    async get(id: string): Promise<T | null> {
+      // logger.log(`Getting ${this.name}/${id}...`);
       try {
         const res = await Axios.get(
-          `http://localhost:${getConfig().IZZY_PORT}/collection/${
-            this.name
-          }/${id}`
+          `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/${id}`
         );
         return res.data as T;
       } catch (error) {
-        if (!error.response) throw error;
-        if (error.response.status == 404) return null;
-        throw error;
+        const _err = error as AxiosError;
+        if (!_err.response) throw error;
+        if (_err.response.status === 404) return null;
+        throw _err;
       }
     }
 
-    async getBulk(items: string[]) {
-      //logger.log(`Getting bulk from ${this.name}...`);
-      const res = await Axios.post(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/${
-          this.name
-        }/bulk`,
+    async getBulk(items: string[]): Promise<T[]> {
+      // logger.log(`Getting bulk from ${this.name}...`);
+      const res = await Axios.post<{ items: T[] }>(
+        `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/bulk`,
         { items }
       );
-      return res.data.items as T[];
+      return res.data.items;
     }
 
-    async query(index: string, key: string | null) {
-      //logger.log(`Getting indexed: ${this.name}/${key}...`);
-      const res = await Axios.get(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/${
-          this.name
-        }/${index}/${key}`
+    async query(index: string, key: string | null): Promise<T[]> {
+      // logger.log(`Getting indexed: ${this.name}/${key}...`);
+      const res = await Axios.get<{ items: T[] }>(
+        `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/${index}/${key}`
       );
-      return res.data.items as T[];
+      return res.data.items;
     }
 
-    async times() {
-      //logger.log(`Getting times: ${this.name}...`);
-      const res = await Axios.get(
-        `http://localhost:${getConfig().IZZY_PORT}/collection/${
-          this.name
-        }/times`
+    async times(): Promise<[number, number][]> {
+      // logger.log(`Getting times: ${this.name}...`);
+      // eslint-disable-next-line camelcase
+      const res = await Axios.get<{ query_times: [number, number][] }>(
+        `http://localhost:${getConfig().IZZY_PORT}/collection/${this.name}/times`
       );
-      return res.data.query_times as [number, number][];
+      return res.data.query_times;
     }
   }
 
-  export async function createCollection(
+  export async function createCollection<T>(
     name: string,
     file?: string | null,
     indexes = [] as IIndexCreation[]
-  ) {
-    await Axios.post(
-      `http://localhost:${getConfig().IZZY_PORT}/collection/${name}`,
-      {
-        file,
-        indexes,
-      }
-    );
+  ): Promise<Collection<T>> {
+    await Axios.post(`http://localhost:${getConfig().IZZY_PORT}/collection/${name}`, {
+      file,
+      indexes,
+    });
     return new Collection(name);
   }
 }

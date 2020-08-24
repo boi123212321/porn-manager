@@ -1,16 +1,12 @@
-import Studio from "../types/studio";
-import * as logger from "../logger";
 import ora from "ora";
-import { Gianna } from "./internal";
+
 import argv from "../args";
-import { mapAsync } from "../types/utility";
+import * as logger from "../logger";
 import extractQueryOptions from "../query_extractor";
-import {
-  filterFavorites,
-  filterBookmark,
-  filterInclude,
-  filterExclude,
-} from "./common";
+import Studio from "../types/studio";
+import { mapAsync } from "../types/utility";
+import { filterBookmark, filterExclude, filterFavorites, filterInclude } from "./common";
+import { Gianna } from "./internal";
 
 const PAGE_SIZE = 24;
 
@@ -30,9 +26,7 @@ export interface IStudioSearchDoc {
   numScenes: number;
 }
 
-export async function createStudioSearchDoc(
-  studio: Studio
-): Promise<IStudioSearchDoc> {
+export async function createStudioSearchDoc(studio: Studio): Promise<IStudioSearchDoc> {
   const labels = await Studio.getLabels(studio);
   // const actors = await Studio.getActors(studio);
 
@@ -57,17 +51,17 @@ async function addStudioSearchDocs(docs: IStudioSearchDoc[]) {
   return res;
 }
 
-export async function updateStudios(studios: Studio[]) {
+export async function updateStudios(studios: Studio[]): Promise<void> {
   return index.update(await mapAsync(studios, createStudioSearchDoc));
 }
 
-export async function indexStudios(studios: Studio[]) {
+export async function indexStudios(studios: Studio[]): Promise<number> {
   let docs = [] as IStudioSearchDoc[];
   let numItems = 0;
   for (const studio of studios) {
     docs.push(await createStudioSearchDoc(studio));
 
-    if (docs.length == (argv["index-slice-size"] || 5000)) {
+    if (docs.length === (argv["index-slice-size"] || 5000)) {
       await addStudioSearchDocs(docs);
       numItems += docs.length;
       docs = [];
@@ -81,7 +75,7 @@ export async function indexStudios(studios: Studio[]) {
   return numItems;
 }
 
-export async function buildStudioIndex() {
+export async function buildStudioIndex(): Promise<Gianna.Index<IStudioSearchDoc>> {
   index = await Gianna.createIndex("studios", FIELDS);
 
   const timeNow = +new Date();
@@ -95,12 +89,15 @@ export async function buildStudioIndex() {
   return index;
 }
 
-export async function searchStudios(query: string, shuffleSeed = "default") {
+export async function searchStudios(
+  query: string,
+  shuffleSeed = "default"
+): Promise<Gianna.ISearchResults> {
   const options = extractQueryOptions(query);
   logger.log(`Searching scenes for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;
@@ -114,12 +111,16 @@ export async function searchStudios(query: string, shuffleSeed = "default") {
   if (options.sortBy) {
     if (options.sortBy === "$shuffle") {
       sort = {
+        // eslint-disable-next-line camelcase
         sort_by: "$shuffle",
+        // eslint-disable-next-line camelcase
         sort_asc: false,
+        // eslint-disable-next-line camelcase
         sort_type: shuffleSeed,
       };
     } else {
-      const sortType = {
+      // eslint-disable-next-line
+      const sortType: string = {
         addedOn: "number",
         name: "string",
         // rating: "number",
@@ -127,8 +128,11 @@ export async function searchStudios(query: string, shuffleSeed = "default") {
         numScenes: "number",
       }[options.sortBy];
       sort = {
+        // eslint-disable-next-line camelcase
         sort_by: options.sortBy,
+        // eslint-disable-next-line camelcase
         sort_asc: options.sortDir === "asc",
+        // eslint-disable-next-line camelcase
         sort_type: sortType,
       };
     }

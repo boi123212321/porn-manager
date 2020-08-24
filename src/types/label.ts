@@ -1,8 +1,8 @@
+import { labelCollection, labelledItemCollection } from "../database";
 import { generateHash } from "../hash";
 import * as logger from "../logger";
 import LabelledItem from "./labelled_item";
 import { mapAsync } from "./utility";
-import { labelledItemCollection, labelCollection } from "../database";
 
 export default class Label {
   _id: string;
@@ -11,13 +11,14 @@ export default class Label {
   addedOn = +new Date();
   thumbnail: string | null = null;
 
-  static async checkIntegrity() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  static async checkIntegrity(): Promise<void> {}
 
-  static async remove(_id: string) {
+  static async remove(_id: string): Promise<void> {
     await labelCollection.remove(_id);
   }
 
-  static async setForItem(itemId: string, labelIds: string[], type: string) {
+  static async setForItem(itemId: string, labelIds: string[], type: string): Promise<void> {
     const references = await LabelledItem.getByItem(itemId);
 
     const oldLabelReferences = references.map((r) => r._id);
@@ -33,22 +34,20 @@ export default class Label {
     }
   }
 
-  static async getForItem(id: string) {
+  static async getForItem(id: string): Promise<Label[]> {
     const references = await LabelledItem.getByItem(id);
-    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(
-      Boolean
-    ) as Label[];
+    return (await mapAsync(references, (r) => Label.getById(r.label))).filter(Boolean) as Label[];
   }
 
-  static async getById(_id: string) {
+  static async getById(_id: string): Promise<Label | null> {
     return await labelCollection.get(_id);
   }
 
-  static async getAll() {
+  static async getAll(): Promise<Label[]> {
     return await labelCollection.getAll();
   }
 
-  static async find(name: string) {
+  static async find(name: string): Promise<Label | undefined> {
     name = name.toLowerCase().trim();
     const allLabels = await Label.getAll();
     return allLabels.find((label) => label.name === name);
@@ -57,8 +56,6 @@ export default class Label {
   constructor(name: string, aliases: string[] = []) {
     this._id = "la_" + generateHash();
     this.name = name.trim();
-    this.aliases = [
-      ...new Set(aliases.map((alias) => alias.toLowerCase().trim())),
-    ];
+    this.aliases = [...new Set(aliases.map((alias) => alias.toLowerCase().trim()))];
   }
 }

@@ -1,16 +1,14 @@
-import * as logger from "./logger";
 import fs from "fs";
-import readline from "readline";
 import * as nodepath from "path";
+import readline from "readline";
 
-export function transformFile(
-  file: string,
-  cb: (str: string) => string | false
-) {
-  return new Promise((resolve, reject) => {
+import * as logger from "./logger";
+
+export function transformFile(file: string, cb: (str: string) => string | false): Promise<void> {
+  return new Promise((resolve) => {
     if (!fs.existsSync(file)) return resolve();
 
-    let lines = [] as string[];
+    const lines = [] as string[];
     let modified = false;
 
     const readStream = fs.createReadStream(file);
@@ -44,33 +42,29 @@ export function transformFile(
   });
 }
 
-export async function absolutifyPaths(file: string) {
+export async function absolutifyPaths(file: string): Promise<void> {
   logger.log("Absolutifying paths in " + file);
   await transformFile(file, (line) => {
-    let modified = false;
     const item = JSON.parse(line) as { path?: string | null };
     if (item.path && !nodepath.isAbsolute(item.path)) {
       item.path = nodepath.resolve(item.path);
-      modified = true;
       return JSON.stringify(item);
     }
     return false;
   });
 }
 
-export async function bookmarksToTimestamp(file: string) {
+export async function bookmarksToTimestamp(file: string): Promise<void> {
   logger.log("Replacing bookmarks with timestamps in " + file);
   await transformFile(file, (line) => {
-    let modified = false;
     const item = JSON.parse(line) as {
       bookmark?: number | boolean | null;
       addedOn: number;
     };
     if (item.bookmark !== undefined) {
-      if (typeof item.bookmark == "boolean") {
+      if (typeof item.bookmark === "boolean") {
         if (item.bookmark) item.bookmark = item.addedOn;
         else item.bookmark = null;
-        modified = true;
         return JSON.stringify(item);
       }
     }

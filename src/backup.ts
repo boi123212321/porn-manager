@@ -1,13 +1,9 @@
-import {
-  copyFileAsync,
-  readdirAsync,
-  rimrafAsync,
-  existsAsync,
-} from "./fs/async";
+import { existsSync, mkdirSync } from "fs";
 import { join } from "path";
-import { libraryPath, mapAsync } from "./types/utility";
+
+import { copyFileAsync, readdirAsync, rimrafAsync } from "./fs/async";
 import * as log from "./logger";
-import { mkdirSync } from "fs";
+import { libraryPath, mapAsync } from "./types/utility";
 
 async function checkBackupMax(amount = 10) {
   const backups = await readdirAsync("backups");
@@ -19,7 +15,7 @@ async function checkBackupMax(amount = 10) {
   }
 }
 
-export async function createBackup(amount = 10) {
+export async function createBackup(amount = 10): Promise<void> {
   const foldername = join("backups", new Date().valueOf().toString(36));
   mkdirSync(foldername);
   log.warn("Creating backup in " + foldername + "...");
@@ -41,7 +37,7 @@ export async function createBackup(amount = 10) {
   ];
 
   try {
-    const transfers = await mapAsync(files, async (file) => {
+    const transfers = await mapAsync(files, (file) => {
       return {
         from: libraryPath(file),
         to: join(foldername, file),
@@ -49,7 +45,7 @@ export async function createBackup(amount = 10) {
     });
 
     for (const transfer of transfers) {
-      if (!(await existsAsync(transfer.from))) return;
+      if (!existsSync(transfer.from)) return;
 
       log.log(`Backup: ${transfer.from} -> ${transfer.to}...`);
 

@@ -1,11 +1,11 @@
-import { defaultConfig, IConfig } from "./config/index";
+import { chmodSync, existsSync } from "fs";
 import inquirer from "inquirer";
-import { getFFMpegURL, getFFProbeURL, downloadFile } from "./ffmpeg-download";
-const sha = require("js-sha512").sha512;
+import { sha512 } from "js-sha512";
 import * as path from "path";
-import { existsAsync } from "./fs/async";
+
+import { defaultConfig, IConfig } from "./config/index";
+import { downloadFile, getFFMpegURL, getFFProbeURL } from "./ffmpeg-download";
 import * as logger from "./logger";
-import { chmodSync } from "fs";
 
 export const defaultPrompts = {
   downloadFFMPEG: true,
@@ -14,7 +14,7 @@ export const defaultPrompts = {
   useImageFolders: process.env.NODE_ENV !== "test",
 };
 
-export default async () => {
+export default async (): Promise<IConfig> => {
   const {
     downloadFFMPEG,
     usePassword,
@@ -25,7 +25,7 @@ export default async () => {
     imageFolders,
   } = await promptSetup();
 
-  let config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;
+  const config = JSON.parse(JSON.stringify(defaultConfig)) as IConfig;
 
   if (downloadFFMPEG) {
     const { ffmpegPath, ffprobePath } = await downloadFFLibs();
@@ -34,7 +34,7 @@ export default async () => {
     config.FFPROBE_PATH = path.resolve(ffprobePath);
   }
 
-  if (usePassword) config.PASSWORD = sha(password);
+  if (usePassword) config.PASSWORD = sha512(password);
 
   if (useVideoFolders) config.VIDEO_PATHS = videoFolders;
 
@@ -53,14 +53,14 @@ async function promptSetup() {
   if (process.env.NODE_ENV === "test") {
     return {
       ...defaultPrompts,
-      password: null,
+      password: "",
       videoFolders: [],
       imageFolders: [],
     };
   }
 
   const downloadFFMPEG = (
-    await inquirer.prompt([
+    await inquirer.prompt<{ downloadFFMPEG: boolean }>([
       {
         type: "confirm",
         name: "downloadFFMPEG",
@@ -70,7 +70,7 @@ async function promptSetup() {
     ])
   ).downloadFFMPEG;
 
-  const { usePassword } = await inquirer.prompt([
+  const { usePassword } = await inquirer.prompt<{ usePassword: boolean }>([
     {
       type: "confirm",
       name: "usePassword",
@@ -79,11 +79,11 @@ async function promptSetup() {
     },
   ]);
 
-  let password;
+  let password = "";
 
   if (usePassword) {
     password = (
-      await inquirer.prompt([
+      await inquirer.prompt<{ password: string }>([
         {
           type: "password",
           name: "password",
@@ -96,7 +96,7 @@ async function promptSetup() {
 
     do {
       confirmPassword = (
-        await inquirer.prompt([
+        await inquirer.prompt<{ password: string }>([
           {
             type: "password",
             name: "password",
@@ -104,15 +104,14 @@ async function promptSetup() {
           },
         ])
       ).password;
-    } while (password != confirmPassword);
+    } while (password !== confirmPassword);
   }
 
-  const { useVideoFolders } = await inquirer.prompt([
+  const { useVideoFolders } = await inquirer.prompt<{ useVideoFolders: boolean }>([
     {
       type: "confirm",
       name: "useVideoFolders",
-      message:
-        "Do you have one or more folders you want to import VIDEOS from?",
+      message: "Do you have one or more folders you want to import VIDEOS from?",
       default: defaultPrompts.useVideoFolders,
     },
   ]);
@@ -120,11 +119,11 @@ async function promptSetup() {
   const videoFolders = [] as string[];
 
   if (useVideoFolders) {
-    let path;
+    let path: string;
 
     do {
       path = (
-        await inquirer.prompt([
+        await inquirer.prompt<{ path: string }>([
           {
             type: "input",
             name: "path",
@@ -134,19 +133,18 @@ async function promptSetup() {
         ])
       ).path;
 
-      if (path != "done") {
-        if (await existsAsync(path)) videoFolders.push(path);
+      if (path !== "done") {
+        if (existsSync(path)) videoFolders.push(path);
         else logger.error(`Could not find ${path}`);
       }
-    } while (path != "done");
+    } while (path !== "done");
   }
 
-  const { useImageFolders } = await inquirer.prompt([
+  const { useImageFolders } = await inquirer.prompt<{ useImageFolders: boolean }>([
     {
       type: "confirm",
       name: "useImageFolders",
-      message:
-        "Do you have one or more folders you want to import IMAGES from?",
+      message: "Do you have one or more folders you want to import IMAGES from?",
       default: defaultPrompts.useVideoFolders,
     },
   ]);
@@ -154,11 +152,11 @@ async function promptSetup() {
   const imageFolders = [] as string[];
 
   if (useImageFolders) {
-    let path;
+    let path: string;
 
     do {
       path = (
-        await inquirer.prompt([
+        await inquirer.prompt<{ path: string }>([
           {
             type: "input",
             name: "path",
@@ -168,11 +166,11 @@ async function promptSetup() {
         ])
       ).path;
 
-      if (path != "done") {
-        if (await existsAsync(path)) imageFolders.push(path);
+      if (path !== "done") {
+        if (existsSync(path)) imageFolders.push(path);
         else logger.error(`Could not find ${path}`);
       }
-    } while (path != "done");
+    } while (path !== "done");
   }
 
   return {
@@ -202,8 +200,7 @@ async function downloadFFLibs() {
     await downloadFile(ffmpegURL, ffmpegPath);
     await downloadFile(ffprobeURL, ffprobePath);
   } catch (error) {
-    logger.log(error);
-    logger.error(error.message);
+    logger.error(error);
     process.exit(1);
   }
 

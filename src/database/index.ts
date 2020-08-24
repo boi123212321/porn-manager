@@ -1,25 +1,27 @@
+import { existsSync } from "fs";
 import mkdirp from "mkdirp";
-import { libraryPath } from "../types/utility";
-import * as logger from "../logger";
-import Scene from "../types/scene";
-import Actor from "../types/actor";
-import Label from "../types/label";
-import Image from "../types/image";
 import ora from "ora";
-import Movie from "../types/movie";
-import Studio from "../types/studio";
-import Marker from "../types/marker";
-import { bookmarksToTimestamp, absolutifyPaths } from "../integrity";
-import { Izzy } from "./internal/index";
+
 import args from "../args";
-import LabelledItem from "../types/labelled_item";
-import MovieScene from "../types/movie_scene";
-import ActorReference from "../types/actor_reference";
-import { existsAsync, unlinkAsync } from "../fs/async";
 import { convertCrossReferences } from "../compat";
-import SceneView from "../types/watch";
-import CustomField from "../types/custom_field";
+import { unlinkAsync } from "../fs/async";
+import { absolutifyPaths, bookmarksToTimestamp } from "../integrity";
+import * as logger from "../logger";
 import { ISceneProcessingItem } from "../queue/processing";
+import Actor from "../types/actor";
+import ActorReference from "../types/actor_reference";
+import CustomField from "../types/custom_field";
+import Image from "../types/image";
+import Label from "../types/label";
+import LabelledItem from "../types/labelled_item";
+import Marker from "../types/marker";
+import Movie from "../types/movie";
+import MovieScene from "../types/movie_scene";
+import Scene from "../types/scene";
+import Studio from "../types/studio";
+import { libraryPath } from "../types/utility";
+import SceneView from "../types/watch";
+import { Izzy } from "./internal/index";
 
 mkdirp.sync("backups/");
 mkdirp.sync("tmp/");
@@ -39,9 +41,9 @@ export let markerCollection!: Izzy.Collection<Marker>;
 export let studioCollection!: Izzy.Collection<Studio>;
 export let processingCollection!: Izzy.Collection<ISceneProcessingItem>;
 
-export async function loadStores() {
+export async function loadStores(): Promise<void> {
   const crossReferencePath = libraryPath("cross_references.db");
-  if (await existsAsync(crossReferencePath)) {
+  if (existsSync(crossReferencePath)) {
     logger.message("Making DB compatible...");
     await convertCrossReferences();
     await unlinkAsync(crossReferencePath);
@@ -51,7 +53,10 @@ export async function loadStores() {
     mkdirp.sync(libraryPath("images/"));
     mkdirp.sync(libraryPath("thumbnails/")); // generated screenshots
     mkdirp.sync(libraryPath("previews/"));
-  } catch (err) {}
+  } catch (err) {
+    const _err = <Error>err;
+    logger.error(_err.message);
+  }
 
   if (!args["ignore-integrity"]) {
     const compatLoader = ora("Making .db files compatible (if needed)").start();
@@ -79,22 +84,14 @@ export async function loadStores() {
     []
   );
 
-  labelCollection = await Izzy.createCollection(
-    "labels",
-    libraryPath("labels.db"),
-    []
-  );
+  labelCollection = await Izzy.createCollection("labels", libraryPath("labels.db"), []);
 
-  viewCollection = await Izzy.createCollection(
-    "scene_views",
-    libraryPath("scene_views.db"),
-    [
-      {
-        key: "scene",
-        name: "scene-index",
-      },
-    ]
-  );
+  viewCollection = await Izzy.createCollection("scene_views", libraryPath("scene_views.db"), [
+    {
+      key: "scene",
+      name: "scene-index",
+    },
+  ]);
 
   /* markerReferenceCollection = await Izzy.createCollection(
     "marker-references",
@@ -164,81 +161,58 @@ export async function loadStores() {
     ]
   );
 
-  imageCollection = await Izzy.createCollection(
-    "images",
-    libraryPath("images.db"),
-    [
-      {
-        name: "scene-index",
-        key: "scene",
-      },
-      {
-        name: "studio-index",
-        key: "studio",
-      },
-      {
-        name: "path-index",
-        key: "path",
-      },
-    ]
-  );
+  imageCollection = await Izzy.createCollection("images", libraryPath("images.db"), [
+    {
+      name: "scene-index",
+      key: "scene",
+    },
+    {
+      name: "studio-index",
+      key: "studio",
+    },
+    {
+      name: "path-index",
+      key: "path",
+    },
+  ]);
 
-  sceneCollection = await Izzy.createCollection(
-    "scenes",
-    libraryPath("scenes.db"),
-    [
-      {
-        name: "studio-index",
-        key: "studio",
-      },
-      {
-        name: "path-index",
-        key: "path",
-      },
-      {
-        name: "preview-index",
-        key: "preview",
-      },
-    ]
-  );
+  sceneCollection = await Izzy.createCollection("scenes", libraryPath("scenes.db"), [
+    {
+      name: "studio-index",
+      key: "studio",
+    },
+    {
+      name: "path-index",
+      key: "path",
+    },
+    {
+      name: "preview-index",
+      key: "preview",
+    },
+  ]);
 
-  actorCollection = await Izzy.createCollection(
-    "actors",
-    libraryPath("actors.db")
-  );
+  actorCollection = await Izzy.createCollection("actors", libraryPath("actors.db"));
 
-  movieCollection = await Izzy.createCollection(
-    "movies",
-    libraryPath("movies.db"),
-    [
-      {
-        name: "studio-index",
-        key: "studio",
-      },
-    ]
-  );
+  movieCollection = await Izzy.createCollection("movies", libraryPath("movies.db"), [
+    {
+      name: "studio-index",
+      key: "studio",
+    },
+  ]);
 
-  markerCollection = await Izzy.createCollection(
-    "markers",
-    libraryPath("markers.db"),
-    [
-      {
-        name: "scene-index",
-        key: "scene",
-      },
-    ]
-  );
+  markerCollection = await Izzy.createCollection("markers", libraryPath("markers.db"), [
+    {
+      name: "scene-index",
+      key: "scene",
+    },
+  ]);
 
-  studioCollection = await Izzy.createCollection(
-    "studios",
-    libraryPath("studios.db"),
-    [
-      {
-        key: "parent",
-        name: "parent-index",
-      },
-    ]
-  );
+  studioCollection = await Izzy.createCollection("studios", libraryPath("studios.db"), [
+    {
+      key: "parent",
+      name: "parent-index",
+    },
+  ]);
 
   processingCollection = await Izzy.createCollection(
     "processing",
@@ -272,9 +246,7 @@ export async function loadStores() {
   dbLoader.succeed();
 
   if (!args["ignore-integrity"]) {
-    const integrityLoader = ora(
-      "Checking database integrity. This might take a minute..."
-    ).start();
+    const integrityLoader = ora("Checking database integrity. This might take a minute...").start();
 
     await Scene.checkIntegrity();
     await Actor.checkIntegrity();

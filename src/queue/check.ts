@@ -1,25 +1,23 @@
-import { getConfig } from "../config";
-import { walk, statAsync } from "../fs/async";
-import Scene from "../types/scene";
-import Image from "../types/image";
-import { basename } from "path";
-import * as logger from "../logger";
-import { extractLabels, extractActors, extractScenes } from "../extractor";
 import Jimp from "jimp";
-import ora = require("ora");
-import { indexImages } from "../search/image";
+import { basename } from "path";
+
+import { getConfig } from "../config";
 import { imageCollection, sceneCollection } from "../database";
+import { extractActors, extractLabels, extractScenes } from "../extractor";
+import { statAsync, walk } from "../fs/async";
+import * as logger from "../logger";
+import { indexImages } from "../search/image";
+import Image from "../types/image";
+import Scene from "../types/scene";
+import ora = require("ora");
 
-const fileIsExcluded = (exclude: string[], file: string) =>
-  exclude.some((regStr) => new RegExp(regStr, "i").test(file.toLowerCase()));
-
-export async function checkVideoFolders() {
+export async function checkVideoFolders(): Promise<void> {
   const config = getConfig();
 
   const unknownVideos = [] as string[];
 
   if (config.EXCLUDE_FILES.length)
-    logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
+    logger.log(`Will ignore files: ${JSON.stringify(config.EXCLUDE_FILES)}.`);
 
   for (const folder of config.VIDEO_PATHS) {
     logger.message(`Scanning ${folder} for videos...`);
@@ -37,7 +35,7 @@ export async function checkVideoFolders() {
         } else {
           logger.log(`Found matching file ${path}`);
           const existingScene = await Scene.getSceneByPath(path);
-          logger.log("Scene with that path exists already: " + !!existingScene);
+          logger.log(`Scene with that path exists already: ${!!existingScene}`);
           if (!existingScene) unknownVideos.push(path);
         }
       },
@@ -52,15 +50,14 @@ export async function checkVideoFolders() {
     try {
       await Scene.onImport(videoPath);
     } catch (error) {
-      logger.log(error.stack);
+      const _err = error as Error;
+      logger.log(_err.stack);
       logger.error("Error when importing " + videoPath);
-      logger.warn(error.message);
+      logger.warn(_err.message);
     }
   }
 
-  logger.warn(
-    `Queued ${unknownVideos.length} new videos for further processing.`
-  );
+  logger.warn(`Queued ${unknownVideos.length} new videos for further processing.`);
 }
 
 async function imageWithPathExists(path: string) {
@@ -106,18 +103,17 @@ async function processImage(imagePath: string, readImage = true) {
   }
 }
 
-export async function checkImageFolders() {
+export async function checkImageFolders(): Promise<void> {
   const config = getConfig();
 
   logger.log("Checking image folders...");
 
   let numAddedImages = 0;
 
-  if (!config.READ_IMAGES_ON_IMPORT)
-    logger.warn("Reading images on import is disabled.");
+  if (!config.READ_IMAGES_ON_IMPORT) logger.warn("Reading images on import is disabled.");
 
   if (config.EXCLUDE_FILES.length)
-    logger.log(`Will ignore files: ${config.EXCLUDE_FILES}.`);
+    logger.log(`Will ignore files: ${JSON.stringify(config.EXCLUDE_FILES)}.`);
 
   for (const folder of config.IMAGE_PATHS) {
     logger.message(`Scanning ${folder} for images...`);
@@ -148,13 +144,11 @@ export async function checkImageFolders() {
   logger.warn(`Added ${numAddedImages} new images`);
 }
 
-export async function checkPreviews() {
+export async function checkPreviews(): Promise<void> {
   const config = getConfig();
 
   if (!config.GENERATE_PREVIEWS) {
-    logger.warn(
-      "Not generating previews because GENERATE_PREVIEWS is disabled."
-    );
+    logger.warn("Not generating previews because GENERATE_PREVIEWS is disabled.");
     return;
   }
 
@@ -167,10 +161,10 @@ export async function checkPreviews() {
       const loader = ora("Generating previews...").start();
 
       try {
-        let preview = await Scene.generatePreview(scene);
+        const preview = await Scene.generatePreview(scene);
 
         if (preview) {
-          let image = new Image(scene.name + " (preview)");
+          const image = new Image(scene.name + " (preview)");
           const stats = await statAsync(preview);
           image.path = preview;
           image.scene = scene._id;

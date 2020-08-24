@@ -1,37 +1,36 @@
-import * as logger from "./logger";
 import Axios from "axios";
-import Scene from "./types/scene";
-import Image from "./types/image";
-import { statAsync } from "./fs/async";
-import { IConfig } from "./config/index";
 
-async function getQueueHead(config: IConfig) {
+import { IConfig } from "./config/index";
+import { statAsync } from "./fs/async";
+import * as logger from "./logger";
+import Image from "./types/image";
+import Scene, { ThumbnailFile } from "./types/scene";
+
+async function getQueueHead(config: IConfig): Promise<Scene> {
   logger.log("Getting queue head...");
   return (
-    await Axios.get(
-      `http://localhost:${config.PORT}/queue/head?password=${config.PASSWORD}`
-    )
+    await Axios.get<Scene>(`http://localhost:${config.PORT}/queue/head?password=${config.PASSWORD}`)
   ).data;
 }
 
-export async function queueLoop(config: IConfig) {
+export async function queueLoop(config: IConfig): Promise<void> {
   try {
-    let queueHead = (await getQueueHead(config)) as Scene;
+    let queueHead = await getQueueHead(config);
 
-    while (!!queueHead) {
+    while (queueHead) {
       try {
-        logger.log("Processing " + queueHead.path + "...");
-        let data = {
+        logger.log(`Processing ${queueHead.path}...`);
+        const data = {
           processed: true,
-        } as any;
-        let images = [] as any[];
-        let thumbs = [] as any[];
+        } as Record<string, unknown>;
+        const images = [] as Image[];
+        const thumbs = [] as Image[];
 
         if (config.GENERATE_PREVIEWS && !queueHead.preview) {
           const preview = await Scene.generatePreview(queueHead);
 
           if (preview) {
-            let image = new Image(queueHead.name + " (preview)");
+            const image = new Image(queueHead.name + " (preview)");
             const stats = await statAsync(preview);
             image.path = preview;
             image.scene = queueHead._id;
@@ -46,7 +45,7 @@ export async function queueLoop(config: IConfig) {
         }
 
         if (config.GENERATE_SCREENSHOTS) {
-          let screenshots = [] as any[];
+          let screenshots = [] as ThumbnailFile[];
           try {
             screenshots = await Scene.generateThumbnails(queueHead);
           } catch (error) {
@@ -70,9 +69,10 @@ export async function queueLoop(config: IConfig) {
           { scene: data, thumbs, images }
         );
       } catch (error) {
+        const _err = error as Error;
         logger.error("PROCESSING ERROR");
-        logger.log(error);
-        logger.error(error.message);
+        logger.log(_err);
+        logger.error(_err.message);
         await Axios.delete(
           `http://localhost:${config.PORT}/queue/${queueHead._id}?password=${config.PASSWORD}`
         );
@@ -83,7 +83,8 @@ export async function queueLoop(config: IConfig) {
     logger.success("Processing done.");
     process.exit(0);
   } catch (error) {
-    logger.error("Processing error:" + error.message);
+    const _err = error as Error;
+    logger.error(`Processing error: ${_err.message}`);
     process.exit(1);
   }
 }

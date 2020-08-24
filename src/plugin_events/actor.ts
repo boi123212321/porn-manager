@@ -1,35 +1,30 @@
-import Actor from "../types/actor";
-import { runPluginsSerial } from "../plugins/index";
-import { libraryPath, validRating, extensionFromUrl } from "../types/utility";
-import { extractLabels, extractFields } from "../extractor";
 import { getConfig } from "../config";
-import { extname } from "path";
+import countries, { ICountry } from "../data/countries";
+import { imageCollection, labelCollection } from "../database";
+import { extractFields, extractLabels } from "../extractor";
 import { downloadFile } from "../ffmpeg-download";
-import Image from "../types/image";
 import * as logger from "../logger";
+import { runPluginsSerial } from "../plugins";
 import { indexImages } from "../search/image";
-import Label from "../types/label";
-import { imageCollection, labelCollection } from "../database/index";
+import Actor from "../types/actor";
 import { isValidCountryCode } from "../types/countries";
-import countries from "../data/countries";
+import Image from "../types/image";
+import Label from "../types/label";
+import { extensionFromUrl, libraryPath, validRating } from "../types/utility";
 
 // This function has side effects
 export async function onActorCreate(
   actor: Actor,
   actorLabels: string[],
   event = "actorCreated"
-) {
+): Promise<Actor> {
   const config = getConfig();
 
   const pluginResult = await runPluginsSerial(config, event, {
-    actor: JSON.parse(JSON.stringify(actor)),
+    actor: JSON.parse(JSON.stringify(actor)) as Actor,
     actorName: actor.name,
-    countries: JSON.parse(JSON.stringify(countries)),
-    $createLocalImage: async (
-      path: string,
-      name: string,
-      thumbnail?: boolean
-    ) => {
+    countries: JSON.parse(JSON.stringify(countries)) as ICountry[],
+    $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       logger.log("Creating image from " + path);
       const img = new Image(name);
       if (thumbnail) img.name += " (thumbnail)";
@@ -64,28 +59,28 @@ export async function onActorCreate(
   });
 
   if (
-    typeof pluginResult.thumbnail == "string" &&
+    typeof pluginResult.thumbnail === "string" &&
     pluginResult.thumbnail.startsWith("im_") &&
     (!actor.thumbnail || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
     actor.thumbnail = pluginResult.thumbnail;
 
   if (
-    typeof pluginResult.altThumbnail == "string" &&
+    typeof pluginResult.altThumbnail === "string" &&
     pluginResult.altThumbnail.startsWith("im_") &&
     (!actor.altThumbnail || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
     actor.altThumbnail = pluginResult.altThumbnail;
 
   if (
-    typeof pluginResult.avatar == "string" &&
+    typeof pluginResult.avatar === "string" &&
     pluginResult.avatar.startsWith("im_") &&
     (!actor.avatar || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
     actor.avatar = pluginResult.avatar;
 
   if (
-    typeof pluginResult.hero == "string" &&
+    typeof pluginResult.hero === "string" &&
     pluginResult.hero.startsWith("im_") &&
     (!actor.hero || config.ALLOW_PLUGINS_OVERWRITE_ACTOR_THUMBNAILS)
   )
@@ -93,8 +88,7 @@ export async function onActorCreate(
 
   if (typeof pluginResult.name === "string") actor.name = pluginResult.name;
 
-  if (typeof pluginResult.description === "string")
-    actor.description = pluginResult.description;
+  if (typeof pluginResult.description === "string") actor.description = pluginResult.description;
 
   if (typeof pluginResult.bornOn === "number")
     actor.bornOn = new Date(pluginResult.bornOn).valueOf();
@@ -107,18 +101,16 @@ export async function onActorCreate(
   if (pluginResult.custom && typeof pluginResult.custom === "object") {
     for (const key in pluginResult.custom) {
       const fields = await extractFields(key);
-      if (fields.length)
-        actor.customFields[fields[0]] = pluginResult.custom[key];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      if (fields.length) actor.customFields[fields[0]] = pluginResult.custom[key];
     }
   }
 
   if (validRating(pluginResult.rating)) actor.rating = pluginResult.rating;
 
-  if (typeof pluginResult.favorite === "boolean")
-    actor.favorite = pluginResult.favorite;
+  if (typeof pluginResult.favorite === "boolean") actor.favorite = pluginResult.favorite;
 
-  if (typeof pluginResult.bookmark === "number")
-    actor.bookmark = pluginResult.bookmark;
+  if (typeof pluginResult.bookmark === "number") actor.bookmark = pluginResult.bookmark;
 
   if (pluginResult.nationality !== undefined) {
     if (
@@ -137,7 +129,7 @@ export async function onActorCreate(
       const extractedIds = await extractLabels(labelName);
       if (extractedIds.length) {
         labelIds.push(...extractedIds);
-        logger.log(`Found ${extractedIds.length} labels for ${labelName}:`);
+        logger.log(`Found ${extractedIds.length} labels for ${<string>labelName}:`);
         logger.log(extractedIds);
       } else if (config.CREATE_MISSING_LABELS) {
         const label = new Label(labelName);

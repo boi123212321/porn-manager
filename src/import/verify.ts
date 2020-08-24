@@ -1,13 +1,14 @@
-import { ICreateOptions } from "./create";
+import { existsSync } from "fs";
+
 import Actor from "../types/actor";
 import CustomField from "../types/custom_field";
+import Label from "../types/label";
+import Marker from "../types/marker";
 import Movie from "../types/movie";
 import Scene from "../types/scene";
 import Studio from "../types/studio";
-import { existsSync } from "fs";
-import Label from "../types/label";
 import { Dictionary } from "../types/utility";
-import Marker from "../types/marker";
+import { ICreateOptions } from "./create";
 
 async function checkDuplicates(opts: ICreateOptions) {
   if (opts.actors) {
@@ -60,65 +61,45 @@ async function checkDuplicates(opts: ICreateOptions) {
   }
 }
 
-async function checkIfActorsExist(
-  actors: string[],
-  actorDict?: Dictionary<any>
-) {
+async function checkIfActorsExist(actors: string[], actorDict?: Dictionary<unknown>) {
   for (const actorId of actors) {
     if (!(await Actor.getById(actorId))) {
       if (!actorDict) throw new Error(`Actor ${actorId} does not exist`);
-      else if (!actorDict[actorId])
-        throw new Error(`Actor ${actorId} does not exist`);
+      else if (!actorDict[actorId]) throw new Error(`Actor ${actorId} does not exist`);
     }
   }
 }
 
-async function checkIfScenesExist(
-  scenes: string[],
-  sceneDict?: Dictionary<any>
-) {
+async function checkIfScenesExist(scenes: string[], sceneDict?: Dictionary<unknown>) {
   for (const sceneId of scenes) {
     if (!(await Scene.getById(sceneId))) {
       if (!sceneDict) throw new Error(`Scene ${sceneId} does not exist`);
-      else if (!sceneDict[sceneId])
-        throw new Error(`Scene ${sceneId} does not exist`);
+      else if (!sceneDict[sceneId]) throw new Error(`Scene ${sceneId} does not exist`);
     }
   }
 }
 
-async function checkIfLabelsExist(
-  labels: string[],
-  labelDict?: Dictionary<any>
-) {
+async function checkIfLabelsExist(labels: string[], labelDict?: Dictionary<unknown>) {
   for (const labelId of labels) {
     if (!(await Label.getById(labelId))) {
       if (!labelDict) throw new Error(`Label ${labelId} does not exist`);
-      else if (!labelDict[labelId])
-        throw new Error(`Label ${labelId} does not exist`);
+      else if (!labelDict[labelId]) throw new Error(`Label ${labelId} does not exist`);
     }
   }
 }
 
-async function checkIfStudioExists(
-  studioId: string,
-  studioDict?: Dictionary<any>
-) {
+async function checkIfStudioExists(studioId: string, studioDict?: Dictionary<unknown>) {
   if (!(await Studio.getById(studioId))) {
     if (!studioDict) throw new Error(`Studio ${studioId} does not exist`);
-    else if (!studioDict[studioId])
-      throw new Error(`Studio ${studioId} does not exist`);
+    else if (!studioDict[studioId]) throw new Error(`Studio ${studioId} does not exist`);
   }
 }
 
-async function checkIfCustomFieldsExist(
-  fields: string[],
-  fieldDict?: Dictionary<any>
-) {
+async function checkIfCustomFieldsExist(fields: string[], fieldDict?: Dictionary<unknown>) {
   for (const fieldId of fields) {
     if (!(await CustomField.getById(fieldId))) {
       if (!fieldDict) throw new Error(`Custom field ${fieldId} does not exist`);
-      else if (!fieldDict[fieldId])
-        throw new Error(`Custom field ${fieldId} does not exist`);
+      else if (!fieldDict[fieldId]) throw new Error(`Custom field ${fieldId} does not exist`);
     }
   }
 }
@@ -139,16 +120,11 @@ async function checkMovies(opts: ICreateOptions) {
       }
 
       if (newMovie.customFields)
-        await checkIfCustomFieldsExist(
-          Object.keys(newMovie.customFields),
-          opts.customFields
-        );
+        await checkIfCustomFieldsExist(Object.keys(newMovie.customFields), opts.customFields);
 
-      if (newMovie.scenes)
-        await checkIfScenesExist(newMovie.scenes, opts.scenes);
+      if (newMovie.scenes) await checkIfScenesExist(newMovie.scenes, opts.scenes);
 
-      if (newMovie.studio)
-        await checkIfStudioExists(newMovie.studio, opts.studios);
+      if (newMovie.studio) await checkIfStudioExists(newMovie.studio, opts.studios);
     }
   }
 }
@@ -158,28 +134,21 @@ async function checkScenes(opts: ICreateOptions) {
     for (const sceneId in opts.scenes) {
       const newScene = opts.scenes[sceneId];
 
-      if (!existsSync(newScene.path))
-        throw new Error(`Scene ${sceneId} video does not exist.`);
+      if (!existsSync(newScene.path)) throw new Error(`Scene ${sceneId} video does not exist.`);
 
       if (newScene.thumbnail) {
         if (!existsSync(newScene.thumbnail))
           throw new Error(`Scene ${sceneId} thumbnail does not exist.`);
       }
 
-      if (newScene.labels)
-        await checkIfLabelsExist(newScene.labels, opts.labels);
+      if (newScene.labels) await checkIfLabelsExist(newScene.labels, opts.labels);
 
       if (newScene.customFields)
-        await checkIfCustomFieldsExist(
-          Object.keys(newScene.customFields),
-          opts.customFields
-        );
+        await checkIfCustomFieldsExist(Object.keys(newScene.customFields), opts.customFields);
 
-      if (newScene.actors)
-        await checkIfActorsExist(newScene.actors, opts.actors);
+      if (newScene.actors) await checkIfActorsExist(newScene.actors, opts.actors);
 
-      if (newScene.studio)
-        await checkIfStudioExists(newScene.studio, opts.studios);
+      if (newScene.studio) await checkIfStudioExists(newScene.studio, opts.studios);
     }
   }
 }
@@ -189,8 +158,7 @@ async function checkMarkers(opts: ICreateOptions) {
     for (const markerId in opts.markers) {
       const newScene = opts.markers[markerId];
 
-      if (newScene.labels)
-        await checkIfLabelsExist(newScene.labels, opts.labels);
+      if (newScene.labels) await checkIfLabelsExist(newScene.labels, opts.labels);
     }
   }
 }
@@ -220,19 +188,15 @@ async function checkActors(opts: ICreateOptions) {
           throw new Error(`Actor ${actorId} thumbnail does not exist.`);
       }
 
-      if (newActor.labels)
-        await checkIfLabelsExist(newActor.labels, opts.labels);
+      if (newActor.labels) await checkIfLabelsExist(newActor.labels, opts.labels);
 
       if (newActor.customFields)
-        await checkIfCustomFieldsExist(
-          Object.keys(newActor.customFields),
-          opts.customFields
-        );
+        await checkIfCustomFieldsExist(Object.keys(newActor.customFields), opts.customFields);
     }
   }
 }
 
-export async function verifyFileData(opts: ICreateOptions) {
+export async function verifyFileData(opts: ICreateOptions): Promise<void> {
   await checkDuplicates(opts);
 
   await checkActors(opts);

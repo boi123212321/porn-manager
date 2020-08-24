@@ -1,23 +1,28 @@
 // TS bindings for Gianna
-
 import Axios from "axios";
-import * as logger from "../../logger";
-import { getConfig } from "../../config/index";
+
+import { getConfig } from "../../config";
 
 export namespace Gianna {
   export interface ISearchResults {
     items: string[];
+    // eslint-disable-next-line camelcase
     max_items: number;
     message: string;
+    // eslint-disable-next-line camelcase
     num_items: number;
+    // eslint-disable-next-line camelcase
     num_pages: number;
     query: string | null;
     status: number;
   }
 
   export interface ISortOptions {
+    // eslint-disable-next-line camelcase
     sort_by: string;
+    // eslint-disable-next-line camelcase
     sort_asc: boolean;
+    // eslint-disable-next-line camelcase
     sort_type: string;
   }
 
@@ -25,6 +30,7 @@ export namespace Gianna {
     property: string;
     type: string;
     operation: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any;
   }
 
@@ -48,67 +54,59 @@ export namespace Gianna {
   export class Index<T extends { _id: string }> {
     name: string;
 
-    constructor(name) {
+    constructor(name: string) {
       this.name = name;
     }
 
-    async times() {
-      const res = await Axios.get(
+    async times(): Promise<[number, number][]> {
+      // eslint-disable-next-line camelcase
+      const res = await Axios.get<{ query_times: [number, number][] }>(
         `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}/times`
       );
-      return res.data.query_times as [number, number][];
+      // eslint-disable-next-line camelcase
+      return res.data.query_times;
     }
 
-    async clear() {
-      await Axios.delete(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}/clear`
-      );
+    async clear(): Promise<void> {
+      await Axios.delete(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}/clear`);
     }
 
-    async update(items: T[]) {
-      await Axios.patch(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`,
-        {
+    async update(items: T[]): Promise<void> {
+      await Axios.patch(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`, {
+        items,
+      });
+    }
+
+    async index(items: T[]): Promise<void> {
+      await Axios.post(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`, {
+        items,
+      });
+    }
+
+    async remove(items: string[]): Promise<void> {
+      await Axios.delete(`http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`, {
+        data: {
           items,
-        }
-      );
+        },
+      });
     }
 
-    async index(items: T[]) {
-      await Axios.post(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`,
-        {
-          items,
-        }
-      );
-    }
-
-    async remove(items: string[]) {
-      await Axios.delete(
-        `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}`,
-        {
-          data: {
-            items,
-          },
-        }
-      );
-    }
-
-    async search(opts: ISearchOptions) {
+    async search(opts: ISearchOptions): Promise<ISearchResults> {
       const res = await Axios.post(
         `http://localhost:${getConfig().GIANNA_PORT}/index/${this.name}/search`,
         {
           filter: opts.filter,
+          // eslint-disable-next-line camelcase
           sort_by: opts.sort?.sort_by,
+          // eslint-disable-next-line camelcase
           sort_asc: opts.sort?.sort_asc,
+          // eslint-disable-next-line camelcase
           sort_type: opts.sort?.sort_type,
         },
         {
           params: {
             // hot fix, fix this in gianna eventually TODO:
-            q: opts.query
-              ? opts.query.trim().replace(/ {2,}/g, " ")
-              : opts.query,
+            q: opts.query ? opts.query.trim().replace(/ {2,}/g, " ") : opts.query,
             take: opts.take,
             skip: opts.skip,
           },
@@ -118,13 +116,17 @@ export namespace Gianna {
     }
   }
 
-  export async function createIndex(name: string, fields: string[]) {
-    await Axios.put(
-      `http://localhost:${getConfig().GIANNA_PORT}/index/${name}`,
-      {
-        fields,
-      }
-    );
+  export async function createIndex(
+    name: string,
+    fields: string[]
+  ): Promise<
+    Index<{
+      _id: string;
+    }>
+  > {
+    await Axios.put(`http://localhost:${getConfig().GIANNA_PORT}/index/${name}`, {
+      fields,
+    });
     return new Index(name);
   }
 }

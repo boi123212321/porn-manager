@@ -1,11 +1,12 @@
+import { actorCollection } from "../../../database";
 import * as logger from "../../../logger";
 import { searchActors } from "../../../search/actor";
-import { actorCollection } from "../../../database";
+import Actor from "../../../types/actor";
 
 export async function getUnwatchedActors(
-  _,
+  _: unknown,
   { skip, take, seed }: { take?: number; skip?: number; seed?: string }
-) {
+): Promise<(Actor | null)[] | undefined> {
   try {
     const timeNow = +new Date();
     const result = await searchActors(
@@ -24,9 +25,7 @@ export async function getUnwatchedActors(
     );
 
     logger.log(
-      `Search results: ${result.max_items} hits found in ${
-        (Date.now() - timeNow) / 1000
-      }s`
+      `Search results: ${result.max_items} hits found in ${(Date.now() - timeNow) / 1000}s`
     );
 
     const actors = await actorCollection.getBulk(result.items);
@@ -40,17 +39,22 @@ export async function getUnwatchedActors(
 }
 
 export async function getActors(
-  _,
+  _: unknown,
   { query, seed }: { query?: string; seed?: string }
-) {
+): Promise<
+  | {
+      numItems: number;
+      numPages: number;
+      items: (Actor | null)[];
+    }
+  | undefined
+> {
   try {
     const timeNow = +new Date();
     const result = await searchActors(query || "", seed);
 
     logger.log(
-      `Search results: ${result.max_items} hits found in ${
-        (Date.now() - timeNow) / 1000
-      }s`
+      `Search results: ${result.max_items} hits found in ${(Date.now() - timeNow) / 1000}s`
     );
 
     const actors = await actorCollection.getBulk(result.items);

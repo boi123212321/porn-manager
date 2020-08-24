@@ -1,10 +1,11 @@
 import { ApolloServer } from "apollo-server-express";
-import express from "express";
-import schema from "./graphql/types";
-import { getConfig } from "./config";
 import responseCachePlugin from "apollo-server-plugin-response-cache";
+import express from "express";
 
-export function mountApolloServer(app: express.Application) {
+import { getConfig } from "./config";
+import schema from "./graphql/types";
+
+export function mountApolloServer(app: express.Application): void {
   const config = getConfig();
   const server = new ApolloServer({
     plugins: [responseCachePlugin()],

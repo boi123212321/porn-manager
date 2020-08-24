@@ -1,12 +1,9 @@
-import CustomField, {
-  CustomFieldType,
-  CustomFieldTarget,
-} from "../../types/custom_field";
 import { customFieldCollection } from "../../database";
+import CustomField, { CustomFieldTarget, CustomFieldType } from "../../types/custom_field";
 
 export default {
   async updateCustomField(
-    _,
+    _: unknown,
     {
       id,
       name,
@@ -18,7 +15,7 @@ export default {
       values?: string[] | null;
       unit?: string | null;
     }
-  ) {
+  ): Promise<CustomField> {
     const field = await CustomField.getById(id);
 
     if (field) {
@@ -35,13 +32,15 @@ export default {
       return field;
     } else throw new Error("Custom field not found");
   },
-  async removeCustomField(_, { id }: { id: string }) {
+
+  async removeCustomField(_: unknown, { id }: { id: string }): Promise<boolean> {
     await CustomField.remove(id);
 
     return true;
   },
+
   async createCustomField(
-    _,
+    _: unknown,
     {
       name,
       target,
@@ -55,15 +54,12 @@ export default {
       values?: string[] | null;
       unit: string | null;
     }
-  ) {
+  ): Promise<CustomField> {
     const field = new CustomField(name, target, type);
 
     if (unit) field.unit = unit;
 
-    if (
-      type == CustomFieldType.SINGLE_SELECT ||
-      type == CustomFieldType.MULTI_SELECT
-    ) {
+    if (type === CustomFieldType.SINGLE_SELECT || type === CustomFieldType.MULTI_SELECT) {
       if (values) field.values = values;
       else {
         throw new Error("Values have to be defined for select fields");

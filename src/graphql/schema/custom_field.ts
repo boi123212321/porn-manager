@@ -40,12 +40,7 @@ export default gql`
       unit: String
     ): CustomField!
 
-    updateCustomField(
-      id: String!
-      name: String
-      values: [String!]
-      unit: String
-    ): CustomField!
+    updateCustomField(id: String!, name: String, values: [String!], unit: String): CustomField!
 
     removeCustomField(id: String!): Boolean!
   }

@@ -1,5 +1,5 @@
-import { izzyProcess } from "./izzy";
 import { giannaProcess } from "./gianna";
+import { izzyProcess } from "./izzy";
 import * as logger from "./logger";
 
 function killProcess(code = 0) {
@@ -22,7 +22,7 @@ function killProcess(code = 0) {
   };
 }
 
-export function applyExitHooks() {
+export function applyExitHooks(): void {
   process.on("exit", killProcess(0));
   process.on("SIGTERM", killProcess(0));
   process.on("SIGINT", killProcess(0));

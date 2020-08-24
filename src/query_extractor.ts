@@ -20,16 +20,14 @@ export interface IQueryOptions {
   nationality: string | null;
 }
 
-const parseWords = (str = "") =>
-  //@ts-ignore
-  str
-    .match(/\\?.|^$/g)
+const parseWords = (str = "") => {
+  const match = str.match(/\\?.|^$/g);
+  if (!match) return [];
+  return match
     .reduce(
       (p, c) => {
         if (c === "'") {
-          //@ts-ignore
           p.quote ^= 1;
-          //@ts-ignore
         } else if (!p.quote && c === " ") {
           p.a.push("");
         } else {
@@ -37,11 +35,12 @@ const parseWords = (str = "") =>
         }
         return p;
       },
-      { a: [""] }
+      { quote: 0, a: [""] }
     )
     .a.filter(Boolean);
+};
 
-export default (query?: string) => {
+export default (query?: string): IQueryOptions => {
   const options: IQueryOptions = {
     include: [],
     exclude: [],
@@ -104,18 +103,17 @@ export default (query?: string) => {
         options.durationMax = parseInt(value) || null;
         break;
       case "favorite":
-        options[operation] = value == "true";
+        options[operation] = value === "true";
         break;
       case "bookmark":
-        options[operation] = value == "true";
+        options[operation] = value === "true";
         break;
       case "sortBy":
         options[operation] = value;
         break;
       case "sortDir":
-        if (["asc", "desc"].includes(value))
-          options[operation] = <"asc" | "desc">value;
-        else throw `Query error: Unsupported sort direction '${value}'`;
+        if (["asc", "desc"].includes(value)) options[operation] = <"asc" | "desc">value;
+        else throw new Error(`Query error: Unsupported sort direction '${value}'`);
         break;
       case "nationality":
         if (value !== "null") {
@@ -125,7 +123,7 @@ export default (query?: string) => {
     }
   }
 
-  if (!options.query && options.sortBy == "relevance") {
+  if (!options.query && options.sortBy === "relevance") {
     logger.log("No search query, defaulting to sortBy addedOn");
     options.sortBy = "addedOn";
     options.sortDir = "desc";

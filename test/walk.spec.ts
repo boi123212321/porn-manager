@@ -1,18 +1,12 @@
-import os from "os";
-import { promisify } from "util";
-import { chmod } from "fs";
 import { expect } from "chai";
+import { chmod, existsSync } from "fs";
+import os from "os";
 import { isAbsolute, resolve } from "path";
+import { promisify } from "util";
 
-import { walk, writeFileAsync, existsAsync } from "../src/fs/async";
+import { walk, writeFileAsync } from "../src/fs/async";
 import tests from "./fixtures/walk.fixture";
-
-import {
-  createTempTestingDir,
-  TEST_TEMP_DIR,
-  unlinkTempTestingDir,
-  mkdirAsync,
-} from "./util";
+import { createTempTestingDir, mkdirAsync, TEST_TEMP_DIR, unlinkTempTestingDir } from "./util";
 
 const chmodAsync = promisify(chmod);
 
@@ -49,10 +43,8 @@ describe("Walk folders", () => {
       beforeEach(async () => {
         await createTempTestingDir();
 
-        if (await existsAsync(root)) {
-          throw new Error(
-            `"${root}" already exists, cannot create it for tests`
-          );
+        if (existsSync(root)) {
+          throw new Error(`"${root}" already exists, cannot create it for tests`);
         }
 
         await mkdirAsync(root);

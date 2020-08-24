@@ -1,19 +1,20 @@
-import Actor from "../types/actor";
-import Scene from "../types/scene";
-import * as logger from "../logger";
 import ora from "ora";
-import { Gianna } from "./internal/index";
+
 import argv from "../args";
-import { mapAsync } from "../types/utility";
+import * as logger from "../logger";
 import extractQueryOptions from "../query_extractor";
+import Actor from "../types/actor";
 import { getNationality } from "../types/countries";
+import Scene from "../types/scene";
+import { mapAsync } from "../types/utility";
 import {
-  filterFavorites,
   filterBookmark,
-  filterRating,
-  filterInclude,
   filterExclude,
+  filterFavorites,
+  filterInclude,
+  filterRating,
 } from "./common";
+import { Gianna } from "./internal/index";
 
 const PAGE_SIZE = 24;
 
@@ -41,17 +42,13 @@ export interface IActorSearchDoc {
   custom: string[];
 }
 
-export async function createActorSearchDoc(
-  actor: Actor
-): Promise<IActorSearchDoc> {
+export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDoc> {
   const labels = await Actor.getLabels(actor);
 
   const numViews = (await Actor.getWatches(actor)).length;
   const numScenes = (await Scene.getByActor(actor._id)).length;
 
-  const nationality = actor.nationality
-    ? getNationality(actor.nationality)
-    : null;
+  const nationality = actor.nationality ? getNationality(actor.nationality) : null;
 
   return {
     _id: actor._id,
@@ -71,22 +68,22 @@ export async function createActorSearchDoc(
     nationalityName: nationality ? nationality.nationality : null,
     countryCode: nationality ? nationality.alpha2 : null,
     custom: Object.values(actor.customFields)
-      .filter((val) => typeof val != "number" && typeof val != "boolean")
+      .filter((val) => typeof val !== "number" && typeof val !== "boolean")
       .flat() as string[],
   };
 }
 
-export async function updateActors(scenes: Actor[]) {
+export async function updateActors(scenes: Actor[]): Promise<void> {
   return index.update(await mapAsync(scenes, createActorSearchDoc));
 }
 
-export async function indexActors(scenes: Actor[]) {
+export async function indexActors(scenes: Actor[]): Promise<number> {
   let docs = [] as IActorSearchDoc[];
   let numItems = 0;
   for (const scene of scenes) {
     docs.push(await createActorSearchDoc(scene));
 
-    if (docs.length == (argv["index-slice-size"] || 5000)) {
+    if (docs.length === (argv["index-slice-size"] || 5000)) {
       await addActorSearchDocs(docs);
       numItems += docs.length;
       docs = [];
@@ -100,7 +97,7 @@ export async function indexActors(scenes: Actor[]) {
   return numItems;
 }
 
-export async function addActorSearchDocs(docs: IActorSearchDoc[]) {
+export async function addActorSearchDocs(docs: IActorSearchDoc[]): Promise<void> {
   logger.log(`Indexing ${docs.length} items...`);
   const timeNow = +new Date();
   const res = await index.index(docs);
@@ -108,7 +105,7 @@ export async function addActorSearchDocs(docs: IActorSearchDoc[]) {
   return res;
 }
 
-export async function buildActorIndex() {
+export async function buildActorIndex(): Promise<Gianna.Index<IActorSearchDoc>> {
   index = await Gianna.createIndex("actors", FIELDS);
 
   const timeNow = +new Date();
@@ -126,12 +123,12 @@ export async function searchActors(
   query: string,
   shuffleSeed = "default",
   transformFilter?: (tree: Gianna.IFilterTreeGrouping) => void
-) {
+): Promise<Gianna.ISearchResults> {
   const options = extractQueryOptions(query);
   logger.log(`Searching actors for '${options.query}'...`);
 
   let sort = undefined as Gianna.ISortOptions | undefined;
-  let filter = {
+  const filter = {
     type: "AND",
     children: [],
   } as Gianna.IFilterTreeGrouping;
@@ -160,12 +157,16 @@ export async function searchActors(
   if (options.sortBy) {
     if (options.sortBy === "$shuffle") {
       sort = {
+        // eslint-disable-next-line camelcase
         sort_by: "$shuffle",
+        // eslint-disable-next-line camelcase
         sort_asc: false,
+        // eslint-disable-next-line camelcase
         sort_type: shuffleSeed,
       };
     } else {
-      const sortType = {
+      // eslint-disable-next-line
+      const sortType: string = {
         bornOn: "number",
         addedOn: "number",
         name: "string",
@@ -176,8 +177,11 @@ export async function searchActors(
         score: "number",
       }[options.sortBy];
       sort = {
+        // eslint-disable-next-line camelcase
         sort_by: options.sortBy,
+        // eslint-disable-next-line camelcase
         sort_asc: options.sortDir === "asc",
+        // eslint-disable-next-line camelcase
         sort_type: sortType,
       };
     }

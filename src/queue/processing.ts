@@ -1,8 +1,8 @@
 import { spawn } from "child_process";
 
-import { processingCollection } from "../database/index";
-import * as logger from "../logger";
 import { getConfig } from "../config";
+import { processingCollection } from "../database";
+import * as logger from "../logger";
 
 export interface ISceneProcessingItem {
   _id: string;
@@ -10,15 +10,15 @@ export interface ISceneProcessingItem {
 
 let processing = false;
 
-export function setProcessingStatus(value: boolean) {
+export function setProcessingStatus(value: boolean): void {
   processing = value;
 }
 
-export function isProcessing() {
+export function isProcessing(): boolean {
   return processing;
 }
 
-export function removeSceneFromQueue(_id: string) {
+export function removeSceneFromQueue(_id: string): Promise<ISceneProcessingItem> {
   logger.log(`Removing ${_id} from processing queue...`);
   return processingCollection.remove(_id);
 }
@@ -32,11 +32,11 @@ export async function getHead(): Promise<ISceneProcessingItem | null> {
   return items[0] || null;
 }
 
-export function enqueueScene(_id: string) {
+export function enqueueScene(_id: string): Promise<ISceneProcessingItem> {
   return processingCollection.upsert(_id, { _id });
 }
 
-export async function tryStartProcessing() {
+export async function tryStartProcessing(): Promise<void> {
   const config = getConfig();
   if (!config.DO_PROCESSING) return;
 

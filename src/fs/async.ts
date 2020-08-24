@@ -1,18 +1,10 @@
-import {
-  exists,
-  stat,
-  unlink,
-  readdir,
-  readFile,
-  writeFile,
-  copyFile,
-} from "fs";
-import { promisify } from "util";
-import { join, extname, resolve } from "path";
-import * as logger from "../logger";
+import { copyFile, readdir, readFile, stat, unlink, writeFile } from "fs";
+import { extname, join, resolve } from "path";
 import rimraf from "rimraf";
+import { promisify } from "util";
 
-export const existsAsync = promisify(exists);
+import * as logger from "../logger";
+
 export const statAsync = promisify(stat);
 export const unlinkAsync = promisify(unlink);
 export const readdirAsync = promisify(readdir);
@@ -24,20 +16,19 @@ export const rimrafAsync = promisify(rimraf);
 const pathIsExcluded = (exclude: string[], path: string) =>
   exclude.some((regStr) => new RegExp(regStr, "i").test(path.toLowerCase()));
 
-const validExtension = (exts: string[], path: string) =>
-  exts.includes(extname(path).toLowerCase());
+const validExtension = (exts: string[], path: string) => exts.includes(extname(path).toLowerCase());
 
 export interface IWalkOptions {
   dir: string;
   extensions: string[];
-  cb: (file: string) => Promise<void>;
+  cb: (file: string) => void | Promise<void>;
   exclude: string[];
 }
 
-export async function walk(options: IWalkOptions) {
+export async function walk(options: IWalkOptions): Promise<void> {
   const root = resolve(options.dir);
 
-  let folderStack = [] as string[];
+  const folderStack = [] as string[];
   folderStack.push(root);
 
   while (folderStack.length) {
@@ -73,8 +64,9 @@ export async function walk(options: IWalkOptions) {
           await options.cb(resolve(path));
         }
       } catch (err) {
+        const _err = err as Error & { code: string };
         // Check if error was an fs permission error
-        if (err.code && (err.code === "EACCES" || err.code === "EPERM")) {
+        if (_err.code && (_err.code === "EACCES" || _err.code === "EPERM")) {
           logger.error(`"${path}" requires elevated permissions, skipping`);
         } else {
           logger.error(`Error walking or in callback for "${path}", skipping`);

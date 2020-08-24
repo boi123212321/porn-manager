@@ -1,0 +1,5 @@
+# will probably be deprecated after 0.23 anyway
+src/compat/index.ts
+# do later
+src/import/**/*.ts
+dvd_renderer.ts
