@@ -48,6 +48,6 @@
     "vue-cli-plugin-vuetify": "^2.0.5",
     "typescript": "~3.9.5",
     "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.4.3"
+    "vuetify-loader": "^1.6.0"
   }
 }
