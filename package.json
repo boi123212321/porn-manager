@@ -68,7 +68,7 @@
     "tiny-async-pool": "^1.1.0",
     "ts-node": "^9.0.0",
     "yaml": "^1.10.0",
-    "yargs": "^15.4.1",
+    "yargs": "^16.1.0",
     "zod": "^1.11.9"
   },
   "devDependencies": {
