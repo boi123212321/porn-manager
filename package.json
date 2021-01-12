@@ -84,7 +84,7 @@
     "@types/cheerio": "^0.22.23",
     "@types/cli-progress": "^3.8.0",
     "@types/elasticsearch": "^5.0.36",
-    "@types/express": "^4.17.3",
+    "@types/express": "^4.17.10",
     "@types/fluent-ffmpeg": "^2.1.16",
     "@types/graphql": "^14.5.0",
     "@types/gulp": "^4.0.8",
