@@ -74,8 +74,7 @@ export default {
       }
     } catch (error) {
       logger.warn(
-        `Error while checking if actor already exists: ${args.name}. You should probably lauch pv with option "--reset-izzy".` +
-          ` Actor creation will proceed normally, but you might end-up with duplicate actors.`
+        `Error while checking if actor exists: ${args.name}. Actor creation will proceed, but you might end-up with duplicates.`
       );
       logger.error(error);
     }
