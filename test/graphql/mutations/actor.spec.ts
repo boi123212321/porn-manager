@@ -59,6 +59,12 @@ describe("graphql", () => {
         await labelCollection.upsert(updateLabel._id, updateLabel);
         expect(await Label.getAll()).to.have.lengthOf(2);
 
+        const found = await Actor.getByName("abc actor");
+        expect(found).to.not.be.null;
+        if (found) {
+          expect(found.name).to.equal(seedActor.name);
+        }
+
         // Actor labels are not attached to scenes, since we manually set the labels
         expect(await Scene.getActors(sceneWithActorInPath)).to.have.lengthOf(0);
         expect(await Scene.getLabels(sceneWithActorInPath)).to.have.lengthOf(0);
