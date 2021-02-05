@@ -112,7 +112,7 @@
       </v-container>
     </v-navigation-drawer>
     <v-alert class="mb-3" v-if="skippedActorsWarning" dense text dismissible type="warning"
-      >These Actors already existed and were skipped: {{ skippedActorsWarning }}</v-alert
+      >These actors already existed and were skipped: <b>{{ skippedActorsWarning }}</b></v-alert
     >
 
     <div class="text-center" v-if="fetchError">
