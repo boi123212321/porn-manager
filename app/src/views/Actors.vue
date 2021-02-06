@@ -363,7 +363,6 @@ export default class ActorList extends mixins(DrawerMixin) {
   fetchingRandom = false;
 
   actorsBulkText = "" as string | null;
-  skippedActors: string[] = [];
   skippedActorsWarning = null as string | null;
   bulkImportDialog = false;
   bulkLoader = false;
@@ -390,13 +389,13 @@ export default class ActorList extends mixins(DrawerMixin) {
   async runBulkImport() {
     this.bulkLoader = true;
 
-    this.skippedActors = [];
+    let skippedActors: string[] = [];
     this.skippedActorsWarning = null;
 
     try {
       for (const name of this.actorsBulkImport) {
         if (await this.checkActorExist(name)) {
-          this.skippedActors.push(name);
+          skippedActors.push(name);
         } else {
           await this.createActorWithName(name);
         }
@@ -412,8 +411,8 @@ export default class ActorList extends mixins(DrawerMixin) {
     this.bulkLoader = false;
 
     // triggers warning alert if any actors were skipped because they already existed
-    if (this.skippedActors.length > 0) {
-      this.skippedActorsWarning = this.skippedActors.join(", ");
+    if (skippedActors.length > 0) {
+      this.skippedActorsWarning = skippedActors.join(", ");
     }
   }
 
