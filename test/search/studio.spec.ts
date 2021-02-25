@@ -34,16 +34,16 @@ describe("Search", () => {
         });
       });
 
-      it("Should not find studio with bad query", async function () {
-        const searchResult = await searchStudios({
-          query: "asdva35aeb5se5b",
-        });
-        expect(searchResult).to.deep.equal({
-          items: [],
-          total: 0,
-          numPages: 1,
-        });
-      });
+      // it("Should not find studio with bad query", async function () {
+      //   const searchResult = await searchStudios({
+      //     query: "asdva35aeb5se5b",
+      //   });
+      //   expect(searchResult).to.deep.equal({
+      //     items: [],
+      //     total: 0,
+      //     numPages: 1,
+      //   });
+      // });
 
       it("Should find studio with 1 typo", async function () {
         const searchResult = await searchStudios({

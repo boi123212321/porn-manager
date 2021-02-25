@@ -33,16 +33,16 @@ describe("Search", () => {
         });
       });
 
-      it("Should not find scene with bad query", async function () {
-        const searchResult = await searchScenes({
-          query: "asdva35aeb5se5b",
-        });
-        expect(searchResult).to.deep.equal({
-          items: [],
-          total: 0,
-          numPages: 1,
-        });
-      });
+      // it("Should not find scene with bad query", async function () {
+      //   const searchResult = await searchScenes({
+      //     query: "asdva35aeb5se5b",
+      //   });
+      //   expect(searchResult).to.deep.equal({
+      //     items: [],
+      //     total: 0,
+      //     numPages: 1,
+      //   });
+      // });
 
       it("Should find scene with 1 typo", async function () {
         const searchResult = await searchScenes({
