@@ -547,6 +547,14 @@ export default class SceneList extends mixins(DrawerMixin) {
       value: "addedOn",
     },
     {
+      text: "Alphabetical",
+      value: "rawName",
+    },
+    {
+      text: "Last viewed",
+      value: "lastViewedOn",
+    },
+    {
       text: "Rating",
       value: "rating",
     },

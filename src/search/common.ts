@@ -100,30 +100,24 @@ export function buildCustomFilter(filters?: CustomFieldFilter[]): unknown[] {
 
 export const DEFAULT_PAGE_SIZE = 24;
 
-export function normalizeQuery(query: string | undefined | null): string {
-  return query ? query.trim().replace(/[_.,]/g, " ").toLowerCase() : "";
-}
-
 function typeahead(query: string | undefined | null): string {
   return query ? `${query}*` : "";
 }
 
 export function searchQuery(query: string | undefined | null, fields: string[]): unknown[] {
-  const normalizedQuery = normalizeQuery(query);
   if (query && query.length) {
     return [
       {
         multi_match: {
-          query: normalizedQuery,
+          query,
           fields,
           fuzziness: "AUTO",
         },
       },
       {
         query_string: {
-          query: typeahead(normalizedQuery),
+          query: typeahead(query),
           fields,
-          analyzer: "simple",
           analyze_wildcard: true,
         },
       },

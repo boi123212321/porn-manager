@@ -99,22 +99,20 @@ export default class Scene {
   processed?: boolean = false;
 
   static async changePath(scene: Scene, path: string): Promise<void> {
-    if (scene.path !== path) {
-      logger.debug(`Setting new path for scene "${scene._id}": "${scene.path}" -> "${path}"`);
+    const cleanPath = path.trim();
 
-      const cleanPath = path.trim();
+    if (!cleanPath.length) {
+      // Clear scene path
+      logger.debug(
+        `Empty path, setting to null & clearing scene metadata for scene "${scene._id}"`
+      );
+      scene.path = null;
+      scene.meta = new SceneMeta();
+      scene.processed = false;
+    } else {
+      const newPath = resolve(cleanPath);
 
-      if (!cleanPath.length) {
-        // Clear scene path
-        logger.debug(
-          `Empty path, setting to null & clearing scene metadata for scene "${scene._id}"`
-        );
-        scene.path = null;
-        scene.meta = new SceneMeta();
-        scene.processed = false;
-      } else {
-        // Update scene path & metadata, if path is different
-        const newPath = resolve(cleanPath.trim());
+      if (scene.path !== newPath) {
         if (!existsSync(newPath)) {
           throw new Error(`File at "${newPath}" not found`);
         }
@@ -295,11 +293,8 @@ export default class Scene {
       }
     }
 
-    try {
-      scene = await onSceneCreate(scene, sceneLabels, sceneActors);
-    } catch (error) {
-      logger.error(error);
-    }
+    const pluginResult = await onSceneCreate(scene, sceneLabels, sceneActors);
+    scene = pluginResult.scene;
 
     if (!scene.thumbnail) {
       const thumbnail = await Scene.generateSingleThumbnail(
@@ -326,6 +321,8 @@ export default class Scene {
     await indexScenes([scene]);
     logger.info(`Scene '${scene.name}' created.`);
 
+    await pluginResult.commit();
+
     if (actors.length) {
       await indexActors(actors);
     }
@@ -341,6 +338,7 @@ export default class Scene {
     const watchItem = new SceneView(scene._id, time);
     await viewCollection.upsert(watchItem._id, watchItem);
     await indexScenes([scene]);
+    await indexActors(await Scene.getActors(scene));
   }
 
   static async unwatch(scene: Scene): Promise<void> {
@@ -351,6 +349,7 @@ export default class Scene {
       await viewCollection.remove(last._id);
     }
     await indexScenes([scene]);
+    await indexActors(await Scene.getActors(scene));
   }
 
   static async remove(scene: Scene): Promise<void> {

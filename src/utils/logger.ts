@@ -88,7 +88,7 @@ export function createPluginLogger(
       winston.format.timestamp(),
       winston.format.printf(({ level, message, timestamp }) => {
         const msg = typeof message === "string" ? message : JSON.stringify(message, null, 2);
-        return `${<string>timestamp} [vault:plugin:${name}] ${level}: ${msg}`;
+        return `${<string>timestamp} [plugin:${name}] ${level}: ${msg}`;
       })
     ),
     transports: [

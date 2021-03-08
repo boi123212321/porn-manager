@@ -28,34 +28,32 @@ type IActorUpdateOpts = Partial<{
   nationality: string | null;
 }>;
 
-async function runActorPlugins(ids: string[]) {
-  const updatedActors = [] as Actor[];
-  for (const id of ids) {
-    let actor = await Actor.getById(id);
+async function runActorPlugins(id: string): Promise<Actor | null> {
+  let actor = await Actor.getById(id);
 
-    if (actor) {
-      logger.info(`Running plugin action event for '${actor.name}'...`);
+  if (actor) {
+    logger.info(`Running plugin action event for '${actor.name}'...`);
 
-      const labels = (await Actor.getLabels(actor)).map((l) => l._id);
-      actor = await onActorCreate(actor, labels, "actorCustom");
+    const labels = (await Actor.getLabels(actor)).map((l) => l._id);
+    const pluginResult = await onActorCreate(actor, labels, "actorCustom");
+    actor = pluginResult.actor;
 
-      await Actor.setLabels(actor, labels);
-      await actorCollection.upsert(actor._id, actor);
-
-      updatedActors.push(actor);
-    } else {
-      logger.warn(`Actor ${id} not found`);
-    }
-
-    await indexActors(updatedActors);
+    await Actor.setLabels(actor, labels);
+    await actorCollection.upsert(actor._id, actor);
+    await indexActors([actor]);
+    await pluginResult.commit();
   }
-  return updatedActors;
+
+  return actor;
 }
 
 export default {
   async runActorPlugins(_: unknown, { id }: { id: string }): Promise<Actor> {
-    const result = await runActorPlugins([id]);
-    return result[0];
+    const result = await runActorPlugins(id);
+    if (!result) {
+      throw new Error("Actor not found");
+    }
+    return result;
   },
 
   async addActor(
@@ -72,11 +70,8 @@ export default {
       actorLabels = args.labels;
     }
 
-    try {
-      actor = await onActorCreate(actor, actorLabels);
-    } catch (error) {
-      logger.error(error);
-    }
+    const pluginResult = await onActorCreate(actor, actorLabels);
+    actor = pluginResult.actor;
 
     await Actor.setLabels(actor, actorLabels);
     await actorCollection.upsert(actor._id, actor);
@@ -91,6 +86,8 @@ export default {
     }
 
     await indexActors([actor]);
+
+    await pluginResult.commit();
 
     return actor;
   },

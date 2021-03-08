@@ -4,10 +4,14 @@ import { StringMatcherOptionsSchema, StringMatcherSchema } from "../matching/str
 import { WordMatcherOptionsSchema, WordMatcherSchema } from "../matching/wordMatcher";
 import { DeepPartial } from "../utils/types";
 
+const pluginArguments = zod.record(zod.unknown());
+
 const pluginSchema = zod.object({
   path: zod.string(),
-  args: zod.record(zod.any()).optional(),
+  args: pluginArguments.optional(),
 });
+
+const pluginCallWithArgument = zod.tuple([zod.string(), pluginArguments]);
 
 export const ApplyActorLabelsEnum = zod.enum([
   "event:actor:create",
@@ -101,7 +105,17 @@ const configSchema = zod
     }),
     plugins: zod.object({
       register: zod.record(pluginSchema),
-      events: zod.record(zod.array(zod.string()) /* TODO: plugin call with arg */),
+      // Map event name to plugin sequence
+      events: zod.record(
+        zod.array(
+          zod.union([
+            // Plugin name only
+            zod.string(),
+            // Plugin name + arguments [name, { args }]
+            pluginCallWithArgument,
+          ])
+        )
+      ),
 
       allowSceneThumbnailOverwrite: zod.boolean(),
       allowActorThumbnailOverwrite: zod.boolean(),
@@ -144,6 +158,7 @@ export function isValidConfig(val: unknown): true | { location: string; error: E
 
   try {
     const config = val as DeepPartial<IConfig>;
+
     if (!config?.matching?.matcher?.type) {
       throw new Error('Missing matcher type: "matching.matcher.type"');
     }

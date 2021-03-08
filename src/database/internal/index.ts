@@ -5,12 +5,12 @@ import { getConfig } from "../../config";
 import { formatMessage, logger } from "../../utils/logger";
 
 export namespace Izzy {
-  export interface IIndexCreation {
+  export interface IIndexCreation<T> {
     name: string;
-    key: string;
+    key: keyof Omit<T, "_id">;
   }
 
-  export class Collection<T> {
+  export class Collection<T extends { _id: string }> {
     name: string;
 
     constructor(name: string) {
@@ -105,10 +105,10 @@ export namespace Izzy {
     }
   }
 
-  export async function createCollection<T>(
+  export async function createCollection<T extends { _id: string }>(
     name: string,
     file?: string | null,
-    indexes = [] as IIndexCreation[]
+    indexes = [] as IIndexCreation<T>[]
   ): Promise<Collection<T>> {
     try {
       logger.debug(`Creating collection: ${name} (persistence: ${file})`);

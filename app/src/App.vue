@@ -101,7 +101,10 @@
     </v-navigation-drawer>
 
     <v-content>
-      <router-view />
+      <div style="min-height: 100vh">
+        <router-view />
+      </div>
+      <Footer />
     </v-content>
   </v-app>
 </template>
@@ -112,7 +115,6 @@ import { sceneModule } from "./store/scene";
 import { actorModule } from "./store/actor";
 import { movieModule } from "./store/movie";
 import { studioModule } from "./store/studio";
-import { serverBase } from "./apollo";
 import SceneDetailsBar from "./components/AppBar/SceneDetails.vue";
 import ActorDetailsBar from "./components/AppBar/ActorDetails.vue";
 import MovieDetailsBar from "./components/AppBar/MovieDetails.vue";
@@ -120,6 +122,7 @@ import StudioDetailsBar from "./components/AppBar/StudioDetails.vue";
 import { contextModule } from "./store/context";
 import moment from "moment";
 import { ensureDarkColor } from "./util/color";
+import Footer from "./components/Footer.vue";
 
 @Component({
   components: {
@@ -127,6 +130,7 @@ import { ensureDarkColor } from "./util/color";
     ActorDetailsBar,
     MovieDetailsBar,
     StudioDetailsBar,
+    Footer,
   },
 })
 export default class App extends Vue {

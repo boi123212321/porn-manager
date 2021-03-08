@@ -1,6 +1,6 @@
 const mockScene = {
   name: "mock scene name",
-  path: "mock scene path",
+  // path: "mock scene path",
   description: "mock scene description",
   // Use a constant date, so individual imports will have same date
   releaseDate: new Date("2020-10-09T07:49:52.636Z").valueOf(),

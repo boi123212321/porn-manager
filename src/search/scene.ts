@@ -13,7 +13,6 @@ import {
   getActorNames,
   includeFilter,
   ISearchResults,
-  normalizeQuery,
   performSearch,
   ratingFilter,
   searchQuery,
@@ -26,6 +25,7 @@ export interface ISceneSearchDoc {
   id: string;
   addedOn: number;
   name: string;
+  rawName: string;
   path: string | null;
   numActors: number;
   actors: string[];
@@ -37,6 +37,7 @@ export interface ISceneSearchDoc {
   bookmark: number | null;
   favorite: boolean;
   numViews: number;
+  lastViewedOn: number;
   releaseDate: number | null;
   releaseYear: number | null;
   duration: number | null;
@@ -54,7 +55,8 @@ async function createSceneSearchDoc(scene: Scene): Promise<ISceneSearchDoc> {
   const labels = await Scene.getLabels(scene);
   const actors = await Scene.getActors(scene);
   const movies = await Movie.getByScene(scene._id);
-  const numViews = await SceneView.getCount(scene._id);
+
+  const watches = await SceneView.getByScene(scene._id);
 
   const studio = scene.studio ? await Studio.getById(scene.studio) : null;
   const parentStudios = studio ? await Studio.getParents(studio) : [];
@@ -62,7 +64,8 @@ async function createSceneSearchDoc(scene: Scene): Promise<ISceneSearchDoc> {
   return {
     id: scene._id,
     addedOn: scene.addedOn,
-    name: normalizeQuery(scene.name),
+    name: scene.name,
+    rawName: scene.name,
     path: scene.path,
     labels: labels.map((l) => l._id),
     numLabels: labels.length,
@@ -73,7 +76,8 @@ async function createSceneSearchDoc(scene: Scene): Promise<ISceneSearchDoc> {
     rating: scene.rating,
     bookmark: scene.bookmark,
     favorite: scene.favorite,
-    numViews,
+    numViews: watches.length,
+    lastViewedOn: watches.sort((a, b) => b.date - a.date)[0]?.date || 0,
     duration: scene.meta.duration,
     releaseDate: scene.releaseDate,
     releaseYear: scene.releaseDate ? new Date(scene.releaseDate).getFullYear() : null,
@@ -81,7 +85,7 @@ async function createSceneSearchDoc(scene: Scene): Promise<ISceneSearchDoc> {
     resolution: scene.meta.dimensions ? scene.meta.dimensions.height : 0,
     size: scene.meta.size,
     studioName: studio ? studio.name : null,
-    score: Scene.calculateScore(scene, numViews),
+    score: Scene.calculateScore(scene, watches.length),
     movieNames: movies.map((m) => m.name),
     numMovies: movies.length,
     custom: scene.customFields,

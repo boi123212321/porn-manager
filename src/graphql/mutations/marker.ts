@@ -91,7 +91,7 @@ export default {
     const existingLabels = labels || [];
     const extractedLabels = await extractLabels(marker.name);
     existingLabels.push(...extractedLabels);
-    logger.verbose(`Found ${extractedLabels.length} labels in scene path.`);
+    logger.verbose(`Found ${extractedLabels.length} labels in marker name`);
     await Marker.setLabels(marker, existingLabels);
 
     await Marker.createMarkerThumbnail(marker);

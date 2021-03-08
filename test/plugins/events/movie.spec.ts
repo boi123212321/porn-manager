@@ -6,6 +6,7 @@ import path from "path";
 import { onMovieCreate } from "../../../src/plugins/events/movie";
 import Movie from "../../../src/types/movie";
 import { cleanupPluginsConfig, CONFIG_FIXTURES, initPluginsConfig } from "../initPluginFixtures";
+import { resolvePlugin } from "../../../src/plugins";
 
 describe("plugins", () => {
   after(async () => {
@@ -21,11 +22,12 @@ describe("plugins", () => {
 
         ["movieCreated"].forEach((ev: string) => {
           const event: "movieCreated" = ev as any;
-          const pluginNames = configFixture.config.plugins.events[event];
-          expect(pluginNames).to.have.lengthOf(1); // This test should only run 1 plugin for the given event
+          const plugins = configFixture.config.plugins.events[event];
+          expect(plugins).to.have.lengthOf(1); // This test should only run 1 plugin for the given event
+          const [pluginName] = resolvePlugin(plugins[0]);
 
           const moviePluginFixture = require(path.resolve(
-            configFixture.config.plugins.register[pluginNames[0]].path
+            configFixture.config.plugins.register[pluginName].path
           ));
 
           it(`config ${configFixture.name}: event '${event}': runs fixture plugin, changes properties`, async () => {

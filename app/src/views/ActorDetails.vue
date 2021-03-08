@@ -996,6 +996,7 @@ export default class ActorDetails extends Vue {
             }
             avatar {
               _id
+              color
             }
           }
         }
@@ -1007,6 +1008,7 @@ export default class ActorDetails extends Vue {
     })
       .then((res) => {
         actorModule.setCurrent(res.data.runActorPlugins);
+        this.editCustomFields = res.data.runActorPlugins.customFields;
       })
       .catch((err) => {
         console.error(err);

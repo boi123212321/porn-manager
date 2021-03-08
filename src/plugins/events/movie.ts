@@ -5,23 +5,23 @@ import { buildFieldExtractor, extractStudios } from "../../extractor";
 import { runPluginsSerial } from "../../plugins";
 import { indexImages } from "../../search/image";
 import { indexStudios } from "../../search/studio";
+import Actor from "../../types/actor";
+import Label from "../../types/label";
 import Movie from "../../types/movie";
+import Scene from "../../types/scene";
 import Studio from "../../types/studio";
 import { logger } from "../../utils/logger";
 import { validRating } from "../../utils/misc";
 import { createImage, createLocalImage } from "../context";
 import { onStudioCreate } from "./studio";
 
-// This function has side effects
-export async function onMovieCreate(
-  movie: Movie,
-  event: "movieCreated" = "movieCreated"
-): Promise<Movie> {
-  const config = getConfig();
-
-  const pluginResult = await runPluginsSerial(config, event, {
-    movie: JSON.parse(JSON.stringify(movie)) as Movie,
-    movieName: movie.name,
+function injectServerFunctions(movie: Movie) {
+  let actors: Actor[], labels: Label[], scenes: Scene[], rating: number;
+  return {
+    $getActors: async () => (actors ??= await Movie.getActors(movie)),
+    $getLabels: async () => (labels ??= await Movie.getLabels(movie)),
+    $getScenes: async () => (scenes ??= await Movie.getScenes(movie)),
+    $getRating: async () => (rating ??= await Movie.getRating(movie)),
     $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       const img = await createLocalImage(path, name, thumbnail);
       await imageCollection.upsert(img._id, img);
@@ -40,6 +40,20 @@ export async function onMovieCreate(
       }
       return img._id;
     },
+  };
+}
+
+// This function has side effects
+export async function onMovieCreate(
+  movie: Movie,
+  event: "movieCreated" = "movieCreated"
+): Promise<Movie> {
+  const config = getConfig();
+
+  const pluginResult = await runPluginsSerial(config, event, {
+    movie: JSON.parse(JSON.stringify(movie)) as Movie,
+    movieName: movie.name,
+    ...injectServerFunctions(movie),
   });
 
   if (

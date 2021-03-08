@@ -13,20 +13,11 @@ import { logger } from "../../utils/logger";
 import { filterInvalidAliases, validRating } from "../../utils/misc";
 import { createImage, createLocalImage } from "../context";
 
-// This function has side effects
-export async function onActorCreate(
-  actor: Actor,
-  actorLabels: string[],
-  event: "actorCreated" | "actorCustom" = "actorCreated"
-): Promise<Actor> {
-  const config = getConfig();
-
-  const createdImages = [] as Image[];
-
-  const pluginResult = await runPluginsSerial(config, event, {
-    actor: JSON.parse(JSON.stringify(actor)) as Actor,
-    actorName: actor.name,
-    countries: JSON.parse(JSON.stringify(countries)) as ICountry[],
+function injectServerFunctions(actor: Actor, createdImages: Image[]) {
+  let labels: Label[], rating: number;
+  return {
+    $getLabels: async () => (labels ??= await Actor.getLabels(actor)),
+    $getAverageRating: async () => (rating ??= await Actor.getAverageRating(actor)),
     $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       const img = await createLocalImage(path, name, thumbnail);
       await Image.addActors(img, [actor._id]);
@@ -46,6 +37,24 @@ export async function onActorCreate(
       }
       return img._id;
     },
+  };
+}
+
+// This function has side effects
+export async function onActorCreate(
+  actor: Actor,
+  actorLabels: string[],
+  event: "actorCreated" | "actorCustom" = "actorCreated"
+): Promise<{ actor: Actor; commit: () => Promise<void> }> {
+  const config = getConfig();
+
+  const createdImages = [] as Image[];
+
+  const pluginResult = await runPluginsSerial(config, event, {
+    actor: JSON.parse(JSON.stringify(actor)) as Actor,
+    actorName: actor.name,
+    countries: JSON.parse(JSON.stringify(countries)) as ICountry[],
+    ...injectServerFunctions(actor, createdImages),
   });
 
   if (
@@ -152,19 +161,26 @@ export async function onActorCreate(
     actorLabels.push(...labelIds);
   }
 
-  for (const image of createdImages) {
-    if (
-      (event === "actorCreated" &&
-        config.matching.applyActorLabels.includes(
-          ApplyActorLabelsEnum.enum["plugin:actor:create"]
-        )) ||
-      (event === "actorCustom" &&
-        config.matching.applyActorLabels.includes(ApplyActorLabelsEnum.enum["plugin:actor:custom"]))
-    ) {
-      await Image.setLabels(image, actorLabels);
-    }
-    await indexImages([image]);
-  }
+  return {
+    actor,
+    commit: async () => {
+      logger.debug("Committing plugin result");
 
-  return actor;
+      for (const image of createdImages) {
+        if (
+          (event === "actorCreated" &&
+            config.matching.applyActorLabels.includes(
+              ApplyActorLabelsEnum.enum["plugin:actor:create"]
+            )) ||
+          (event === "actorCustom" &&
+            config.matching.applyActorLabels.includes(
+              ApplyActorLabelsEnum.enum["plugin:actor:custom"]
+            ))
+        ) {
+          await Image.setLabels(image, actorLabels);
+        }
+        await indexImages([image]);
+      }
+    },
+  };
 }

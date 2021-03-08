@@ -65,6 +65,39 @@ async function ensureIndexExists(name: string): Promise<boolean> {
   if (!(await client.indices.exists({ index: name }))) {
     await client.indices.create({
       index: name,
+      body: {
+        settings: {
+          analysis: {
+            analyzer: {
+              pv_analyzer: {
+                type: "custom",
+                tokenizer: "classic",
+                char_filter: ["html_strip", "pv_filter"],
+                filter: ["lowercase"],
+              },
+            },
+            char_filter: {
+              pv_filter: {
+                type: "pattern_replace",
+                pattern: "[_]",
+                replacement: " ",
+              },
+            },
+          },
+        },
+        mappings: {
+          dynamic: true,
+          properties: {
+            name: {
+              type: "text",
+              analyzer: "pv_analyzer",
+            },
+            rawName: {
+              type: "keyword",
+            },
+          },
+        },
+      },
     });
     await client.indices.putSettings({
       index: name,
@@ -83,17 +116,18 @@ export async function ensureIndices(wipeData: boolean) {
     await clearIndices();
   }
 
+  const buildIndexMap: Record<string, () => Promise<void>> = {
+    scenes: buildSceneIndex,
+    actors: buildActorIndex,
+    images: buildImageIndex,
+    studios: buildStudioIndex,
+    movies: buildMovieIndex,
+    markers: buildMarkerIndex,
+  };
+
   for (const indexKey in indexMap) {
     const created = await ensureIndexExists(indexMap[indexKey]);
     if (created) {
-      const buildIndexMap: Record<string, () => Promise<void>> = {
-        scenes: buildSceneIndex,
-        actors: buildActorIndex,
-        images: buildImageIndex,
-        studios: buildStudioIndex,
-        movies: buildMovieIndex,
-        markers: buildMarkerIndex,
-      };
       await buildIndexMap[indexKey]();
     }
   }

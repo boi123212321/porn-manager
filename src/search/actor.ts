@@ -15,7 +15,6 @@ import {
   includeFilter,
   ISearchResults,
   normalizeAliases,
-  normalizeQuery,
   performSearch,
   ratingFilter,
   searchQuery,
@@ -28,6 +27,7 @@ export interface IActorSearchDoc {
   id: string;
   addedOn: number;
   name: string;
+  rawName: string;
   aliases: string[];
   labels: string[];
   numLabels: number;
@@ -38,6 +38,7 @@ export interface IActorSearchDoc {
   bookmark: number | null;
   favorite: boolean;
   numViews: number;
+  lastViewedOn: number;
   bornOn: number | null;
   numScenes: number;
   nationalityName: string | null;
@@ -50,7 +51,7 @@ export interface IActorSearchDoc {
 export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDoc> {
   const labels = await Actor.getLabels(actor);
 
-  const numViews = (await Actor.getWatches(actor)).length;
+  const watches = await Actor.getWatches(actor);
   const numScenes = (await Scene.getByActor(actor._id)).length;
 
   const nationality = actor.nationality ? getNationality(actor.nationality) : null;
@@ -61,17 +62,19 @@ export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDo
   return {
     id: actor._id,
     addedOn: actor.addedOn,
-    name: normalizeQuery(actor.name),
+    name: actor.name,
+    rawName: actor.name,
     aliases: normalizeAliases(actor.aliases),
     labels: labels.map((l) => l._id),
     numLabels: labels.length,
     labelNames: labels.map((l) => l.name),
-    score: Actor.calculateScore(actor, numViews, numScenes),
+    score: Actor.calculateScore(actor, watches.length, numScenes),
     rating: actor.rating,
     averageRating: await Actor.getAverageRating(actor),
     bookmark: actor.bookmark,
     favorite: actor.favorite,
-    numViews,
+    numViews: watches.length,
+    lastViewedOn: watches.sort((a, b) => b.date - a.date)[0]?.date || 0,
     bornOn: actor.bornOn,
     numScenes,
     nationalityName: nationality ? nationality.nationality : null,
@@ -143,10 +146,10 @@ export async function searchActors(
   extraFilter: unknown[] = []
 ): Promise<ISearchResults> {
   const query = searchQuery(options.query, [
-    "name^2",
-    "aliases^1.5",
+    "name^1.5",
     "labelNames",
     "nationalityName^0.75",
+    "aliases",
   ]);
   const _shuffle = shuffle(shuffleSeed, query, options.sortBy);
 

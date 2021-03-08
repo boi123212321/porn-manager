@@ -10,7 +10,6 @@ import {
   getActorNames,
   includeFilter,
   ISearchResults,
-  normalizeQuery,
   performSearch,
   ratingFilter,
   searchQuery,
@@ -24,6 +23,7 @@ export interface IMovieSearchDoc {
   id: string;
   addedOn: number;
   name: string;
+  rawName: string;
   actors: string[];
   labels: string[];
   actorNames: string[];
@@ -52,7 +52,8 @@ export async function createMovieSearchDoc(movie: Movie): Promise<IMovieSearchDo
   return {
     id: movie._id,
     addedOn: movie.addedOn,
-    name: normalizeQuery(movie.name),
+    name: movie.name,
+    rawName: movie.name,
     labels: labels.map((l) => l._id),
     actors: actors.map((a) => a._id),
     actorNames: actors.map(getActorNames).flat(),

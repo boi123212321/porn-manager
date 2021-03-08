@@ -9,6 +9,16 @@ import { Dictionary } from "../utils/types";
 import VERSION from "../version";
 import { modules } from "./context";
 import { getPlugin, requireUncached } from "./register";
+import { createPluginStoreAccess } from "./store";
+
+export function resolvePlugin(
+  item: string | [string, Record<string, unknown>]
+): [string, Record<string, unknown> | undefined] {
+  if (typeof item === "string") {
+    return [item, undefined];
+  }
+  return item;
+}
 
 export async function runPluginsSerial(
   config: IConfig,
@@ -26,16 +36,8 @@ export async function runPluginsSerial(
   let numErrors = 0;
 
   for (const pluginItem of config.plugins.events[event]) {
-    const pluginName: string = pluginItem;
-    let pluginArgs: Record<string, unknown> | undefined;
+    const [pluginName, pluginArgs] = resolvePlugin(pluginItem);
 
-    /*  if (typeof pluginItem === "string") pluginName = pluginItem;
-    else {
-      pluginName = pluginItem[0];
-      pluginArgs = pluginItem[1];
-    } */
-
-    logger.info(`Running plugin ${pluginName}:`);
     try {
       const pluginResult = await runPlugin(config, pluginName, {
         data: <typeof result>JSON.parse(JSON.stringify(result)),
@@ -49,10 +51,12 @@ export async function runPluginsSerial(
       numErrors++;
     }
   }
+
+  const len = config.plugins.events[event].length;
   if (!numErrors) {
-    logger.info(`Ran successfully ${config.plugins.events[event].length} plugins.`);
+    logger.info(`Ran ${len} plugins (${len} successful)`);
   } else {
-    logger.error(`Ran ${config.plugins.events[event].length} plugins with ${numErrors} errors.`);
+    logger.error(`Ran ${len} plugins (${len - numErrors} successful, ${numErrors} errors)`);
   }
   logger.verbose("Plugin series result");
   logger.verbose(result);
@@ -72,11 +76,16 @@ export async function runPlugin(
   }
 
   const func = getPlugin(pluginName);
-  logger.debug(pluginDefinition);
 
+  const pluginArgs = args || pluginDefinition.args || {};
   const pluginLogger = createPluginLogger(pluginName, config.log.writeFile);
 
+  logger.info(`Running plugin ${pluginName}:`);
+  logger.debug(formatMessage(pluginDefinition));
+
   const result = (await func({
+    // Persistent in-memory data store
+    $store: createPluginStoreAccess(pluginName),
     $formatMessage: formatMessage,
     $walk: walk,
     $getMatcher: getMatcherByType,
@@ -103,7 +112,8 @@ export async function runPlugin(
       pluginLogger.error(msg);
       throw new Error(msg);
     },
-    args: args || pluginDefinition.args || {},
+    args: pluginArgs,
+    $args: pluginArgs,
     ...inject,
     ...modules,
   })) as unknown;

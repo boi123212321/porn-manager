@@ -12,7 +12,6 @@ import {
   getActorNames,
   includeFilter,
   ISearchResults,
-  normalizeQuery,
   performSearch,
   ratingFilter,
   searchQuery,
@@ -25,6 +24,7 @@ import { addSearchDocs, buildIndex, ProgressCallback } from "./internal/buildInd
 export interface IImageSearchDoc {
   id: string;
   name: string;
+  rawName: string;
   addedOn: number;
   actors: string[];
   labels: string[];
@@ -135,7 +135,8 @@ export async function createImageSearchDoc(image: Image): Promise<IImageSearchDo
   return {
     id: image._id,
     addedOn: image.addedOn,
-    name: normalizeQuery(image.name),
+    name: image.name,
+    rawName: image.name,
     labels: labels.map((l) => l._id),
     actors: actors.map((a) => a._id),
     actorNames: [...new Set(actors.map(getActorNames).flat())],

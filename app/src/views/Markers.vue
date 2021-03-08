@@ -191,6 +191,10 @@ export default class MarkerList extends mixins(DrawerMixin) {
       value: "addedOn",
     },
     {
+      text: "Alphabetical",
+      value: "rawName",
+    },
+    {
       text: "Rating",
       value: "rating",
     },

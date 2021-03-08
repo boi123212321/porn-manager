@@ -513,6 +513,10 @@ export default class MovieList extends mixins(DrawerMixin) {
       value: "addedOn",
     },
     {
+      text: "Alphabetical",
+      value: "rawName",
+    },
+    {
       text: "Rating",
       value: "rating",
     },

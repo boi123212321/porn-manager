@@ -24,22 +24,26 @@ describe("Marker", () => {
 
       expect(await Marker.getAll()).to.be.empty;
 
-      const id = await createMarker(sceneId, "Marker test", 200);
-      expect(id).to.be.a("string");
+      const name = "Marker test",
+        time = 200;
+      const marker = await createMarker(sceneId, name, time);
+      expect(marker?._id).to.be.a("string");
+      expect(marker?.name).to.equal(name);
+      expect(marker?.time).to.equal(time);
 
       expect(await Marker.getAll()).to.have.length(1);
     });
 
     it("Should not create duplicate marker", async function () {
-      const id = await createMarker(sceneId, "Marker test 2", 198);
-      expect(id).to.be.null;
+      const marker = await createMarker(sceneId, "Marker test 2", 198);
+      expect(marker).to.be.null;
 
       expect(await Marker.getAll()).to.have.length(1);
     });
 
     it("Should not create duplicate marker 2", async function () {
-      const id = await createMarker(sceneId, "Marker test 2", 202);
-      expect(id).to.be.null;
+      const marker = await createMarker(sceneId, "Marker test 2", 202);
+      expect(marker).to.be.null;
 
       expect(await Marker.getAll()).to.have.length(1);
     });

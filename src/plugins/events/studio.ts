@@ -16,20 +16,13 @@ import { createImage, createLocalImage } from "../context";
 
 export const MAX_STUDIO_RECURSIVE_CALLS = 4;
 
-// This function has side effects
-export async function onStudioCreate(
-  studio: Studio,
-  studioLabels: string[],
-  event: "studioCreated" | "studioCustom" = "studioCreated",
-  studioStack: string[] = []
-): Promise<Studio> {
-  const config = getConfig();
-
-  const createdImages = [] as Image[];
-
-  const pluginResult = await runPluginsSerial(config, event, {
-    studio: JSON.parse(JSON.stringify(studio)) as Studio,
-    studioName: studio.name,
+function injectServerFunctions(studio: Studio, createdImages: Image[]) {
+  let labels: Label[], rating: number, parents: Studio[], subStudios: Studio[];
+  return {
+    $getLabels: async () => (labels ??= await Studio.getLabels(studio)),
+    $getAverageRating: async () => (rating ??= await Studio.getAverageRating(studio)),
+    $getParents: async () => (parents ??= await Studio.getParents(studio)),
+    $getSubStudios: async () => (subStudios ??= await Studio.getSubStudios(studio._id)),
     $createLocalImage: async (path: string, name: string, thumbnail?: boolean) => {
       const img = await createLocalImage(path, name, thumbnail);
       img.studio = studio._id;
@@ -51,6 +44,24 @@ export async function onStudioCreate(
       }
       return img._id;
     },
+  };
+}
+
+// This function has side effects
+export async function onStudioCreate(
+  studio: Studio,
+  studioLabels: string[],
+  event: "studioCreated" | "studioCustom" = "studioCreated",
+  studioStack: string[] = []
+): Promise<Studio> {
+  const config = getConfig();
+
+  const createdImages = [] as Image[];
+
+  const pluginResult = await runPluginsSerial(config, event, {
+    studio: JSON.parse(JSON.stringify(studio)) as Studio,
+    studioName: studio.name,
+    ...injectServerFunctions(studio, createdImages),
   });
 
   if (
