@@ -2,7 +2,7 @@ import { labelCollection, studioCollection } from "../../database";
 import { getLength, isProcessing } from "../../queue/processing";
 import { getClient, indexMap } from "../../search";
 import Actor from "../../types/actor";
-import CustomField from "../../types/custom_field";
+import CustomField, { CustomFieldTarget } from "../../types/custom_field";
 import Image from "../../types/image";
 import Label from "../../types/label";
 import Movie from "../../types/movie";
@@ -218,8 +218,15 @@ export default {
   async getLabelById(_: unknown, { id }: { id: string }): Promise<Label | null> {
     return await Label.getById(id);
   },
-  async getCustomFields(): Promise<CustomField[]> {
-    return await CustomField.getAll();
+  async getCustomFields(
+    _: unknown,
+    { target }: { target: CustomFieldTarget }
+  ): Promise<CustomField[]> {
+    const allFields = await CustomField.getAll();
+    if (target) {
+      return allFields.filter((field) => field.target.includes(target));
+    }
+    return allFields;
   },
   async getLabels(): Promise<Label[]> {
     const labels = await Label.getAll();

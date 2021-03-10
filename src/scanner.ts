@@ -42,7 +42,6 @@ export async function scanFolders(nextScanMs = 0): Promise<void> {
       handleError("Couldn't start processing: ", err);
     });
 
-    logger.verbose("Scanning image folders");
     await checkImageFolders().catch((err: Error) => {
       handleError("Error while scanning image folders: ", err);
     });

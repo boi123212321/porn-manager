@@ -29,7 +29,7 @@ export async function resetIzzy(): Promise<void> {
   }
 }
 
-export const minIzzyVersion = "0.2.0";
+export const minIzzyVersion = "0.3.0";
 
 export function exitIzzy() {
   logger.verbose("Closing izzy");

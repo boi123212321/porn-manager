@@ -119,6 +119,7 @@ export function searchQuery(query: string | undefined | null, fields: string[]):
           query: typeahead(query),
           fields,
           analyze_wildcard: true,
+          boost: 0.5,
         },
       },
     ];

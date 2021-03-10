@@ -38,7 +38,7 @@ export async function checkVideoFolders(): Promise<void> {
           logger.debug(`Ignoring file ${path}`);
         } else {
           logger.debug(`Found matching file ${path}`);
-          const existingScene = await Scene.getSceneByPath(path);
+          const existingScene = await Scene.getByPath(path);
           logger.debug(`Scene with that path exists already: ${!!existingScene}`);
           if (!existingScene) unknownVideos.push(path);
         }
@@ -62,7 +62,7 @@ export async function checkVideoFolders(): Promise<void> {
 }
 
 async function imageWithPathExists(path: string) {
-  const image = await Image.getImageByPath(path);
+  const image = await Image.getByPath(path);
   return !!image;
 }
 
@@ -121,7 +121,7 @@ async function processImage(imagePath: string, readImage = true, generateThumb =
 export async function checkImageFolders(): Promise<void> {
   const config = getConfig();
 
-  logger.warn("Scanning image folders...");
+  logger.info("Scanning image folders...");
 
   let numAddedImages = 0;
 

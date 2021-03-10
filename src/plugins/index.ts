@@ -77,7 +77,7 @@ export async function runPlugin(
 
   const func = getPlugin(pluginName);
 
-  const pluginArgs = args || pluginDefinition.args || {};
+  const pluginArgs = JSON.parse(JSON.stringify(args || pluginDefinition.args || {}));
   const pluginLogger = createPluginLogger(pluginName, config.log.writeFile);
 
   logger.info(`Running plugin ${pluginName}:`);

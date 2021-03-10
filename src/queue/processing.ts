@@ -29,8 +29,8 @@ export function getLength(): Promise<number> {
 
 export async function getHead(): Promise<ISceneProcessingItem | null> {
   logger.verbose("Getting queue head");
-  const items = await processingCollection.getAll();
-  return items[0] || null;
+  const item = await processingCollection.getHead();
+  return item;
 }
 
 export function enqueueScene(_id: string): Promise<ISceneProcessingItem> {

@@ -912,7 +912,7 @@ export default class ActorList extends mixins(DrawerMixin) {
             aliases
             color
           }
-          getCustomFields {
+          getCustomFields(target: ACTORS) {
             _id
             name
             type

@@ -22,7 +22,7 @@ router.get("/image/path/:path", async (req, res) => {
   const pathParam = (req.query as Record<string, string>).path;
   if (!pathParam) return res.sendStatus(400);
 
-  const img = await Image.getImageByPath(pathParam);
+  const img = await Image.getByPath(pathParam);
 
   if (img && img.path) {
     const resolved = path.resolve(img.path);

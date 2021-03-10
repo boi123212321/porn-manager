@@ -2,7 +2,7 @@ import { gql } from "apollo-server-express";
 
 export default gql`
   extend type Query {
-    getCustomFields: [CustomField!]!
+    getCustomFields(target: CustomFieldTarget): [CustomField!]!
   }
 
   enum CustomFieldType {

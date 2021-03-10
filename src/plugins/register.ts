@@ -37,7 +37,7 @@ export function requireUncached(modulePath: string): unknown {
     delete require.cache[require.resolve(fullPath)];
     return <unknown>require(fullPath);
   } catch (err) {
-    handleError(`Error requiring ${fullPath}`, err);
+    handleError(`Error requiring "${fullPath}"`, err);
     throw err;
   }
 }

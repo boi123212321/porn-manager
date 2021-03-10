@@ -1,15 +1,18 @@
-// TS bindings for Izzy
 import Axios, { AxiosError, AxiosResponse } from "axios";
 
 import { getConfig } from "../../config";
 import { formatMessage, logger } from "../../utils/logger";
 
+// TS bindings for Izzy
 export namespace Izzy {
+  // Secondary index definition
+  // Can only be used on string values
   export interface IIndexCreation<T> {
     name: string;
     key: keyof Omit<T, "_id">;
   }
 
+  // Represents a collection ("table")
   export class Collection<T extends { _id: string }> {
     name: string;
 
@@ -17,6 +20,7 @@ export namespace Izzy {
       this.name = name;
     }
 
+    // Returns amount of items in collection
     async count(): Promise<number> {
       logger.silly(`Getting collection count: ${this.name}`);
       const res = await Axios.get<{ count: number }>(
@@ -25,6 +29,7 @@ export namespace Izzy {
       return res.data.count;
     }
 
+    // Compacts database file
     async compact(): Promise<AxiosResponse<unknown>> {
       logger.silly(`Compacting collection: ${this.name}`);
       return Axios.post(
@@ -32,6 +37,7 @@ export namespace Izzy {
       );
     }
 
+    // Inserts or overwrites item
     async upsert(id: string, obj: T): Promise<T> {
       logger.silly(`Upsert ${id} in collection: ${this.name}`);
       const res = await Axios.post<T>(
@@ -41,6 +47,7 @@ export namespace Izzy {
       return res.data;
     }
 
+    // Removes item
     async remove(id: string): Promise<T> {
       logger.silly(`Remove ${id} in collection: ${this.name}`);
       const res = await Axios.delete<T>(
@@ -49,6 +56,16 @@ export namespace Izzy {
       return res.data;
     }
 
+    // Gets one item from collection, order is not guaranteed
+    async getHead(): Promise<T | null> {
+      logger.silly(`Get head from collection: ${this.name}`);
+      const res = await Axios.get<T | null>(
+        `http://localhost:${getConfig().binaries.izzyPort}/collection/${this.name}`
+      );
+      return res.data;
+    }
+
+    // Gets all items from collections
     async getAll(): Promise<T[]> {
       logger.silly(`Get all from collection: ${this.name}`);
       const res = await Axios.get<{ items: T[] }>(
@@ -57,6 +74,7 @@ export namespace Izzy {
       return res.data.items;
     }
 
+    // Gets item by ID
     async get(id: string): Promise<T | null> {
       logger.silly(`Getting ${id} from collection: ${this.name}`);
       try {
@@ -76,6 +94,7 @@ export namespace Izzy {
       }
     }
 
+    // Gets multiple items using one request
     async getBulk(items: string[]): Promise<T[]> {
       logger.silly(`Getting ${items.length} items in bulk from collection: ${this.name}`);
       const { data } = await Axios.post<{ items: T[] }>(
@@ -96,6 +115,7 @@ export namespace Izzy {
       return filtered;
     }
 
+    // Queries an index by key
     async query(index: string, key: string | null): Promise<T[]> {
       logger.silly(`Querying index ${index} by ${key} from collection: ${this.name}`);
       const res = await Axios.get<{ items: T[] }>(
@@ -105,6 +125,7 @@ export namespace Izzy {
     }
   }
 
+  // Creates new collection, will be successful when the collection already exists
   export async function createCollection<T extends { _id: string }>(
     name: string,
     file?: string | null,

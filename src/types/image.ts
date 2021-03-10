@@ -1,4 +1,5 @@
 import Vibrant from "node-vibrant";
+import { resolve } from "path";
 
 import { actorCollection, imageCollection } from "../database";
 import { searchImages } from "../search/image";
@@ -182,10 +183,10 @@ export default class Image {
     return Label.getForItem(image._id);
   }
 
-  static async getImageByPath(path: string): Promise<Image | undefined> {
-    return (await imageCollection.query("path-index", encodeURIComponent(path)))[0] as
-      | Image
-      | undefined;
+  static async getByPath(path: string): Promise<Image | undefined> {
+    const resolved = resolve(path);
+    const images = await imageCollection.query("path-index", encodeURIComponent(resolved));
+    return images[0];
   }
 
   constructor(name: string) {

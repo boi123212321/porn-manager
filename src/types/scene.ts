@@ -80,7 +80,7 @@ export class SceneMeta {
 
 export default class Scene {
   _id: string;
-  hash: string | null = null; // deprecated
+  hash?: string | null; // deprecated
   name: string;
   description: string | null = null;
   addedOn = +new Date();
@@ -119,6 +119,16 @@ export default class Scene {
         if (statSync(newPath).isDirectory()) {
           throw new Error(`"${newPath}" is a directory`);
         }
+
+        {
+          const sceneWithPath = await Scene.getByPath(newPath);
+          if (sceneWithPath) {
+            throw new Error(
+              `"${newPath}" already in use by scene "${sceneWithPath.name}" (${sceneWithPath._id})`
+            );
+          }
+        }
+
         logger.debug(`Setting path of scene "${scene._id}" to "${newPath}"`);
         scene.path = newPath;
         await Scene.runFFProbe(scene);
@@ -424,9 +434,10 @@ export default class Scene {
     return Label.getForItem(scene._id);
   }
 
-  static async getSceneByPath(path: string): Promise<Scene | undefined> {
-    const scenes = await sceneCollection.query("path-index", encodeURIComponent(path));
-    return scenes[0] as Scene | undefined;
+  static async getByPath(path: string): Promise<Scene | undefined> {
+    const resolved = resolve(path);
+    const scenes = await sceneCollection.query("path-index", encodeURIComponent(resolved));
+    return scenes[0];
   }
 
   static async getById(_id: string): Promise<Scene | null> {

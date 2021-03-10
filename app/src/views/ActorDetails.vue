@@ -96,7 +96,8 @@
                     }}
                   </div>
                   <div class="py-1">
-                    <b>{{ currentActor.numScenes }}</b> scenes
+                    <b>{{ currentActor.numScenes }}</b>
+                    {{ currentActor.numScenes === 1 ? "scene" : "scenes" }}
                   </div>
                   <v-tooltip bottom class="py-1">
                     <template v-slot:activator="{ on }">
