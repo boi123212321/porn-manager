@@ -87,7 +87,7 @@
     "@types/cli-progress": "^3.9.0",
     "@types/elasticsearch": "^5.0.36",
     "@types/express": "^4.17.11",
-    "@types/fluent-ffmpeg": "^2.1.16",
+    "@types/fluent-ffmpeg": "^2.1.17",
     "@types/graphql": "^14.5.0",
     "@types/graphql-upload": "^8.0.4",
     "@types/gulp": "^4.0.8",
