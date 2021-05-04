@@ -68,7 +68,7 @@
     "moment": "^2.29.1",
     "node-fetch": "^2.6.1",
     "node-vibrant": "^3.1.6",
-    "ora": "^5.3.0",
+    "ora": "^5.4.0",
     "semver": "^7.3.4",
     "tiny-async-pool": "^1.2.0",
     "ts-node": "^9.1.1",
