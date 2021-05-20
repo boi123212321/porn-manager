@@ -1,6 +1,6 @@
 {
   "name": "porn-vault",
-  "version": "0.27.0-rc.6",
+  "version": "0.27.0-rc.7",
   "description": "",
   "main": "build/index.js",
   "bin": "build/index.js",
@@ -98,7 +98,7 @@
     "@types/semver": "^7.3.4",
     "@types/sinon": "^10.0.0",
     "@types/tiny-async-pool": "^1.0.0",
-    "@types/yargs": "^16.0.0",
+    "@types/yargs": "^16.0.2",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "chai": "^4.3.0",
