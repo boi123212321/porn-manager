@@ -138,7 +138,7 @@ export default class Actor {
     return score;
   }
 
-  static async getLabelUsage(): Promise<
+  static async getRankedLabelUsage(): Promise<
     {
       label: Label;
       score: number;

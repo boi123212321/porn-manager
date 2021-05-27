@@ -1,5 +1,8 @@
+import LRUCache from "lru-cache";
+
 import { labelCollection, studioCollection } from "../../database";
 import { getLength, isProcessing } from "../../queue/processing";
+import { recommendUnwatchedScenes } from "../../recommendations/scene";
 import { getClient, indexMap } from "../../search";
 import Actor from "../../types/actor";
 import CustomField, { CustomFieldTarget } from "../../types/custom_field";
@@ -17,6 +20,11 @@ import { getMovies } from "./search/movie";
 import { getScenes } from "./search/scene";
 import { getStudios } from "./search/studio";
 
+const similarCache = new LRUCache<string, Scene[]>({
+  maxAge: 1000 * 60 * 60 * 24 * 7,
+  max: 250,
+});
+
 export default {
   async getWatches(
     _: void,
@@ -25,6 +33,26 @@ export default {
     return (await SceneView.getAll()).filter(
       (w) => w.date >= (min || -99999999999999) && w.date <= (max || 99999999999999)
     );
+  },
+
+  async recommendUnwatchedScenes(
+    _: unknown,
+    { take, skip }: { take: number; skip: number }
+  ): Promise<Scene[]> {
+    const cacheKey = "unwatched-scenes";
+
+    const isCached = similarCache.has(cacheKey);
+
+    const recommendations = isCached
+      ? similarCache.get(cacheKey)!
+      : await (async () => {
+          const ranks = await recommendUnwatchedScenes();
+          const scenes = ranks.map(([scene]) => scene);
+          similarCache.set(cacheKey, scenes);
+          return scenes;
+        })();
+    const slice = recommendations.slice(skip || 0, (skip || 0) + (take || 4));
+    return slice;
   },
 
   async getScenesWithoutStudios(_: unknown, opts: { num: number }): Promise<Scene[]> {

@@ -100,7 +100,7 @@ export function createVault(): Vault {
       logger.debug("Using cached scene label usage");
       return res.json(cached);
     }
-    const scores = await Scene.getLabelUsage();
+    const scores = await Scene.getRankedLabelUsage();
     if (scores.length) {
       logger.debug("Caching scene label usage");
       statCache.set("scene-label-usage", scores);
@@ -114,7 +114,7 @@ export function createVault(): Vault {
       logger.debug("Using cached actor label usage");
       return res.json(cached);
     }
-    const scores = await Actor.getLabelUsage();
+    const scores = await Actor.getRankedLabelUsage();
     if (scores.length) {
       logger.debug("Caching actor label usage");
       statCache.set("actor-label-usage", scores);

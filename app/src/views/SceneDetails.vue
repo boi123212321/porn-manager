@@ -182,7 +182,7 @@
             </div>
             <div v-if="currentScene.meta.fps" class="px-2 d-flex align-center">
               <v-subheader style="min-width: 150px">Framerate</v-subheader>
-              {{ currentScene.meta.fps }} fps
+              {{ currentScene.meta.fps.toFixed(2) }} fps
             </div>
             <div v-if="currentScene.meta.size" class="px-2 d-flex align-center">
               <v-subheader style="min-width: 150px">Video size</v-subheader>
@@ -312,6 +312,27 @@
           </div>
         </v-col>
       </v-row>
+
+      <div v-if="showExperimental">
+        <div v-if="similarScenes.length">
+          <h1 class="text-center font-weight-light mr-3">Similar scenes</h1>
+          <v-row>
+            <v-col
+              v-for="(scene, i) in similarScenes"
+              :key="scene._id"
+              class="pa-1"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              xl="2"
+            >
+              <scene-card style="height: 100%" v-model="similarScenes[i]" />
+            </v-col>
+          </v-row>
+        </div>
+        <div class="text-center" v-else>Loading recommendations...</div>
+      </div>
 
       <div class="d-flex align-center">
         <v-spacer></v-spacer>
@@ -609,8 +630,10 @@ import hotkeys from "hotkeys-js";
 import CustomFieldSelector from "@/components/CustomFieldSelector.vue";
 import ActorGrid from "@/components/ActorGrid.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
+import { SceneSource } from "@/types/scene";
 import { copy } from "@/util/object";
-import IScene, { SceneSource } from "@/types/scene";
+import IScene from "@/types/scene";
+import SceneCard from "@/components/Cards/Scene.vue";
 
 interface ICropCoordinates {
   left: number;
@@ -702,6 +725,7 @@ const LS_THEATER_MODE = "theater_mode";
     CustomFieldSelector,
     VideoPlayer,
     ActorSelector,
+    SceneCard,
   },
   beforeRouteLeave(_to, _from, next) {
     sceneModule.setCurrent(null);
@@ -1025,6 +1049,10 @@ export default class SceneDetails extends Vue {
 
   get aspectRatio() {
     return contextModule.sceneAspectRatio;
+  }
+
+  get showExperimental() {
+    return contextModule.experimental;
   }
 
   get sources(): SceneSource[] {
@@ -1410,6 +1438,36 @@ export default class SceneDetails extends Vue {
     return "";
   }
 
+  similarScenes: any[] = [];
+
+  loadRecommendations() {
+    ApolloClient.query({
+      query: gql`
+        query($id: String!) {
+          getSceneById(id: $id) {
+            similar {
+              ...SceneFragment
+              actors {
+                ...ActorFragment
+              }
+              studio {
+                ...StudioFragment
+              }
+            }
+          }
+        }
+        ${sceneFragment}
+        ${actorFragment}
+        ${studioFragment}
+      `,
+      variables: {
+        id: (<any>this).$route.params.id,
+      },
+    }).then((res) => {
+      this.similarScenes = res.data.getSceneById.similar;
+    });
+  }
+
   async onLoad() {
     await this.loadLabels();
 
@@ -1452,6 +1510,10 @@ export default class SceneDetails extends Vue {
       this.selectedLabels = scene.labels.map((l) =>
         this.allLabels.findIndex((k) => k._id == l._id)
       );
+    }
+
+    if (this.showExperimental) {
+      this.loadRecommendations();
     }
 
     // TODO: wait for player to mount, get event...?

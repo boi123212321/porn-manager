@@ -1,7 +1,9 @@
 import Jimp from "jimp";
+import LRUCache from "lru-cache";
 
 import { imageCollection, sceneCollection } from "../../database";
 import { FFProbeContainers } from "../../ffmpeg/ffprobe";
+import { arrayFilter } from "../../search/common";
 import { CopyMP4Transcoder } from "../../transcode/copyMp4";
 import { SceneStreamTypes } from "../../transcode/transcoder";
 import Actor from "../../types/actor";
@@ -13,8 +15,14 @@ import Movie from "../../types/movie";
 import Scene from "../../types/scene";
 import Studio from "../../types/studio";
 import SceneView from "../../types/watch";
+import { jaccard } from "../../utils/jaccard";
 import { handleError, logger } from "../../utils/logger";
 import { getExtension } from "../../utils/string";
+
+const similarCache = new LRUCache<string, Scene[]>({
+  maxAge: 1000 * 60 * 60 * 24 * 7,
+  max: 250,
+});
 
 interface AvailableStreams {
   label: string;
@@ -24,6 +32,45 @@ interface AvailableStreams {
 }
 
 export default {
+  async similar(scene: Scene): Promise<Scene[]> {
+    if (similarCache.has(scene._id)) {
+      logger.silly(`Using cached recommendations for "${scene._id}"`);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return similarCache.get(scene._id)!;
+    }
+
+    logger.verbose(`Finding recommendations for "${scene._id}"`);
+
+    const similar: [Scene, number][] = [];
+
+    const labelA = (await Scene.getLabels(scene)).map((l) => l._id);
+    const actorA = (await Scene.getActors(scene)).map((l) => l._id);
+
+    await Scene.iterate(async (sc) => {
+      if (scene._id === sc._id) {
+        return;
+      }
+
+      const labelB = (await Scene.getLabels(sc)).map((l) => l._id);
+      const actorB = (await Scene.getActors(sc)).map((l) => l._id);
+
+      const similarity = jaccard(labelA, labelB) + jaccard(actorA, actorB) / 4;
+      if (similarity > 0.33) {
+        similar.push([sc, similarity]);
+      }
+    }, arrayFilter(labelA, "labels", "OR"));
+
+    logger.silly(`${similar.length} similar scenes`);
+
+    const items = similar
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([scene]) => scene);
+
+    similarCache.set(scene._id, items);
+
+    return items;
+  },
   async actors(scene: Scene): Promise<Actor[]> {
     const actors = await Scene.getActors(scene);
     return actors.sort((a, b) => a.name.localeCompare(b.name));

@@ -19,7 +19,7 @@
         block
         class="text-none"
         color="primary"
-        :disabled="info.isScanning"
+        :disabled="info.isScanning || !numFolders"
         @click="forceScan"
         >Scan {{ numFolders }} {{ numFolders === 1 ? "folder" : "folders" }}</v-btn
       >

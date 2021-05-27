@@ -15,6 +15,7 @@
         </v-col>
         <v-col cols="12" sm="6">
           <TopActors class="mb-3" />
+          <RecommendedScenes v-if="showExperimental" class="mb-3" />
           <UnwatchedActors />
         </v-col>
       </v-row>
@@ -34,6 +35,8 @@ import Scan from "@/components/HomeWidgets/Scan.vue";
 import ActorLabelUsage from "@/components/HomeWidgets/ActorLabelUsage.vue";
 import SceneLabelUsage from "@/components/HomeWidgets/SceneLabelUsage.vue";
 import RemainingTime from "@/components/HomeWidgets/RemainingTime.vue";
+import RecommendedScenes from "@/components/HomeWidgets/RecommendedScenes.vue";
+import { contextModule } from "@/store/context";
 
 @Component({
   components: {
@@ -46,7 +49,12 @@ import RemainingTime from "@/components/HomeWidgets/RemainingTime.vue";
     ActorLabelUsage,
     SceneLabelUsage,
     RemainingTime,
+    RecommendedScenes,
   },
 })
-export default class Home extends Vue {}
+export default class Home extends Vue {
+  get showExperimental() {
+    return contextModule.experimental;
+  }
+}
 </script>

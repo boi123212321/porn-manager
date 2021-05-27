@@ -153,23 +153,29 @@ export default class Scene {
     return numViews + +scene.favorite * 5 + scene.rating;
   }
 
-  static async getLabelUsage(): Promise<
-    {
-      label: Label;
-      score: number;
-    }[]
-  > {
+  static async countLabelUsage(
+    filter: unknown[] = []
+  ): Promise<Record<string, { label: Label; score: number }>> {
     const scores = {} as Record<string, { label: Label; score: number }>;
 
     for (const label of await Label.getAll()) {
-      const { total } = await searchScenes({
-        include: [label._id],
-      });
+      const { total } = await searchScenes({ include: [label._id] }, undefined, filter);
       scores[label._id] = {
         score: total,
         label,
       };
     }
+
+    return scores;
+  }
+
+  static async getRankedLabelUsage(): Promise<
+    {
+      label: Label;
+      score: number;
+    }[]
+  > {
+    const scores = await Scene.countLabelUsage();
 
     return Object.keys(scores)
       .map((key) => ({
