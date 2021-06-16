@@ -86,7 +86,7 @@
     "@types/elasticsearch": "^5.0.36",
     "@types/express": "^4.17.11",
     "@types/fluent-ffmpeg": "^2.1.16",
-    "@types/graphql-upload": "^8.0.4",
+    "@types/graphql-upload": "^8.0.5",
     "@types/gulp": "^4.0.8",
     "@types/gulp-zip": "^4.0.1",
     "@types/inquirer": "^7.3.1",
@@ -120,7 +120,7 @@
     "nodemon": "^2.0.7",
     "nyc": "^15.1.0",
     "pkg": "^4.4.9",
-    "prettier": "^2.2.1",
+    "prettier": "^2.3.1",
     "sinon": "^11.1.0"
   },
   "nodemonConfig": {
