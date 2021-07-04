@@ -6,18 +6,45 @@ export interface MatchSource {
   _id: string;
   name: string;
 }
+export interface MatchResult {
+  matchIndex: number;
+  endMatchIndex: number;
+}
+
+export interface SourceInputMatch<T extends MatchSource> extends MatchResult {
+  source: T;
+  sourceId: string;
+}
 
 export type GetSourceInputs = <T extends MatchSource>(matchSource: T) => string[];
 
 export interface Matcher {
   /**
-   * Filters the matching input items. Sorts them by the longest match
+   * Filters the matching items and returns the match objects
    *
    * @param itemsToMatch - the items to filter by matching
    * @param str - the string to match to
    * @param getInputs - callback to retrieve the strings of an item with which
    * to match against the string
-   * @param sortByLongestMatch - if the longest matches should be at the top
+   * @param sortByLongestMatch - if the longest matches (by item.name) should be at the top
+   * @returns the match objects of the matched items
+   */
+  extractMatches: <T extends MatchSource>(
+    itemsToMatch: T[],
+    str: string,
+    getInputs: (matchSource: T) => string[],
+    sortByLongestMatch?: boolean
+  ) => SourceInputMatch<T>[];
+
+  /**
+   * Filters the matching items
+   *
+   * @param itemsToMatch - the items to filter by matching
+   * @param str - the string to match to
+   * @param getInputs - callback to retrieve the strings of an item with which
+   * to match against the string
+   * @param sortByLongestMatch - if the longest matches (by item.name) should be at the top
+   * @returns the source items that matched the string
    */
   filterMatchingItems: <T extends MatchSource>(
     itemsToMatch: T[],
@@ -33,6 +60,7 @@ export interface Matcher {
    * @param str - the string to match to
    * @param getInputs - callback to retrieve the strings of the item with which
    * to match against the string
+   * @returns of the item matches the string or not
    */
   isMatchingItem: <T extends MatchSource>(
     item: T,

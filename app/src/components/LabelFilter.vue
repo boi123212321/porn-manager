@@ -50,10 +50,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
-import gql from "graphql-tag";
 import ILabel from "../types/label";
-import { copy } from "../util/object";
 
 function arrayToObject(arr: string[]) {
   let obj = {} as Record<string, boolean>;

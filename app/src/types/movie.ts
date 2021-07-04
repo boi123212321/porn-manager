@@ -13,12 +13,30 @@ export default interface IMovie {
   frontCover: {
     _id: string;
     color: string | null;
+    meta: {
+      dimensions: {
+        width: number;
+        height: number;
+      };
+    };
   } | null;
   backCover: {
     _id: string;
+    meta: {
+      dimensions: {
+        width: number;
+        height: number;
+      };
+    };
   } | null;
   spineCover: {
     _id: string;
+    meta: {
+      dimensions: {
+        width: number;
+        height: number;
+      };
+    };
   } | null;
   studio: any;
   scenes: IScene[];

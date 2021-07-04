@@ -7,7 +7,7 @@
           :key="item.icon"
           :href="item.href"
           target="_blank"
-          class="mx-4 white--text"
+          class="mx-3"
           icon
         >
           <v-icon style="font-size: 24px">{{ item.icon }}</v-icon>
@@ -26,7 +26,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Axios from "axios";
-import { serverBase } from "@/apollo";
+
 
 @Component({})
 export default class Footer extends Vue {
@@ -43,13 +43,17 @@ export default class Footer extends Vue {
       href: "https://discord.gg/t499hxK",
     },
     {
+      icon: "mdi-patreon",
+      href: "https://www.patreon.com/pornvault",
+    },
+    {
       icon: "mdi-currency-btc",
       href: "https://github.com/porn-vault/porn-vault#support",
     },
   ];
 
   mounted() {
-    Axios.get(`${serverBase}/version?password=${localStorage.getItem("password")}`)
+    Axios.get(`/api/version?password=${localStorage.getItem("password")}`)
       .then(({ data }) => {
         this.version = data.result;
       })

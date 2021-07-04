@@ -6,6 +6,7 @@ import { runPluginsSerial } from "../../plugins";
 import { indexImages } from "../../search/image";
 import { indexStudios } from "../../search/studio";
 import Actor from "../../types/actor";
+import Image from "../../types/image";
 import Label from "../../types/label";
 import Movie from "../../types/movie";
 import Scene from "../../types/scene";
@@ -61,6 +62,10 @@ export async function onMovieCreate(
     pluginResult.frontCover.startsWith("im_") &&
     (!movie.frontCover || config.plugins.allowMovieThumbnailOverwrite)
   ) {
+    const image = await Image.getById(pluginResult.frontCover);
+    if (image && (await Image.addDimensions(image))) {
+      await imageCollection.upsert(image._id, image);
+    }
     movie.frontCover = pluginResult.frontCover;
   }
 
@@ -69,6 +74,10 @@ export async function onMovieCreate(
     pluginResult.backCover.startsWith("im_") &&
     (!movie.backCover || config.plugins.allowMovieThumbnailOverwrite)
   ) {
+    const image = await Image.getById(pluginResult.backCover);
+    if (image && (await Image.addDimensions(image))) {
+      await imageCollection.upsert(image._id, image);
+    }
     movie.backCover = pluginResult.backCover;
   }
 
@@ -77,6 +86,10 @@ export async function onMovieCreate(
     pluginResult.spineCover.startsWith("im_") &&
     (!movie.spineCover || config.plugins.allowMovieThumbnailOverwrite)
   ) {
+    const image = await Image.getById(pluginResult.spineCover);
+    if (image && (await Image.addDimensions(image))) {
+      await imageCollection.upsert(image._id, image);
+    }
     movie.spineCover = pluginResult.spineCover;
   }
 

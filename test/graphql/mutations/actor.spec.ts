@@ -9,14 +9,16 @@ import { indexScenes } from "../../../src/search/scene";
 import Actor from "../../../src/types/actor";
 import Label from "../../../src/types/label";
 import Scene from "../../../src/types/scene";
-import { downloadTestVideo } from "../../fixtures/files/dynamicTestFiles";
+import { downloadFile } from "../../../src/utils/download";
+import { TEST_VIDEOS } from "../../fixtures/files/dynamicTestFiles";
 import { startTestServer, stopTestServer } from "../../testServer";
 import { ApplyActorLabelsEnum } from "./../../../src/config/schema";
 
 describe("graphql", () => {
   describe("mutations", () => {
     describe("actor", () => {
-      const videoPathWithActor = "./test/fixtures/files/dynamic/dynamic_video001_abc_actor_updated.mp4";
+      const videoPathWithActor =
+        "./test/fixtures/files/dynamic/dynamic_video001_abc_actor_updated.mp4";
       const videoPathWithoutActor = "./test/fixtures/files/dynamic/dynamic_video001.mp4";
 
       async function seedDb() {
@@ -75,8 +77,8 @@ describe("graphql", () => {
       }
 
       before(async () => {
-        await downloadTestVideo(videoPathWithActor);
-        await downloadTestVideo(videoPathWithoutActor);
+        await downloadFile(TEST_VIDEOS.MP4.url, videoPathWithActor);
+        await downloadFile(TEST_VIDEOS.MP4.url, videoPathWithoutActor);
       });
 
       after(() => {

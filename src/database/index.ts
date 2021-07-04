@@ -20,7 +20,6 @@ import { logger } from "../utils/logger";
 import { libraryPath } from "../utils/path";
 import { Izzy } from "./internal";
 
-mkdirpSync("backups/");
 mkdirpSync("tmp/");
 
 export let sceneCollection!: Izzy.Collection<Scene>;

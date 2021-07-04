@@ -35,7 +35,6 @@
 <script lang="ts">
 import { Component, Vue, Watch, Prop } from "vue-property-decorator";
 import { ICollabActor } from "../types/actor";
-import { serverBase } from "../apollo";
 
 @Component
 export default class Collabs extends Vue {
@@ -57,16 +56,16 @@ export default class Collabs extends Vue {
 
   collabAvatar(actor: ICollabActor) {
     if (actor.avatar) {
-      return `${serverBase}/media/image/${actor.avatar._id}?password=${localStorage.getItem(
+      return `/api/media/image/${actor.avatar._id}?password=${localStorage.getItem(
         "password"
       )}`;
     }
     if (actor.thumbnail) {
-      return `${serverBase}/media/image/${actor.thumbnail._id}?password=${localStorage.getItem(
+      return `/api/media/image/${actor.thumbnail._id}?password=${localStorage.getItem(
         "password"
       )}`;
     }
-    return `${serverBase}/assets/broken.png`;
+    return "/assets/broken.png";
   }
 }
 </script>

@@ -48,7 +48,7 @@ export async function startup() {
     config = getConfig();
     checkConfig(config);
   } catch (err) {
-    process.exit(1);
+    return handleError(`Error during startup`, err, true);
   }
 
   if (args["generate-image-thumbnails"]) {

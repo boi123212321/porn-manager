@@ -30,7 +30,6 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import IActor from "../types/actor";
-import { serverBase } from "../apollo";
 import moment from "moment";
 
 @Component
@@ -51,10 +50,10 @@ export default class ActorGrid extends Vue {
 
   thumbnail(actor: IActor) {
     if (actor.thumbnail)
-      return `${serverBase}/media/image/${
-        actor.thumbnail._id
-      }/thumbnail?password=${localStorage.getItem("password")}`;
-    return `${serverBase}/assets/broken.png`;
+      return `/api/media/image/${actor.thumbnail._id}/thumbnail?password=${localStorage.getItem(
+        "password"
+      )}`;
+    return "/assets/broken.png";
   }
 }
 </script>

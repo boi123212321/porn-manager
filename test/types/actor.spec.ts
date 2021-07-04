@@ -1,15 +1,16 @@
-import { expect } from "chai";
-import { existsSync, unlinkSync } from "fs";
-import { before } from "mocha";
+import { expect } from 'chai';
+import { existsSync, unlinkSync } from 'fs';
+import { before } from 'mocha';
 
-import { actorCollection, labelCollection, sceneCollection } from "../../src/database";
-import { indexActors } from "../../src/search/actor";
-import { indexScenes } from "../../src/search/scene";
-import Actor from "../../src/types/actor";
-import Label from "../../src/types/label";
-import Scene from "../../src/types/scene";
-import { downloadTestVideo } from "../fixtures/files/dynamicTestFiles";
-import { startTestServer, stopTestServer } from "../testServer";
+import { actorCollection, labelCollection, sceneCollection } from '../../src/database';
+import { indexActors } from '../../src/search/actor';
+import { indexScenes } from '../../src/search/scene';
+import Actor from '../../src/types/actor';
+import Label from '../../src/types/label';
+import Scene from '../../src/types/scene';
+import { downloadFile } from '../../src/utils/download';
+import { TEST_VIDEOS } from '../fixtures/files/dynamicTestFiles';
+import { startTestServer, stopTestServer } from '../testServer';
 
 describe("types", () => {
   describe("actor", () => {
@@ -53,8 +54,8 @@ describe("types", () => {
       }
 
       before(async () => {
-        await downloadTestVideo(videoPathWithActor);
-        await downloadTestVideo(videoPathWithoutActor);
+        await downloadFile(TEST_VIDEOS.MP4.url, videoPathWithActor);
+        await downloadFile(TEST_VIDEOS.MP4.url, videoPathWithoutActor);
       });
 
       after(() => {

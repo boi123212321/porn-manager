@@ -62,6 +62,8 @@ export default gql`
     page: Int
     studios: [String!]
     custom: [CustomFieldFilter!]
+
+    rawQuery: Json
   }
 
   extend type Query {

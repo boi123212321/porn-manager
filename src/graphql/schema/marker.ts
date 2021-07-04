@@ -10,9 +10,10 @@ export default gql`
     bookmark: Long
 
     # Resolvers
-    labels: [Label!]!
-    thumbnail: Image
     scene: Scene
+    labels: [Label!]!
+    actors: [Actor!]!
+    thumbnail: Image
   }
 
   type MarkerSearchResults {
@@ -33,6 +34,8 @@ export default gql`
     skip: Int
     take: Int
     page: Int
+
+    rawQuery: Json
   }
 
   extend type Query {
@@ -57,6 +60,7 @@ export default gql`
       favorite: Boolean
       bookmark: Long
       labels: [String!]
+      actors: [String!]
     ): Marker!
     updateMarkers(ids: [String!]!, opts: MarkerUpdateOpts!): [Marker!]!
     removeMarkers(ids: [String!]!): Boolean!

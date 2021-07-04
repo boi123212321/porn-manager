@@ -109,6 +109,7 @@ export async function removeScene(sceneId: string): Promise<void> {
     index: indexMap.scenes,
     id: sceneId,
     type: "_doc",
+    refresh: "wait_for",
   });
 }
 
@@ -133,6 +134,8 @@ export interface ISceneSearchQuery {
   page?: number;
   durationMin?: number;
   durationMax?: number;
+
+  rawQuery?: unknown;
 }
 
 export async function searchScenes(
@@ -152,7 +155,7 @@ export async function searchScenes(
   return performSearch<ISceneSearchDoc, typeof options>({
     index: indexMap.scenes,
     options,
-    query: {
+    query: options.rawQuery || {
       bool: {
         ...shuffleSwitch(query, _shuffle),
         filter: [

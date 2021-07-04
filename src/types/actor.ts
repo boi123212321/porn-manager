@@ -46,7 +46,8 @@ export default class Actor {
 
   static async getStudioFeatures(actor: Actor): Promise<Studio[]> {
     const scenes = await Scene.getByActor(actor._id);
-    return Studio.getBulk(scenes.map((scene) => scene.studio!).filter(Boolean));
+    const rawStudios = await Studio.getBulk(scenes.map((scene) => scene.studio!).filter(Boolean));
+    return createObjectSet(rawStudios, "_id");
   }
 
   static async getAverageRating(actor: Actor): Promise<number> {
@@ -68,6 +69,10 @@ export default class Actor {
 
   static async setLabels(actor: Actor, labelIds: string[]): Promise<void> {
     return Label.setForItem(actor._id, labelIds, "actor");
+  }
+
+  static async addLabels(actor: Actor, labelIds: string[]): Promise<void> {
+    return Label.addForItem(actor._id, labelIds, "actor");
   }
 
   static async getLabels(actor: Actor): Promise<Label[]> {
@@ -106,7 +111,7 @@ export default class Actor {
     return actorCollection.get(_id);
   }
 
-  static async getBulk(_ids: string[]): Promise<Actor[]> {
+  static getBulk(_ids: string[]): Promise<Actor[]> {
     return actorCollection.getBulk(_ids);
   }
 
@@ -249,7 +254,7 @@ export default class Actor {
     }
 
     const localExtractActors = await buildExtractor(
-      async () => [actor],
+      () => [actor],
       (actor) => [actor.name, ...actor.aliases],
       false
     );

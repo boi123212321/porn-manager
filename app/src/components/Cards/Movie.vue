@@ -84,7 +84,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "@/apollo";
+import ApolloClient from "@/apollo";
 import gql from "graphql-tag";
 import IMovie from "@/types/movie";
 import { copy } from "@/util/object";
@@ -189,15 +189,15 @@ export default class MovieCard extends Vue {
 
   get frontCover() {
     if (this.value.frontCover)
-      return `${serverBase}/media/image/${
+      return `/api/media/image/${
         this.value.frontCover._id
       }?password=${localStorage.getItem("password")}`;
-    return `${serverBase}/assets/broken.png`;
+    return "/assets/broken.png";
   }
 
   get backCover() {
     if (this.value.backCover)
-      return `${serverBase}/media/image/${this.value.backCover._id}?password=${localStorage.getItem(
+      return `/api/media/image/${this.value.backCover._id}?password=${localStorage.getItem(
         "password"
       )}`;
     return this.frontCover;

@@ -1,4 +1,3 @@
-import Actor from "../types/actor";
 import Marker from "../types/marker";
 import Scene from "../types/scene";
 import { mapAsync } from "../utils/async";
@@ -39,7 +38,7 @@ export interface IMarkerSearchDoc {
 export async function createMarkerSearchDoc(marker: Marker): Promise<IMarkerSearchDoc> {
   const labels = await Marker.getLabels(marker);
   const scene = await Scene.getById(marker.scene);
-  const actors: Actor[] = [];
+  const actors = await Marker.getActors(marker);
 
   return {
     id: marker._id,
@@ -69,6 +68,7 @@ export async function removeMarker(markerId: string): Promise<void> {
     index: indexMap.markers,
     id: markerId,
     type: "_doc",
+    refresh: "wait_for",
   });
 }
 
@@ -99,6 +99,8 @@ export interface IMarkerSearchQuery {
   skip?: number;
   take?: number;
   page?: number;
+
+  rawQuery?: unknown;
 }
 
 export async function searchMarkers(
@@ -112,7 +114,7 @@ export async function searchMarkers(
   return performSearch<IMarkerSearchDoc, typeof options>({
     index: indexMap.markers,
     options,
-    query: {
+    query: options.rawQuery || {
       bool: {
         ...shuffleSwitch(query, _shuffle),
         filter: [

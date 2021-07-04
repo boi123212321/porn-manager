@@ -2,24 +2,23 @@
 
 Manage your ever-growing porn collection
 
-![Testing](https://github.com/porn-vault/porn-vault/workflows/Push%20dev/badge.svg)
+For more info, guides, etc. check the [official web page](https://porn-vault.github.io/porn-vault)
+
+[![Build server](https://github.com/porn-vault/porn-vault/actions/workflows/build-server.yml/badge.svg)](https://github.com/porn-vault/porn-vault/actions/workflows/build-server.yml)
+[![Build app](https://github.com/porn-vault/porn-vault/actions/workflows/build-app.yml/badge.svg)](https://github.com/porn-vault/porn-vault/actions/workflows/build-app.yml)
+[![Patreon](https://img.shields.io/badge/patreon-donate-orange.svg)](https://www.patreon.com/pornvault)
 [![codecov](https://codecov.io/gh/porn-vault/porn-vault/branch/dev/graph/badge.svg?token=33C0ELH6GI)](https://codecov.io/gh/porn-vault/porn-vault)
 ![Contributors](https://img.shields.io/github/contributors/porn-vault/porn-vault)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/porn-vault/porn-vault/dev)
+![GitHub all releases](https://img.shields.io/github/downloads/porn-vault/porn-vault/total?color=%234488ff)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/porn-vault/porn-vault)
 ![Discord](https://img.shields.io/discord/652499331265331245)
 
 There's a Discord channel! Join in to the discussion: [Discord](https://discord.gg/t499hxK)
 
-# Table of Contents
-
-1. [Support](#support)
-2. [Contribute](#contribute)
-3. [Features](#features)
-4. [Guides](https://github.com/porn-vault/porn-vault/blob/dev/doc/guides.md)
-5. [Demo images](#demo-images)
-6. [FAQ](https://github.com/porn-vault/porn-vault/wiki/Frequently-Asked-Questions)
-
 ## Support
+
+Support on [Patreon](https://www.patreon.com/pornvault)
 
 [![Donate with Bitcoin](https://en.cryptobadges.io/badge/big/1Bw82zC5FnVtw93ZrcALQTeZBXgtVWH75n)](https://en.cryptobadges.io/donate/1Bw82zC5FnVtw93ZrcALQTeZBXgtVWH75n)
 
@@ -31,7 +30,6 @@ There's a Discord channel! Join in to the discussion: [Discord](https://discord.
 
 ## Features
 
-- EASY, portable (no install) setup (see. [**How to run**](https://github.com/porn-vault/porn-vault/blob/dev/doc/guides.md#how-to-run))
 - Cross-platform (Win, Linux, Mac)
 - Works on any somewhat-modern device including tablets and smartphones
 - Self hosted, fully open source
@@ -50,7 +48,7 @@ There's a Discord channel! Join in to the discussion: [Discord](https://discord.
   - Search, filter and sort your collection
   - Rate items, mark as your favorites & bookmark items
 - Custom data fields
-  - Extend actor info with any kind of data (hair color, retired, etc.)
+  - Extend actor info with any kind of data (hair color, retired, etc)
 - Automatic thumbnail generation on scene import
 - Optional password protection in LAN
 

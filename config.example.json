@@ -35,7 +35,9 @@
       "plugin:actor:create",
       "event:scene:create",
       "plugin:scene:create",
-      "event:image:create"
+      "event:image:create",
+      "plugin:marker:create",
+      "event:marker:create"
     ],
     "applySceneLabels": true,
     "applyStudioLabels": [
@@ -108,5 +110,18 @@
       "key": ""
     },
     "port": 3000
+  },
+  "transcode": {
+    "hwaDriver": null,
+    "vaapiDevice": "/dev/dri/renderD128",
+    "h264": {
+      "preset": "veryfast",
+      "crf": 23
+    },
+    "webm": {
+      "deadline": "realtime",
+      "cpuUsed": 3,
+      "crf": 31
+    }
   }
 }

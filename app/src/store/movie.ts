@@ -38,26 +38,27 @@ class MovieModule extends VuexModule {
   }
 
   @Mutation
-  setFrontCover(id: string) {
+  setFrontCover(cover: {
+    _id: string;
+    color: string;
+    meta: { dimensions: { height: number; width: number } };
+  }) {
     if (this.current) {
-      if (!this.current.frontCover) this.current.frontCover = { _id: id, color: null };
-      else this.current.frontCover._id = id;
+      this.current.frontCover = cover;
     }
   }
 
   @Mutation
-  setBackCover(id: string) {
+  setBackCover(cover: { _id: string; meta: { dimensions: { height: number; width: number } } }) {
     if (this.current) {
-      if (!this.current.backCover) this.current.backCover = { _id: id };
-      else this.current.backCover._id = id;
+      this.current.backCover = cover;
     }
   }
 
   @Mutation
-  setSpineCover(id: string) {
+  setSpineCover(cover: { _id: string; meta: { dimensions: { height: number; width: number } } }) {
     if (this.current) {
-      if (!this.current.spineCover) this.current.spineCover = { _id: id };
-      else this.current.spineCover._id = id;
+      this.current.spineCover = cover;
     }
   }
 

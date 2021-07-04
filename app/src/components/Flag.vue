@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import { serverBase } from "../apollo";
+
 import { getNationality } from "../../../src/types/countries";
 
 @Component
@@ -26,7 +26,7 @@ export default class Flag extends Vue {
   }
 
   get url() {
-    return `${serverBase}/flag/${this.value}`;
+    return `/flag/${this.value}`;
   }
 }
 </script>

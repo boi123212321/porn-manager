@@ -15,7 +15,8 @@
     "types": [
       "vue",
       "webpack-env",
-      "vuetify"
+      "vuetify",
+      "resize-observer-browser"
     ],
     "paths": {
       "@/*": [

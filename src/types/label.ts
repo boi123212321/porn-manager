@@ -53,7 +53,7 @@ export default class Label {
     return labelCollection.get(_id);
   }
 
-  static async getBulk(_ids: string[]): Promise<Label[]> {
+  static getBulk(_ids: string[]): Promise<Label[]> {
     return labelCollection.getBulk(_ids);
   }
 

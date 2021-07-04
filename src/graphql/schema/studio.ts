@@ -19,6 +19,8 @@ export default gql`
     skip: Int
     take: Int
     page: Int
+
+    rawQuery: Json
   }
 
   extend type Query {
@@ -35,10 +37,10 @@ export default gql`
     favorite: Boolean!
     bookmark: Long
     customFields: Object!
-    aliases: [String!]
     rating: Int!
 
     # Resolvers
+    aliases: [String!]!
     averageRating: Float!
     parent: Studio
     substudios: [Studio!]!

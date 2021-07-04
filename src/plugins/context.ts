@@ -1,6 +1,5 @@
 import axios from "axios";
 import boxen from "boxen";
-import cheerio from "cheerio";
 import ffmpeg from "fluent-ffmpeg";
 import * as fs from "fs";
 import inquirer from "inquirer";
@@ -22,21 +21,20 @@ import { libraryPath } from "../utils/path";
 import { extensionFromUrl } from "../utils/string";
 
 export const modules = {
-  $loader: ora,
+  $axios: axios,
   $boxen: boxen,
-  $semver: semver,
-  $os: os,
-  $readline: readline,
-  $inquirer: inquirer,
-  $yaml: YAML,
-  $jimp: jimp,
   $ffmpeg: ffmpeg,
   $fs: fs,
-  $path: nodepath,
-  $util: util,
-  $axios: axios,
-  $cheerio: cheerio,
+  $inquirer: inquirer,
+  $jimp: jimp,
+  $loader: ora,
   $moment: moment,
+  $os: os,
+  $path: nodepath,
+  $readline: readline,
+  $semver: semver,
+  $util: util,
+  $yaml: YAML,
   $zod: zod,
 };
 

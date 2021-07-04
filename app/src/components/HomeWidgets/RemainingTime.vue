@@ -31,7 +31,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Axios from "axios";
-import { serverBase } from "../../apollo";
+
 
 @Component({
   components: {},
@@ -44,7 +44,7 @@ export default class Stats extends Vue {
   }
 
   async getInfo() {
-    const res = await Axios.get(serverBase + "/remaining-time", {
+    const res = await Axios.get("/api/remaining-time", {
       headers: {
         "X-PASS": localStorage.getItem("password"),
       },

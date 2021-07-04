@@ -20,7 +20,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Axios from "axios";
-import { serverBase } from "@/apollo";
+
 
 @Component
 export default class About extends Vue {
@@ -51,7 +51,7 @@ export default class About extends Vue {
   }
 
   mounted() {
-    Axios.get(`${serverBase}/log?password=${localStorage.getItem("password")}`)
+    Axios.get(`/api/log?password=${localStorage.getItem("password")}`)
       .then(({ data }) => {
         this.logs = data;
       })

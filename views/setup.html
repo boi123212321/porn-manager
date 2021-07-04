@@ -29,7 +29,7 @@
 
     <script>
       setInterval(() => {
-        fetch("/setup")
+        fetch("/api/setup")
           .then(data => data.json())
           .then(json => {
             document.getElementById("message").innerHTML = json.setupMessage;

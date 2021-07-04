@@ -47,7 +47,7 @@ export default class CustomField {
     return customFieldCollection.get(_id);
   }
 
-  static async getBulk(_ids: string[]): Promise<CustomField[]> {
+  static getBulk(_ids: string[]): Promise<CustomField[]> {
     return customFieldCollection.getBulk(_ids);
   }
 

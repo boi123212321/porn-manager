@@ -13,7 +13,7 @@ export function checkUnusedPlugins(config: IConfig): void {
       }
     }
     if (!pluginUsed) {
-      logger.warn(`Unused plugin "${pluginName}".`);
+      logger.warn(`Unused plugin "${pluginName}"`);
     }
   }
 }
@@ -22,23 +22,13 @@ export function checkUnusedPlugins(config: IConfig): void {
  * @param config - the config whose plugins to validate
  * @throw
  */
-export function validatePlugins(config: IConfig): void {
+export function prevalidatePlugins(config: IConfig): void {
   for (const name in config.plugins.register) {
     const plugin = config.plugins.register[name];
     const path = plugin.path;
 
-    if (!path) {
-      throw new Error(`Missing plugin path for "${name}".`);
-    }
-
     if (!existsSync(path) || isDirectory(path)) {
-      throw new Error(`Plugin definition for "${name}" not found (missing file).`);
-    }
-
-    if (plugin.args) {
-      if (plugin.args === null || typeof plugin.args !== "object") {
-        throw new Error(`Invalid arguments for plugin "${name}".`);
-      }
+      throw new Error(`Plugin definition for "${name}" not found (missing file)`);
     }
   }
 
@@ -48,10 +38,13 @@ export function validatePlugins(config: IConfig): void {
       if (typeof pluginItem === "string") {
         const pluginName = pluginItem;
         if (!config.plugins.register[pluginName]) {
-          throw new Error(`Undefined plugin "${pluginName}" in use in event "${eventName}".`);
+          throw new Error(`Undefined plugin "${pluginName}" in use in event "${eventName}"`);
         }
       } else {
-        throw new Error(`Invalid plugin use in event "${eventName}"`);
+        const [pluginName] = pluginItem;
+        if (!config.plugins.register[pluginName]) {
+          throw new Error(`Undefined plugin "${pluginName}" in use in event "${eventName}"`);
+        }
       }
     }
   }

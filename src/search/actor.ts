@@ -81,7 +81,7 @@ export async function createActorSearchDoc(actor: Actor): Promise<IActorSearchDo
     countryCode: nationality ? nationality.alpha2 : null,
     custom: actor.customFields,
     studios: studios.map((st) => st._id),
-    studioNames: studios.map((st) => st.name),
+    studioNames: [...new Set(studios.map((st) => st.name))],
   };
 }
 
@@ -90,6 +90,7 @@ export async function removeActor(actorId: string): Promise<void> {
     index: indexMap.actors,
     id: actorId,
     type: "_doc",
+    refresh: "wait_for",
   });
 }
 
@@ -125,6 +126,8 @@ export interface IActorSearchQuery {
   page?: number;
   studios?: string[];
   custom?: CustomFieldFilter[];
+
+  rawQuery?: unknown;
 }
 
 function nationalityFilter(countryCode: string | undefined) {
@@ -156,7 +159,7 @@ export async function searchActors(
   return performSearch<IActorSearchDoc, typeof options>({
     index: indexMap.actors,
     options,
-    query: {
+    query: options.rawQuery || {
       bool: {
         ...shuffleSwitch(query, _shuffle),
         filter: [

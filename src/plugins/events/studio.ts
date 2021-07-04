@@ -206,8 +206,8 @@ export async function onStudioCreate(
     if (shouldApplyStudioLabels) {
       await Image.setLabels(image, studioLabels);
     }
-    await indexImages([image]);
   }
+  await indexImages(createdImages);
 
   return studio;
 }

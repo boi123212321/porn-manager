@@ -30,7 +30,6 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Axios from "axios";
-import { serverBase } from "../../apollo";
 
 @Component
 export default class QueueInfo extends Vue {
@@ -65,7 +64,7 @@ export default class QueueInfo extends Vue {
       return;
     }
 
-    return Axios.post(serverBase + "/scan", null, {
+    return Axios.post("/api/scan", null, {
       headers: {
         "X-PASS": localStorage.getItem("password"),
       },
@@ -78,7 +77,7 @@ export default class QueueInfo extends Vue {
   }
 
   async getFolders() {
-    const res = await Axios.get(serverBase + "/scan/folders", {
+    const res = await Axios.get("/api/scan/folders", {
       headers: {
         "X-PASS": localStorage.getItem("password"),
       },
@@ -87,7 +86,7 @@ export default class QueueInfo extends Vue {
   }
 
   async getInfo() {
-    const res = await Axios.get(serverBase + "/scan", {
+    const res = await Axios.get("/api/scan", {
       headers: {
         "X-PASS": localStorage.getItem("password"),
       },

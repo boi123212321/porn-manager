@@ -7,6 +7,9 @@ import Scene from "../../types/scene";
 import Studio from "../../types/studio";
 
 export default {
+  aliases(studio: Studio): string[] {
+    return studio.aliases || [];
+  },
   rating(studio: Studio): number {
     return studio.rating || 0;
   },
@@ -22,11 +25,13 @@ export default {
   scenes(studio: Studio): Promise<Scene[]> {
     return Studio.getScenes(studio);
   },
-  actors(studio: Studio): Promise<Actor[]> {
-    return Studio.getActors(studio);
+  async actors(studio: Studio): Promise<Actor[]> {
+    const actors = await Studio.getActors(studio);
+    return actors.sort((a, b) => a.name.localeCompare(b.name));
   },
-  labels(studio: Studio): Promise<Label[]> {
-    return Studio.getLabels(studio);
+  async labels(studio: Studio): Promise<Label[]> {
+    const labels = await Studio.getLabels(studio);
+    return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
   movies(studio: Studio): Promise<Movie[]> {
     return Studio.getMovies(studio);

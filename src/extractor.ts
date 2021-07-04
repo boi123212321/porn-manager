@@ -20,7 +20,7 @@ export type Extractor = (str: string) => string[];
  * should be included in the comparison
  */
 export async function buildExtractor<T extends MatchSource>(
-  getAll: () => Promise<T[]>,
+  getAll: () => T[] | Promise<T[]>,
   getItemInputs: (item: T) => string[],
   sortByLongestMatch: boolean,
   extraItems?: T[]
@@ -80,16 +80,29 @@ export async function extractActors(str: string, extraActors?: Actor[]): Promise
   return (await buildActorExtractor(extraActors))(str);
 }
 
+/**
+ *
+ * @param extraStudios - extra studios to filter in addition to all
+ * the studios in the db
+ * @returns an extractor that returns the IDs of extracted studios in **reverse order of appearance**
+ */
 export async function buildStudioExtractor(extraStudios?: Studio[]): Promise<Extractor> {
-  return await buildExtractor(
-    Studio.getAll,
-    (studio) => [studio.name, ...(studio.aliases || [])],
-    true,
-    extraStudios
-  );
+  const allItems = (await Studio.getAll()).concat(extraStudios || []);
+
+  return (str: string) => {
+    return getMatcher()
+      .extractMatches(allItems, str, (studio) => [studio.name, ...(studio.aliases || [])], false) // Don't sort by longest match
+      .sort((a, b) => b.matchIndex - a.matchIndex) // Sort by match index so the last matches are first
+      .map((s) => s.source._id);
+  };
 }
 
-// Returns IDs of extracted studios
+/**
+ * @param str - string to extract from
+ * @param extraStudios - extra studios to filter in addition to all
+ * studios in the db
+ * @returns IDs of extracted studios in **reverse order of appearance**
+ */
 export async function extractStudios(str: string, extraStudios?: Studio[]): Promise<string[]> {
   return (await buildStudioExtractor(extraStudios))(str);
 }

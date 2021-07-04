@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { serverBase } from "@/apollo";
+
 import Axios from "axios";
 import Chart from "chart.js";
 
@@ -78,14 +78,14 @@ export default class SearchTimes extends Vue {
     this.fetchLoader = true;
 
     try {
-      this.sceneQueryTimes = (await Axios.get(serverBase + "/search/timings/scenes")).data
+      this.sceneQueryTimes = (await Axios.get("/api/search/timings/scenes")).data
         .slice(-1000)
         .map((i) => ({
           x: i[0],
           y: i[1] / 1000 / 1000,
         }));
 
-      this.imageQueryTimes = (await Axios.get(serverBase + "/search/timings/images")).data
+      this.imageQueryTimes = (await Axios.get("/api/search/timings/images")).data
         .slice(-1000)
         .map((i) => ({
           x: i[0],

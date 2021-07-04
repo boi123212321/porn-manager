@@ -9,7 +9,7 @@ RUN cd /app && \
     npm run install:app && \
     npm run build:generic
 
-FROM debian:buster-slim
+FROM ghcr.io/linuxserver/baseimage-ubuntu:focal
 COPY --from=build-env /app/releases/node14 /
 
 RUN apt-get update && apt-get  -y install ca-certificates ffmpeg &&  rm -rf /var/lib/apt/lists/*

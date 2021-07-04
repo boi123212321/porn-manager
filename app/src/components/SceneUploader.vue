@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient from "../apollo";
 import sceneFragment from "../fragments/scene";
 import actorFragment from "../fragments/actor";
 import gql from "graphql-tag";

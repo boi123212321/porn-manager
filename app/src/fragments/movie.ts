@@ -17,12 +17,30 @@ export default gql`
     frontCover {
       _id
       color
+      meta {
+        dimensions {
+          width
+          height
+        }
+      }
     }
     backCover {
       _id
+      meta {
+        dimensions {
+          width
+          height
+        }
+      }
     }
     spineCover {
       _id
+      meta {
+        dimensions {
+          width
+          height
+        }
+      }
     }
     studio {
       _id

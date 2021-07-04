@@ -18,6 +18,7 @@ export default gql`
   }
 
   type Mutation {
+    attachLabels(item: String!, labels: [String!]!): Boolean!
     removeLabel(item: String!, label: String!): Boolean!
   }
 

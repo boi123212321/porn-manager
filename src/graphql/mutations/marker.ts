@@ -1,8 +1,11 @@
+import { getConfig } from "../../config/index";
 import { markerCollection } from "../../database";
 import { extractLabels } from "../../extractor";
 import { indexMarkers, removeMarker } from "../../search/marker";
+import Actor from "../../types/actor";
 import LabelledItem from "../../types/labelled_item";
 import Marker from "../../types/marker";
+import Scene from "../../types/scene";
 import { logger } from "../../utils/logger";
 
 interface ICreateMarkerArgs {
@@ -13,12 +16,13 @@ interface ICreateMarkerArgs {
   favorite?: boolean | null;
   bookmark?: number | null;
   labels?: string[] | null;
+  actors?: string[] | null;
 }
 
 type IMarkerUpdateOpts = Partial<{
   favorite: boolean;
   bookmark: number;
-  // actors: string[];
+  actors: string[];
   name: string;
   rating: number;
   labels: string[];
@@ -41,6 +45,10 @@ export default {
 
         if (Array.isArray(opts.labels)) {
           await Marker.setLabels(marker, opts.labels);
+        }
+
+        if (Array.isArray(opts.actors)) {
+          await Marker.setActors(marker, opts.actors);
         }
 
         if (typeof opts.bookmark === "number" || opts.bookmark === null) {
@@ -66,8 +74,13 @@ export default {
 
   async createMarker(
     _: unknown,
-    { scene, name, time, rating, favorite, bookmark, labels }: ICreateMarkerArgs
+    { scene, name, time, rating, favorite, bookmark, labels, actors }: ICreateMarkerArgs
   ): Promise<Marker> {
+    const _scene = await Scene.getById(scene);
+    if (!_scene) {
+      throw new Error("Scene not found");
+    }
+
     const marker = new Marker(name, scene, time);
 
     if (typeof rating === "number") {
@@ -94,8 +107,28 @@ export default {
     logger.verbose(`Found ${extractedLabels.length} labels in marker name`);
     await Marker.setLabels(marker, existingLabels);
 
-    await Marker.createMarkerThumbnail(marker);
+    // Set actors
+    if (actors) {
+      await Marker.setActors(marker, actors);
 
+      const config = getConfig();
+      if (config.matching.applyActorLabels.includes("plugin:marker:create")) {
+        for (const actorId of actors) {
+          const actor = await Actor.getById(actorId);
+
+          if (actor) {
+            const actorLabels = await Actor.getLabels(actor);
+            await Marker.addLabels(
+              marker,
+              actorLabels.map((l) => l._id)
+            );
+          }
+        }
+      }
+    }
+
+    await Marker.createMarkerThumbnail(marker);
+    await markerCollection.upsert(marker._id, marker);
     await indexMarkers([marker]);
 
     return marker;

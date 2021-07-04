@@ -41,6 +41,7 @@ function createFileTransport(level: string, prefix = "", silent: boolean) {
     extension: ".log",
     silent,
     dirname: configPath("logs"),
+    auditFile: configPath("logs", `${prefix}pv_audit.json`),
   });
 }
 

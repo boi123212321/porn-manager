@@ -23,6 +23,8 @@ export default gql`
     page: Int
     durationMin: Int
     durationMax: Int
+
+    rawQuery: Json
   }
 
   extend type Query {

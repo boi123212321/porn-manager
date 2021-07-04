@@ -179,8 +179,8 @@ export async function onActorCreate(
         ) {
           await Image.setLabels(image, actorLabels);
         }
-        await indexImages([image]);
       }
+      await indexImages(createdImages);
     },
   };
 }

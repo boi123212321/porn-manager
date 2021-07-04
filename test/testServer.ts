@@ -73,6 +73,7 @@ function cleanupFiles() {
 interface ExtraTestConfig {
   plugins?: Partial<IConfig["plugins"]>;
   matching?: Partial<IConfig["matching"]>;
+  transcode?: Partial<IConfig["transcode"]>;
 }
 
 export async function startTestServer(
@@ -97,6 +98,10 @@ export async function startTestServer(
       matching: {
         ...testConfig.matching,
         ...(extraConfig.matching || {}),
+      },
+      transcode: {
+        ...testConfig.transcode,
+        ...(extraConfig.transcode || {}),
       },
     };
 

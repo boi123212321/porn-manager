@@ -3,7 +3,15 @@ import * as zod from "zod";
 import { formatMessage, logger } from "../utils/logger";
 import { createObjectSet } from "../utils/misc";
 import { escapeRegExp, getExtension, stripAccents } from "../utils/string";
-import { ignoreSingleNames, isRegex, Matcher, MatchSource, REGEX_PREFIX } from "./matcher";
+import {
+  ignoreSingleNames,
+  isRegex,
+  Matcher,
+  MatchResult,
+  MatchSource,
+  REGEX_PREFIX,
+  SourceInputMatch,
+} from "./matcher";
 
 export const WordMatcherOptionsSchema = zod.object({
   ignoreSingleNames: zod.boolean(),
@@ -188,11 +196,6 @@ function findWordOrGroupMatch(
   return null;
 }
 
-interface MatchResult {
-  matchIndex: number;
-  endMatchIndex: number;
-}
-
 const doesFullGroupMatch = (
   wordsAndGroups: (string | string[])[],
   compareWordsAndGroups: (string | string[])[]
@@ -240,12 +243,6 @@ const doesFullGroupMatch = (
   };
 };
 
-interface SourceInputMatch<T extends MatchSource> {
-  source: T;
-  sourceId: string;
-  matchResult: MatchResult;
-}
-
 /**
  * Filters the matches to return only the inputs that do not overlap,
  * or when overlapping, the one with the preferred length
@@ -270,14 +267,12 @@ const filterOverlappingInputMatches = function <T extends MatchSource>(
       }
 
       const startOverlaps =
-        match.matchResult.matchIndex >= prevMatch.matchResult.matchIndex &&
-        match.matchResult.matchIndex < prevMatch.matchResult.endMatchIndex;
+        match.matchIndex >= prevMatch.matchIndex && match.matchIndex < prevMatch.endMatchIndex;
       const endOverlaps =
-        match.matchResult.endMatchIndex > prevMatch.matchResult.matchIndex &&
-        match.matchResult.endMatchIndex <= prevMatch.matchResult.endMatchIndex;
+        match.endMatchIndex > prevMatch.matchIndex &&
+        match.endMatchIndex <= prevMatch.endMatchIndex;
       const isOverlap =
-        match.matchResult.matchIndex < prevMatch.matchResult.endMatchIndex &&
-        match.matchResult.endMatchIndex > prevMatch.matchResult.matchIndex;
+        match.matchIndex < prevMatch.endMatchIndex && match.endMatchIndex > prevMatch.matchIndex;
 
       return startOverlaps || endOverlaps || isOverlap;
     });
@@ -399,12 +394,12 @@ export class WordMatcher implements Matcher {
     return groups;
   }
 
-  public filterMatchingItems<T extends MatchSource>(
+  public extractMatches<T extends MatchSource>(
     itemsToMatch: T[],
     filePath: string,
     getInputs: (matchSource: T) => string[],
     sortByLongestMatch?: boolean
-  ): T[] {
+  ): SourceInputMatch<T>[] {
     logger.verbose(
       `(Word matcher) Filtering ${itemsToMatch.length} items using term "${filePath}"`
     );
@@ -448,10 +443,8 @@ export class WordMatcher implements Matcher {
             regexSourceResults.push({
               source,
               sourceId: source._id,
-              matchResult: {
-                matchIndex: res.index,
-                endMatchIndex: inputRegex.lastIndex,
-              },
+              matchIndex: res.index,
+              endMatchIndex: inputRegex.lastIndex,
             });
           }
           return;
@@ -470,15 +463,12 @@ export class WordMatcher implements Matcher {
           const matchResult = doesFullGroupMatch(inputGroups, pathGroup);
 
           if (matchResult) {
-            logger.silly(`(Word matcher) Full group match result`);
+            logger.silly(`(Word matcher) Input ${input} did match path group`);
             groupSourceResults[pathGroupIdx].push({
               source,
               sourceId: source._id,
-              matchResult: {
-                ...matchResult,
-                matchIndex: matchResult.matchIndex + pathGroupIdx,
-                endMatchIndex: matchResult.endMatchIndex + pathGroupIdx,
-              },
+              matchIndex: matchResult.matchIndex + pathGroupIdx,
+              endMatchIndex: matchResult.endMatchIndex + pathGroupIdx,
             });
           }
         });
@@ -500,11 +490,20 @@ export class WordMatcher implements Matcher {
 
     // Get unique sources since a source's inputs can be matched in different path groups and regex
     // Keep the first item for an id in case we sorted the longest matches to the top
-    const matches = createObjectSet(noOverlapItems, "sourceId", "first").map(
-      (match) => match.source
-    );
+    const matches = createObjectSet(noOverlapItems, "sourceId", "first");
     logger.verbose(`(Word matcher) Matched ${matches.length} items`);
     return matches;
+  }
+
+  public filterMatchingItems<T extends MatchSource>(
+    itemsToMatch: T[],
+    filePath: string,
+    getInputs: (matchSource: T) => string[],
+    sortByLongestMatch?: boolean
+  ): T[] {
+    return this.extractMatches(itemsToMatch, filePath, getInputs, sortByLongestMatch).map(
+      (match) => match.source
+    );
   }
 
   isMatchingItem<T extends MatchSource>(

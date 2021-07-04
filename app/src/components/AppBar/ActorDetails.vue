@@ -108,7 +108,7 @@
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
 import { actorModule } from "../../store/actor";
-import ApolloClient, { serverBase } from "../../apollo";
+import ApolloClient from "../../apollo";
 import gql from "graphql-tag";
 import IActor from "../../types/actor";
 import moment from "moment";
@@ -214,6 +214,7 @@ export default class ActorToolbar extends Vue {
               alpha2
               nationality
             }
+            age
           }
         }
       `,
@@ -229,12 +230,13 @@ export default class ActorToolbar extends Vue {
       },
     })
       .then((res) => {
-        const { aliases, nationality } = res.data.updateActors[0];
+        const { aliases, nationality, age } = res.data.updateActors[0];
         actorModule.setName(this.editName.trim());
         actorModule.setDescription(this.editDescription.trim());
         actorModule.setAliases(aliases);
         actorModule.setBornOn(this.editBirthDate);
         actorModule.setNationality(nationality);
+        actorModule.setAge(age);
         this.editDialog = false;
       })
       .catch((err) => {

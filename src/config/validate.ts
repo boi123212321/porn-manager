@@ -3,7 +3,7 @@ import { existsSync } from "fs";
 import path from "path";
 
 import { IConfig } from "../config/schema";
-import { checkUnusedPlugins, validatePlugins } from "../plugins/validate";
+import { checkUnusedPlugins, prevalidatePlugins } from "../plugins/validate";
 import { logger } from "../utils/logger";
 import { isRegExp } from "../utils/types";
 
@@ -40,7 +40,7 @@ export function validateFFMPEGPaths(config: IConfig): void {
  * @throws
  */
 export function validateConfigExtra(config: IConfig): void {
-  validatePlugins(config);
+  prevalidatePlugins(config);
   checkUnusedPlugins(config);
 
   logger.info(`Registered plugins: ${JSON.stringify(Object.keys(config.plugins.register))}`);

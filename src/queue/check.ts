@@ -12,6 +12,22 @@ import { handleError, logger } from "../utils/logger";
 import { libraryPath } from "../utils/path";
 import ora = require("ora");
 
+const VIDEO_EXTENSIONS = [
+  ".m4v",
+  ".mp4",
+  ".mov",
+  ".wmv",
+  ".avi",
+  ".mpg",
+  ".mpeg",
+  ".rmvb",
+  ".rm",
+  ".flv",
+  ".asf",
+  ".mkv",
+  ".webm",
+];
+
 export async function checkVideoFolders(): Promise<void> {
   const config = getConfig();
 
@@ -31,7 +47,7 @@ export async function checkVideoFolders(): Promise<void> {
     await walk({
       dir: folder,
       exclude: config.scan.excludeFiles,
-      extensions: [".mp4", ".webm"],
+      extensions: VIDEO_EXTENSIONS,
       cb: async (path) => {
         loader.text = `Scanned ${++numFiles} videos`;
         if (basename(path).startsWith(".")) {

@@ -27,6 +27,7 @@ export default gql`
       size
       duration
       fps
+      bitrate
       dimensions {
         width
         height

@@ -17,7 +17,8 @@ export default {
     return await Actor.getAverageRating(actor);
   },
   async labels(actor: Actor): Promise<Label[]> {
-    return await Actor.getLabels(actor);
+    const labels = await Actor.getLabels(actor);
+    return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
   async avatar(actor: Actor): Promise<Image | null> {
     if (actor.avatar) {
@@ -60,7 +61,8 @@ export default {
   async collabs(actor: Actor): Promise<Actor[]> {
     const collabs = await Actor.getCollabs(actor);
     const actors = collabs.map((c) => c.actors).flat();
-    return createObjectSet(actors, "_id");
+    const set = createObjectSet(actors, "_id");
+    return set.sort((a, b) => a.name.localeCompare(b.name));
   },
   nationality(actor: Actor): ICountry | null {
     if (!actor.nationality) {

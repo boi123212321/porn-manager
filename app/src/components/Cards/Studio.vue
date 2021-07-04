@@ -38,7 +38,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import { serverBase } from "@/apollo";
+
 
 @Component
 export default class ActorCard extends Vue {
@@ -47,10 +47,10 @@ export default class ActorCard extends Vue {
 
   get thumbnail() {
     if (this.studio.thumbnail)
-      return `${serverBase}/media/image/${
+      return `/api/media/image/${
         this.studio.thumbnail._id
       }?password=${localStorage.getItem("password")}`;
-    return `${serverBase}/assets/broken.png`;
+    return "/assets/broken.png";
   }
 }
 </script>

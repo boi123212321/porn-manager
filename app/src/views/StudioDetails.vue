@@ -287,7 +287,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "@/apollo";
+import ApolloClient from "@/apollo";
 import gql from "graphql-tag";
 import sceneFragment from "@/fragments/scene";
 import { studioModule } from "@/store/studio";
@@ -354,7 +354,9 @@ export default class StudioDetails extends Vue {
   activeTab = 0;
 
   uploadThumbnail() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     this.thumbnailLoader = true;
 
@@ -394,7 +396,9 @@ export default class StudioDetails extends Vue {
   }
 
   async fetchActorPage() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     const result = await ApolloClient.query({
       query: gql`
@@ -432,7 +436,9 @@ export default class StudioDetails extends Vue {
   }
 
   async fetchMoviePage() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     const result = await ApolloClient.query({
       query: gql`
@@ -473,7 +479,9 @@ export default class StudioDetails extends Vue {
   }
 
   async fetchScenePage() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     const result = await ApolloClient.query({
       query: gql`
@@ -508,7 +516,10 @@ export default class StudioDetails extends Vue {
   }
 
   runPlugins() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
+
     this.pluginLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -565,7 +576,9 @@ export default class StudioDetails extends Vue {
   }
 
   attachUnmatchedScenes() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
     this.attachUnmatchedScenesLoader = true;
     ApolloClient.mutate({
       mutation: gql`
@@ -655,7 +668,9 @@ export default class StudioDetails extends Vue {
   }
 
   setAsThumbnail(id: string) {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     ApolloClient.mutate({
       mutation: gql`
@@ -683,7 +698,9 @@ export default class StudioDetails extends Vue {
   }
 
   updateStudioLabels(labels: ILabel[]) {
-    if (!this.currentStudio) return Promise.reject();
+    if (!this.currentStudio) {
+      return Promise.reject();
+    }
 
     return ApolloClient.mutate({
       mutation: gql`
@@ -714,7 +731,9 @@ export default class StudioDetails extends Vue {
   }
 
   editLabels() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     this.labelEditLoader = true;
     return this.updateStudioLabels(this.selectedLabels.map((i) => this.allLabels[i]))
@@ -726,26 +745,35 @@ export default class StudioDetails extends Vue {
       });
   }
 
+  async loadLabels() {
+    const res = await ApolloClient.query({
+      query: gql`
+        {
+          getLabels {
+            _id
+            name
+            aliases
+            color
+          }
+        }
+      `,
+    });
+
+    this.allLabels = res.data.getLabels;
+  }
+
   openLabelSelector() {
-    if (!this.currentStudio) return;
+    if (!this.currentStudio) {
+      return;
+    }
 
     if (!this.allLabels.length) {
-      ApolloClient.query({
-        query: gql`
-          {
-            getLabels {
-              _id
-              name
-              aliases
-              color
-            }
+      this.loadLabels()
+        .then(() => {
+          if (!this.currentStudio) {
+            return;
           }
-        `,
-      })
-        .then((res) => {
-          if (!this.currentStudio) return;
 
-          this.allLabels = res.data.getLabels;
           this.selectedLabels = this.currentStudio.labels.map((l) =>
             this.allLabels.findIndex((k) => k._id == l._id)
           );
@@ -761,10 +789,10 @@ export default class StudioDetails extends Vue {
 
   get thumbnail() {
     if (this.currentStudio && this.currentStudio.thumbnail)
-      return `${serverBase}/media/image/${
-        this.currentStudio.thumbnail._id
-      }?password=${localStorage.getItem("password")}`;
-    return `${serverBase}/assets/broken.png`;
+      return `/api/media/image/${this.currentStudio.thumbnail._id}?password=${localStorage.getItem(
+        "password"
+      )}`;
+    return "/assets/broken.png";
   }
 
   @Watch("$route.params.id")

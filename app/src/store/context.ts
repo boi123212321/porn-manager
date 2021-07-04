@@ -3,18 +3,25 @@ import { VuexModule, Module, Mutation, Action } from "vuex-class-modules";
 @Module
 class ContextModule extends VuexModule {
   showFilters = false;
+  showSidenav = true; // TODO: store and load from localStorage
 
-  sceneAspectRatio = 16 / 9;
-  actorAspectRatio = 1;
-  scenePauseOnUnfocus = false;
+  // UI > GENERAL
   showCardLabels = true;
+  experimental = false;
 
+  // UI > SCENES
+  sceneAspectRatio = 16 / 9;
+  scenePauseOnUnfocus = false;
+  scenePreviewOnMouseHover = false;
+  sceneSeekBackward = 5;
+  sceneSeekForward = 5;
+
+  // UI > ACTORS
+  actorAspectRatio = 3 / 4;
   fillActorCards = true;
 
-  showSidenav = true; // TODO: store and load from localStorage
-  scenePreviewOnMouseHover = false;
-
-  experimental = false;
+  // UI > MOVIES
+  defaultDVDShow3d = true;
 
   @Mutation
   toggleExperimental(bool: boolean) {
@@ -59,6 +66,22 @@ class ContextModule extends VuexModule {
   @Mutation
   setScenePreviewOnMouseHover(val: boolean) {
     this.scenePreviewOnMouseHover = val;
+  }
+
+  @Mutation
+  setSceneSeekBackward(val: number) {
+    this.sceneSeekBackward = val;
+  }
+
+  @Mutation
+  setSceneSeekForward(val: number) {
+    this.sceneSeekForward = val;
+  }
+
+  // MOVIES
+  @Mutation
+  toggleDefaultDVDShow3d(bool: boolean) {
+    this.defaultDVDShow3d = bool;
   }
 }
 

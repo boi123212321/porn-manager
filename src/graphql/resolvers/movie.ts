@@ -1,3 +1,4 @@
+import { imageCollection } from "../../database";
 import Actor from "../../types/actor";
 import Image from "../../types/image";
 import Label from "../../types/label";
@@ -6,31 +7,70 @@ import Scene from "../../types/scene";
 import Studio from "../../types/studio";
 
 export default {
-  frontCover(movie: Movie): Promise<Image | null> | null {
-    if (movie.frontCover) return Image.getById(movie.frontCover);
-    return null;
+  async frontCover(movie: Movie): Promise<Image | null> {
+    if (!movie.frontCover) {
+      return null;
+    }
+
+    const image = await Image.getById(movie.frontCover);
+    if (!image) {
+      return null;
+    }
+
+    // Pre 0.27 compatibility: add image dimensions on demand and save to db
+    if (await Image.addDimensions(image)) {
+      await imageCollection.upsert(image._id, image);
+    }
+
+    return image;
   },
 
-  backCover(movie: Movie): Promise<Image | null> | null {
-    if (movie.backCover) return Image.getById(movie.backCover);
-    return null;
+  async backCover(movie: Movie): Promise<Image | null> {
+    if (!movie.backCover) {
+      return null;
+    }
+    const image = await Image.getById(movie.backCover);
+    if (!image) {
+      return null;
+    }
+
+    // Pre 0.27 compatibility: add image dimensions on demand and save to db
+    if (await Image.addDimensions(image)) {
+      await imageCollection.upsert(image._id, image);
+    }
+
+    return image;
   },
 
-  spineCover(movie: Movie): Promise<Image | null> | null {
-    if (movie.spineCover) return Image.getById(movie.spineCover);
-    return null;
+  async spineCover(movie: Movie): Promise<Image | null> {
+    if (!movie.spineCover) {
+      return null;
+    }
+    const image = await Image.getById(movie.spineCover);
+    if (!image) {
+      return null;
+    }
+
+    // Pre 0.27 compatibility: add image dimensions on demand and save to db
+    if (await Image.addDimensions(image)) {
+      await imageCollection.upsert(image._id, image);
+    }
+
+    return image;
   },
 
   scenes(movie: Movie): Promise<Scene[]> {
     return Movie.getScenes(movie);
   },
 
-  actors(movie: Movie): Promise<Actor[]> {
-    return Movie.getActors(movie);
+  async actors(movie: Movie): Promise<Actor[]> {
+    const actors = await Movie.getActors(movie);
+    return actors.sort((a, b) => a.name.localeCompare(b.name));
   },
 
-  labels(movie: Movie): Promise<Label[]> {
-    return Movie.getLabels(movie);
+  async labels(movie: Movie): Promise<Label[]> {
+    const labels = await Movie.getLabels(movie);
+    return labels.sort((a, b) => a.name.localeCompare(b.name));
   },
 
   async rating(movie: Movie): Promise<number> {

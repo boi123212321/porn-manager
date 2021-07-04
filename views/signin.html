@@ -74,7 +74,7 @@
         document.getElementById("error").innerText = "";
         const pw = document.getElementById("pass").value;
 
-        fetch("/password?password=" + pw).then((res) => {
+        fetch("/api/password?password=" + pw).then((res) => {
           if (res.status != 200) {
             return (document.getElementById("error").innerText =
               "Invalid password.");

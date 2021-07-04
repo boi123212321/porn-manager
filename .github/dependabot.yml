@@ -1,0 +1,153 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  assignees:
+  - boi123212321
+  ignore:
+  - dependency-name: "@types/semver"
+    versions:
+    - 7.3.5
+  - dependency-name: "@types/node"
+    versions:
+    - 14.14.24
+    - 14.14.25
+    - 14.14.26
+    - 14.14.28
+    - 14.14.30
+    - 14.14.32
+    - 14.14.33
+    - 14.14.34
+    - 14.14.35
+    - 14.14.36
+    - 14.14.37
+    - 14.14.41
+    - 15.0.1
+  - dependency-name: "@types/chai"
+    versions:
+    - 4.2.16
+    - 4.2.17
+  - dependency-name: zod
+    versions:
+    - 1.11.12
+    - 1.11.13
+    - 1.11.16
+  - dependency-name: pkg
+    versions:
+    - 4.5.0
+    - 4.5.1
+    - 5.0.0
+  - dependency-name: chalk
+    versions:
+    - 4.1.1
+  - dependency-name: "@apollo/client"
+    versions:
+    - 3.3.11
+    - 3.3.12
+    - 3.3.13
+    - 3.3.14
+    - 3.3.15
+  - dependency-name: cheerio
+    versions:
+    - 1.0.0-rc.6
+  - dependency-name: sinon
+    versions:
+    - 10.0.1
+  - dependency-name: boxen
+    versions:
+    - 5.0.1
+  - dependency-name: "@types/fluent-ffmpeg"
+    versions:
+    - 2.1.17
+  - dependency-name: "@types/node-fetch"
+    versions:
+    - 2.5.10
+    - 2.5.9
+  - dependency-name: typescript
+    versions:
+    - 4.1.4
+    - 4.2.3
+    - 4.2.4
+  - dependency-name: winston-daily-rotate-file
+    versions:
+    - 4.5.1
+    - 4.5.2
+  - dependency-name: apollo-server-express
+    versions:
+    - 2.21.1
+    - 2.21.2
+    - 2.22.1
+    - 2.22.2
+  - dependency-name: "@types/yargs"
+    versions:
+    - 16.0.1
+  - dependency-name: semver
+    versions:
+    - 7.3.5
+  - dependency-name: "@types/mocha"
+    versions:
+    - 8.2.1
+    - 8.2.2
+  - dependency-name: "@types/cheerio"
+    versions:
+    - 0.22.24
+    - 0.22.25
+    - 0.22.26
+    - 0.22.27
+    - 0.22.28
+  - dependency-name: yaml
+    versions:
+    - 1.10.2
+  - dependency-name: chai
+    versions:
+    - 4.3.1
+    - 4.3.3
+    - 4.3.4
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+    - 8.3.1
+    - 8.3.2
+  - dependency-name: "@types/sinon"
+    versions:
+    - 9.0.11
+  - dependency-name: "@types/cli-progress"
+    versions:
+    - 3.9.1
+  - dependency-name: eslint-config-prettier
+    versions:
+    - 8.0.0
+  - dependency-name: graphql-tools
+    versions:
+    - 7.0.3
+    - 7.0.4
+  - dependency-name: "@typescript-eslint/parser"
+    versions:
+    - 4.14.2
+    - 4.15.1
+  - dependency-name: handlebars
+    versions:
+    - 4.7.7
+  - dependency-name: "@typescript-eslint/eslint-plugin"
+    versions:
+    - 4.14.2
+    - 4.15.1
+  - dependency-name: eslint
+    versions:
+    - 7.20.0
+  - dependency-name: apollo-server-core
+    versions:
+    - 2.20.0
+    - 2.21.0
+  - dependency-name: cli-progress
+    versions:
+    - 3.9.0
+  - dependency-name: "@graphql-tools/git-loader"
+    versions:
+    - 6.2.6
+  - dependency-name: "@types/express"
+    versions:
+    - 4.17.11

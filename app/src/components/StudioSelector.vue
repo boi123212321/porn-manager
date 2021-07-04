@@ -23,6 +23,9 @@
         <template>
           <v-list-item-content>
             <v-list-item-title v-html="item.name"></v-list-item-title>
+            <v-list-item-subtitle v-if="item.aliases.length">
+              a.k.a. {{ item.aliases.join(", ") }}
+            </v-list-item-subtitle>
           </v-list-item-content>
         </template>
       </template>
@@ -32,7 +35,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient from "../apollo";
 import gql from "graphql-tag";
 import studioFragment from "../fragments/studio";
 
@@ -64,7 +67,7 @@ export default class StudioSelector extends Vue {
 
   thumbnail(scene: any) {
     if (scene.thumbnail)
-      return `${serverBase}/media/image/${scene.thumbnail._id}?password=${localStorage.getItem(
+      return `/api/media/image/${scene.thumbnail._id}?password=${localStorage.getItem(
         "password"
       )}`;
     return "";

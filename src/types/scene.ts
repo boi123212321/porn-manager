@@ -8,6 +8,7 @@ import asyncPool from "tiny-async-pool";
 import { getConfig } from "../config";
 import { actorCollection, imageCollection, sceneCollection, viewCollection } from "../database";
 import { extractActors, extractLabels, extractMovies, extractStudios } from "../extractor";
+import { normalizeFFProbeContainer } from "../ffmpeg/ffprobe";
 import { singleScreenshot } from "../ffmpeg/screenshot";
 import { onSceneCreate } from "../plugins/events/scene";
 import { enqueueScene } from "../queue/processing";
@@ -17,10 +18,11 @@ import { mapAsync } from "../utils/async";
 import { mkdirpSync, readdirAsync, rimrafAsync, statAsync, unlinkAsync } from "../utils/fs/async";
 import { generateHash } from "../utils/hash";
 import { formatMessage, handleError, logger } from "../utils/logger";
-import { generateTimestampsAtIntervals } from "../utils/misc";
+import { evaluateFps, generateTimestampsAtIntervals } from "../utils/misc";
 import { libraryPath } from "../utils/path";
 import { removeExtension } from "../utils/string";
 import { ApplyActorLabelsEnum, ApplyStudioLabelsEnum } from "./../config/schema";
+import { FFProbeAudioCodecs, FFProbeContainers, FFProbeVideoCodecs } from "./../ffmpeg/ffprobe";
 import Actor from "./actor";
 import ActorReference from "./actor_reference";
 import { iterate } from "./common";
@@ -76,6 +78,10 @@ export class SceneMeta {
   duration: number | null = null;
   dimensions: IDimensions | null = null;
   fps: number | null = null;
+  videoCodec: FFProbeVideoCodecs | null = null;
+  audioCodec: FFProbeAudioCodecs | null = null;
+  container: FFProbeContainers | null = null;
+  bitrate: number | null = null;
 }
 
 export default class Scene {
@@ -191,32 +197,59 @@ export default class Scene {
     scene.meta.dimensions = { width: -1, height: -1 };
 
     const metadata = await ffprobeAsync(videoPath);
-    logger.silly(`FFprobe data: ${formatMessage(metadata)}`);
-    const { streams } = metadata;
+    const { format, streams } = metadata;
+    scene.meta.container = await normalizeFFProbeContainer(
+      format.format_name as FFProbeContainers,
+      videoPath
+    );
 
-    let foundCorrectStream = false;
-    for (const stream of streams) {
-      if (stream.width && stream.height) {
-        scene.meta.dimensions.width = stream.width;
-        scene.meta.dimensions.height = stream.height;
-        scene.meta.fps = parseInt(stream.r_frame_rate || "") || null;
-        if (scene.meta.fps) {
-          if (scene.meta.fps >= 10000) {
-            scene.meta.fps /= 1000;
-          } else if (scene.meta.fps >= 1000) {
-            scene.meta.fps /= 100;
-          }
+    logger.verbose(
+      `Got ffprobe metadata ${formatMessage(metadata)} with normalized container "${
+        scene.meta.container
+      }"`
+    );
+
+    const iterateStreams = [...streams];
+
+    let stream = iterateStreams.shift();
+    let foundVideoCodec = false;
+    let foundAudioCodec = false;
+    while (stream && (!foundVideoCodec || !foundAudioCodec)) {
+      if (!foundVideoCodec && stream.codec_type === "video") {
+        foundVideoCodec = true;
+        scene.meta.videoCodec = (stream.codec_name as FFProbeVideoCodecs) || null;
+
+        if (stream.width && stream.height) {
+          scene.meta.dimensions.width = stream.width;
+          scene.meta.dimensions.height = stream.height;
         }
-        scene.meta.duration = parseInt(stream.duration || "") || null;
+
+        scene.meta.fps = stream.r_frame_rate ? evaluateFps(stream.r_frame_rate) : null;
+        scene.meta.duration = parseFloat(stream.duration || "") || null;
         scene.meta.size = (await statAsync(videoPath)).size;
-        foundCorrectStream = true;
-        break;
+        scene.meta.bitrate = stream.bit_rate ? parseInt(stream.bit_rate) : null;
+        if (Number.isNaN(scene.meta.bitrate)) {
+          scene.meta.bitrate = null;
+        }
       }
+
+      if (!foundAudioCodec && stream.codec_type === "audio") {
+        foundAudioCodec = true;
+        scene.meta.audioCodec = (stream.codec_name as FFProbeAudioCodecs) || null;
+      }
+
+      stream = iterateStreams.shift();
     }
 
-    if (!foundCorrectStream) {
-      logger.debug(streams);
-      throw new Error("Could not get video stream... broken file?");
+    if (!foundVideoCodec) {
+      throw new Error("Could not get video stream...broken file?");
+    }
+
+    // MKV stores duration in format
+    scene.meta.duration = scene.meta.duration ?? (format.duration || null);
+
+    if (!scene.meta.bitrate && scene.meta.size && scene.meta.duration) {
+      scene.meta.bitrate = Math.round(scene.meta.size / scene.meta.duration);
     }
 
     return metadata;
@@ -239,7 +272,7 @@ export default class Scene {
     if (extractInfo && config.matching.extractSceneActorsFromFilepath) {
       // Extract actors
       let extractedActors = [] as string[];
-      extractedActors = await extractActors(videoPath);
+      extractedActors = await extractActors(scene.path);
       sceneActors.push(...extractedActors);
 
       logger.debug(`Found ${extractedActors.length} actors in scene path.`);
@@ -260,14 +293,14 @@ export default class Scene {
 
     if (extractInfo && config.matching.extractSceneLabelsFromFilepath) {
       // Extract labels
-      const extractedLabels = await extractLabels(videoPath);
+      const extractedLabels = await extractLabels(scene.path);
       sceneLabels.push(...extractedLabels);
       logger.debug(`Found ${extractedLabels.length} labels in scene path.`);
     }
 
     if (extractInfo && config.matching.extractSceneStudiosFromFilepath) {
       // Extract studio
-      const extractedStudio = (await extractStudios(videoPath))[0] || null;
+      const extractedStudio = (await extractStudios(scene.path))[0] || null;
       scene.studio = extractedStudio;
 
       if (scene.studio) {
@@ -290,7 +323,7 @@ export default class Scene {
 
     if (extractInfo && config.matching.extractSceneMoviesFromFilepath) {
       // Extract movie
-      const extractedMovie = (await extractMovies(videoPath))[0] || null;
+      const extractedMovie = (await extractMovies(scene.path))[0] || null;
 
       if (extractedMovie) {
         logger.debug("Found movie in scene path");
@@ -306,10 +339,10 @@ export default class Scene {
     const pluginResult = await onSceneCreate(scene, sceneLabels, sceneActors);
     scene = pluginResult.scene;
 
-    if (!scene.thumbnail) {
+    if (!scene.thumbnail && scene.path) {
       const thumbnail = await Scene.generateSingleThumbnail(
         scene._id,
-        videoPath,
+        scene.path,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         scene.meta.dimensions!
       );
@@ -444,7 +477,7 @@ export default class Scene {
     return sceneCollection.get(_id);
   }
 
-  static async getBulk(_ids: string[]): Promise<Scene[]> {
+  static getBulk(_ids: string[]): Promise<Scene[]> {
     return sceneCollection.getBulk(_ids);
   }
 
@@ -564,9 +597,10 @@ export default class Scene {
   ): Promise<ThumbnailFile> {
     return new Promise(async (resolve, reject) => {
       try {
-        const folder = libraryPath("thumbnails/");
-
         const config = getConfig();
+
+        const folder = libraryPath("thumbnails/");
+        const filename = `${id} (thumbnail).jpg`;
 
         await (() => {
           return new Promise<void>((resolve, reject) => {
@@ -583,7 +617,7 @@ export default class Scene {
               .screenshot({
                 folder,
                 count: 1,
-                filename: `${id} (thumbnail).jpg`,
+                filename,
                 timestamps: ["50%"],
                 size: `${Math.min(
                   dimensions.width || config.processing.imageCompressionSize,
@@ -595,26 +629,18 @@ export default class Scene {
 
         logger.info("Thumbnail generation done.");
 
-        const thumbnailFilenames = (await readdirAsync(folder)).filter((name) => name.includes(id));
-
-        const thumbnailFiles = await Promise.all(
-          thumbnailFilenames.map(async (name) => {
-            const filePath = libraryPath(`thumbnails/${name}`);
-            const stats = await statAsync(filePath);
-            return {
-              name,
-              path: filePath,
-              size: stats.size,
-              time: stats.mtime.getTime(),
-            };
-          })
-        );
-
-        const thumb = thumbnailFiles[0];
-        if (!thumb) {
+        const filePath = path.resolve(folder, filename);
+        const stats = await statAsync(filePath);
+        if (!stats) {
           throw new Error("Thumbnail generation failed");
         }
-        resolve(thumb);
+
+        resolve({
+          name: filename,
+          path: filePath,
+          size: stats.size,
+          time: stats.mtime.getTime(),
+        });
       } catch (err) {
         logger.error(err);
         reject(err);
@@ -654,10 +680,10 @@ export default class Scene {
     return image;
   }
 
-  static async generateThumbnails(scene: Scene): Promise<ThumbnailFile[]> {
+  static async generateScreenshots(scene: Scene): Promise<ThumbnailFile[]> {
     return new Promise(async (resolve, reject) => {
       if (!scene.path) {
-        logger.warn("No scene path, aborting thumbnail generation.");
+        logger.warn("No scene path, aborting screenshot generation.");
         return resolve([]);
       }
 
@@ -671,15 +697,17 @@ export default class Scene {
           Math.floor((scene.meta.duration || 30) / config.processing.screenshotInterval)
         );
       } else {
-        logger.warn("No duration of scene found, defaulting to 10 thumbnails...");
+        logger.warn("No duration of scene found, defaulting to 10 screenshots...");
         amount = 10;
       }
 
+      const filePrefix = `${scene._id}-screenshot-`;
+
       const options = {
         file: scene.path,
-        pattern: `${scene._id}-{{index}}.jpg`,
+        pattern: `${filePrefix}{{index}}.jpg`,
         count: amount,
-        thumbnailPath: libraryPath("thumbnails/"),
+        screenshotPath: libraryPath("thumbnails/"),
       };
 
       try {
@@ -689,19 +717,19 @@ export default class Scene {
         });
 
         logger.debug(`Timestamps: ${formatMessage(timestamps)}`);
-        logger.debug(`Creating thumbnails with options: ${formatMessage(options)}`);
+        logger.debug(`Creating screenshots with options: ${formatMessage(options)}`);
 
         await asyncPool(4, timestamps, (timestamp) => {
           const index = timestamps.findIndex((s) => s === timestamp);
           return new Promise<void>((resolve, reject) => {
-            logger.debug(`Creating thumbnail ${index}...`);
+            logger.debug(`Creating screenshot ${index}...`);
             ffmpeg(options.file)
               .on("end", () => {
-                logger.verbose(`Created thumbnail ${index}`);
+                logger.verbose(`Created screenshot ${index}`);
                 resolve();
               })
               .on("error", (err: Error) => {
-                logger.error(`Thumbnail generation failed for thumbnail ${index}`);
+                logger.error(`Screenshot generation failed for screenshot ${index}`);
                 logger.error({
                   options,
                   duration: scene.meta.duration,
@@ -715,7 +743,7 @@ export default class Scene {
                 // Note: we can't use the FFMPEG index syntax
                 // because we're generating 1 screenshot at a time instead of N
                 filename: options.pattern.replace("{{index}}", index.toString().padStart(3, "0")),
-                folder: options.thumbnailPath,
+                folder: options.screenshotPath,
                 size: `${Math.min(
                   scene.meta.dimensions?.width || config.processing.imageCompressionSize,
                   config.processing.imageCompressionSize
@@ -724,14 +752,14 @@ export default class Scene {
           });
         });
 
-        logger.info("Thumbnail generation done.");
+        logger.info("Screenshot generation done.");
 
-        const thumbnailFilenames = (await readdirAsync(options.thumbnailPath)).filter((name) =>
-          name.includes(scene._id)
+        const screenshotFilenames = (await readdirAsync(options.screenshotPath)).filter((name) =>
+          name.startsWith(filePrefix)
         );
 
-        const thumbnailFiles = await Promise.all(
-          thumbnailFilenames.map(async (name) => {
+        const screenshotFiles = await Promise.all(
+          screenshotFilenames.map(async (name) => {
             const filePath = libraryPath(`thumbnails/${name}`);
             const stats = await statAsync(filePath);
             return {
@@ -743,11 +771,11 @@ export default class Scene {
           })
         );
 
-        thumbnailFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        screenshotFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
-        logger.info(`Generated ${thumbnailFiles.length} thumbnails.`);
+        logger.info(`Generated ${screenshotFiles.length} screenshots.`);
 
-        resolve(thumbnailFiles);
+        resolve(screenshotFiles);
       } catch (err) {
         logger.error(err);
         reject(err);

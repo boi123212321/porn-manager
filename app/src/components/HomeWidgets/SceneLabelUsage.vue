@@ -8,7 +8,6 @@
 import { Component, Vue, Watch } from "vue-property-decorator";
 import Chart from "chart.js";
 import Axios from "axios";
-import { serverBase } from "@/apollo";
 
 @Component
 export default class SceneLabelUsage extends Vue {
@@ -24,7 +23,7 @@ export default class SceneLabelUsage extends Vue {
 
   async getStats() {
     try {
-      const res = await Axios.get(serverBase + "/label-usage/scenes");
+      const res = await Axios.get("/api/label-usage/scenes");
       this.stats = res.data;
     } catch (err) {
       console.error("Could not retrieve scene label usage: ", err.message);

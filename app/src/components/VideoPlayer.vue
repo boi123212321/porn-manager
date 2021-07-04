@@ -6,6 +6,10 @@
           :class="{ 'video-wrapper': true, hideControls: !isHoveringVideo }"
           ref="videoWrapper"
           tabindex="0"
+          @touchstart="onVideoTouchStart"
+          @touchend="onVideoTouchEnd"
+          @dblclick="toggleFullscreen"
+          @mousedown="mouseDownVideo = true"
           @mousemove="
             isHoveringVideo = true;
             startVideoHoverTimeout();
@@ -14,8 +18,6 @@
         >
           <div :class="{ 'video-overlay': true, hideControls: !isHoveringVideo }">
             <v-img
-              @click="togglePlay(false)"
-              @dblclick="toggleFullscreen"
               :src="poster"
               cover
               max-height="100%"
@@ -23,8 +25,6 @@
               v-if="poster && showPoster"
             ></v-img>
             <v-img
-              @click="togglePlay(false)"
-              @dblclick="toggleFullscreen"
               class="poster text-center"
               :src="poster"
               contain
@@ -36,38 +36,45 @@
             </v-fade-transition>
 
             <v-fade-transition>
-              <div v-if="showControls" class="bottom-bar-wrapper">
+              <!-- Prevent mouse/touch events from going -->
+              <!-- to video wrapper and triggering play/pause -->
+              <div
+                v-if="showControls"
+                class="bottom-bar-wrapper"
+                @click.stop
+                @touchstart.stop
+                @touchend.stop
+                @mousedown.stop
+              >
                 <div class="bottom-bar-content">
-                  <v-hover close-delay="200" @input="isHoveringProgressBar = $event">
+                  <v-hover close-delay="200" @input="isHoveringProgressBarDelayed = $event">
                     <div
-                      @mousedown.stop.prevent="onProgressBarMouseDown"
+                      @mouseenter="isHoveringProgressBarExact = true"
+                      @mouseleave="isHoveringProgressBarExact = false"
+                      @mousedown.prevent="onProgressBarMouseDown"
                       @touchmove.prevent="onProgressBarScrub"
                       @touchstart.prevent="onProgressBarMouseDown"
-                      @touchend.prevent="onProgressBarMouseUp"
-                      @click="onProgressClick"
+                      @touchend.prevent="onVideoMouseUp"
                       ref="progressBar"
                       class="progress-bar-wrapper"
                     >
-                      <div :class="{ 'time-bar': true, large: isHoveringProgressBar }">
+                      <!-- Use 'isHoveringProgressBarDelayed' to include the hover close delay -->
+                      <div :class="{ 'time-bar': true, large: isHoveringProgressBarDelayed }">
                         <v-fade-transition>
                           <div
                             class="elevation-4 preview-window"
-                            v-if="(isHoveringProgressBar || isDraggingProgressBar) && preview"
-                            :style="`left: ${previewX * 100}%;`"
+                            v-if="
+                              (isHoveringProgressBarDelayed || isDraggingProgressBar) && preview
+                            "
+                            :style="`left: ${previewX}px;`"
                           >
-                            <div
-                              class="preview-wrapper"
-                              :style="{
-                                width: '160px',
-                                height: `${Math.round(160 / this.aspectRatio)}px`,
-                              }"
-                            >
+                            <div class="preview-wrapper" :style="previewStyle">
                               <img
                                 class="preview-image"
-                                :style="`left: -${imageIndex * 160}px; background-position: ${
-                                  imageIndex * 160
-                                }`"
-                                :src="preview"
+                                :style="`left: -${
+                                  imageIndex * SINGLE_PREVIEW_WIDTH
+                                }px; background-position: ${imageIndex * SINGLE_PREVIEW_WIDTH}`"
+                                :src="preview.src"
                               />
                             </div>
                             <v-card
@@ -80,19 +87,22 @@
                         </v-fade-transition>
                       </div>
 
-                      <template v-if="buffered">
-                        <template v-for="i in buffered.length">
-                          <div
-                            :key="i"
-                            :class="{ 'buffer-bar': true, large: isHoveringProgressBar }"
-                            :style="`left: ${
-                              percentOfVideo(buffered.start(i - 1)) * 100
-                            }%; right: ${100 - percentOfVideo(buffered.end(i - 1)) * 100}%;`"
-                          ></div>
-                        </template>
+                      <template v-for="(range, i) in bufferedRanges">
+                        <div
+                          :key="i"
+                          :class="{ 'buffer-bar': true, large: isHoveringProgressBarDelayed }"
+                          :style="`left: ${percentOfVideo(range.start) * 100}%; right: ${
+                            100 - percentOfVideo(range.end) * 100
+                          }%;`"
+                        ></div>
                       </template>
                       <div
-                        :class="{ 'progress-bar': true, large: isHoveringProgressBar }"
+                        v-if="isHoveringProgressBarDelayed"
+                        :class="{ 'seek-bar': true, large: isHoveringProgressBarDelayed }"
+                        :style="`width: ${previewPercent * 100}%;`"
+                      ></div>
+                      <div
+                        :class="{ 'progress-bar': true, large: isHoveringProgressBarDelayed }"
                         :style="`width: ${progressPercent * 100}%;`"
                       ></div>
                       <v-tooltip v-for="marker in markers" :key="marker.id" bottom>
@@ -154,9 +164,9 @@
                       >{{ formatTime(progress) }} / {{ formatTime(duration) }}</span
                     >
                     <v-spacer></v-spacer>
-                    <v-menu offset-y top @input="onPlaybackRateMenuToggle">
+                    <v-menu offset-y top @input="onPlaybackRateMenuToggle" attach>
                       <template #activator="{ on, attrs }">
-                        <v-btn class="text-none" text v-bind="attrs" v-on="on" small>
+                        <v-btn class="text-none" dark text v-bind="attrs" v-on="on" small>
                           {{ `${playbackRate}x` }}
                         </v-btn>
                       </template>
@@ -175,6 +185,32 @@
                           >
                             <v-list-item-content>
                               <v-list-item-title v-text="`${rate}x`"></v-list-item-title>
+                            </v-list-item-content>
+                          </v-list-item>
+                        </v-list-item-group>
+                      </v-list>
+                    </v-menu>
+                    <v-menu offset-y top @input="onStreamTypeMenuToggle" attach>
+                      <template #activator="{ on, attrs }">
+                        <v-btn class="text-none" dark text v-bind="attrs" v-on="on" small>
+                          {{ currentSource() ? currentSource().label : "select a source" }}
+                        </v-btn>
+                      </template>
+
+                      <v-list>
+                        <v-list-item-group
+                          color="primary"
+                          :value="currentStreamType()"
+                          @change="selectStreamType"
+                        >
+                          <v-list-item
+                            v-for="source in sources"
+                            :key="source.streamType"
+                            dense
+                            :value="source.streamType"
+                          >
+                            <v-list-item-content>
+                              <v-list-item-title v-text="source.label"></v-list-item-title>
                             </v-list-item-content>
                           </v-list-item>
                         </v-list-item-group>
@@ -209,19 +245,13 @@
             </v-fade-transition>
           </div>
           <video
-            @click="togglePlay(false)"
-            @touchstart="onVideoTouchStart"
-            @touchend="onVideoTouchEnd"
-            @dblclick="toggleFullscreen"
             :class="{
               'video video-js': true,
               cover: fitMode === 'cover',
               contain: fitMode === 'contain',
             }"
             ref="video"
-          >
-            <source :src="src" type="video/mp4" />
-          </video>
+          ></video>
         </div>
       </v-hover>
     </v-responsive>
@@ -238,6 +268,7 @@ import "video.js/dist/video-js.css";
 import videojs, { VideoJsPlayer } from "video.js";
 import { Component, Vue, Prop } from "vue-property-decorator";
 import moment from "moment";
+import { BufferedRange, SceneSource } from "../types/scene";
 
 const LS_IS_MUTED = "player_is_muted";
 const LS_VOLUME = "player_volume";
@@ -266,13 +297,18 @@ const HOVER_VIDEO_TIMEOUT_DELAY = 3000;
 
 const SCRUB_TO_SEEK_DELAY = 300;
 
+const SINGLE_PREVIEW_WIDTH = 160;
+
 @Component
 export default class VideoPlayer extends Vue {
-  @Prop(String) src!: string;
+  @Prop() sources!: SceneSource[];
   @Prop(Number) duration!: number;
   @Prop({ default: null }) poster!: string | null;
   @Prop() markers!: { _id: string; name: string; time: number }[];
-  @Prop({ default: null }) preview!: string | null;
+  @Prop({ default: null }) preview!: {
+    src: string;
+    dimensions?: { width?: number; height?: number };
+  } | null;
   @Prop({ default: null }) dimensions!: { height: number; width: number } | null;
   @Prop({ default: null }) maxHeight!: number | string | null;
   @Prop({ default: false }) showTheaterMode!: boolean;
@@ -286,6 +322,7 @@ export default class VideoPlayer extends Vue {
   videoNotice = "";
   noticeTimeout: null | number = null;
   previewX = 0;
+  previewPercent = 0;
   progress = 0;
   buffered: videojs.TimeRange | null = null;
   ended = false;
@@ -303,14 +340,20 @@ export default class VideoPlayer extends Vue {
   isMuted = localStorage.getItem(LS_IS_MUTED) === "true";
   volume = parseFloat(localStorage.getItem(LS_VOLUME) ?? "1");
 
+  transcodeOffset = 0;
+
+  mouseDownVideo = false;
   isDraggingProgressBar = false;
-  isHoveringProgressBar = false;
+  isHoveringProgressBarExact = false;
+  isHoveringProgressBarDelayed = false;
   didPauseForSeeking = false;
   applyScrubPositionTimeout: number | null = null;
   isHoveringVideo = false;
   videoHoverTimeout: null | number = null;
   isPlaybackRateMenuOpen = false;
   hidePlaybackRateMenu: null | number = null;
+  isStreamTypeMenuOpen = false;
+  hideStreamTypeMenu: null | number = null;
   fitMode: "cover" | "contain" = "contain";
   isFullscreen = false;
 
@@ -322,17 +365,18 @@ export default class VideoPlayer extends Vue {
 
   PREVIEW_START_OFFSET = PREVIEW_START_OFFSET;
   PLAYBACK_RATES = PLAYBACK_RATES;
+  SINGLE_PREVIEW_WIDTH = SINGLE_PREVIEW_WIDTH;
 
   mounted() {
     window.addEventListener("mouseup", this.onVolumeMouseUp);
-    window.addEventListener("mouseup", this.onProgressBarMouseUp);
+    window.addEventListener("mouseup", this.onVideoMouseUp);
     window.addEventListener("mousemove", this.onProgressBarScrub);
 
     this.player = videojs(
       this.$refs.video,
       {
+        sources: this.sources.map((s) => ({ ...s, src: s.url, type: s.mimeType })),
         fluid: false,
-        playbackRates: [0.5, 1, 1.5, 2],
         userActions: {
           doubleClick: true,
           hotkeys: (ev: videojs.KeyboardEvent): void => {
@@ -361,26 +405,53 @@ export default class VideoPlayer extends Vue {
         }
         this.selectPlaybackRate(this.playbackRate);
 
-        this.player!.on("timeupdate", (ev: Event) => {
-          this.progress = this.player!.currentTime();
+        this.player!.on("timeupdate", () => {
+          if (!this.isDraggingProgressBar) {
+            this.progress = this.transcodeOffset + this.player!.currentTime();
+          }
           this.buffered = this.player!.buffered();
           this.ended = this.player!.ended();
           this.isPlaying = this.isPlaying && !this.ended;
         });
 
-        this.player!.on("playerresize", (ev: Event) => {
+        this.player!.on("playerresize", () => {
           const video = this.$refs.video as HTMLVideoElement;
           const box = video.getBoundingClientRect();
           const renderedAspectRatio = box.width / box.height;
-          this.showFitOption = renderedAspectRatio !== this.aspectRatio;
+          this.showFitOption = Math.abs(renderedAspectRatio - this.aspectRatio) > 0.01;
         });
+
+        this.player!.on("error", this.onPlayerError);
       }
     );
   }
 
+  onPlayerError(): void {
+    const error = this.player!.error();
+    if (!error) {
+      return;
+    }
+
+    if (error.code === error.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+      // If for some reason videojs couldn't not play a source, but did
+      // not attempt to go to the next, trigger it manually
+
+      const sIdx = this.sources.findIndex((s) => s.streamType === this.currentSource()?.streamType);
+      if (sIdx < this.sources.length - 1) {
+        const nextSource = this.sources[sIdx + 1];
+        this.player?.src({
+          ...nextSource,
+          src: nextSource.url,
+          type: nextSource.mimeType,
+        });
+        this.player!.load();
+      }
+    }
+  }
+
   beforeDestroy() {
     window.removeEventListener("mouseup", this.onVolumeMouseUp);
-    window.removeEventListener("mouseup", this.onProgressBarMouseUp);
+    window.removeEventListener("mouseup", this.onVideoMouseUp);
     window.removeEventListener("mousemove", this.onProgressBarScrub);
 
     if (this.player) {
@@ -403,28 +474,49 @@ export default class VideoPlayer extends Vue {
     return this.progress;
   }
 
+  currentSource(): SceneSource | undefined {
+    // We can type this as SceneSource, since we passed the whole object
+    // on player creation
+    return (this.player?.currentSource() as unknown) as SceneSource;
+  }
+
+  currentStreamType(): string | undefined {
+    return this.currentSource()?.streamType;
+  }
+
   get imageIndex() {
     // The preview start is offset from the beginning of the scene.
-    // If previewX is in this zone, just show the first preview we have
-    if (this.previewX <= PREVIEW_START_OFFSET) {
+    // If previewPercent is in this zone, just show the first preview we have
+    if (this.previewPercent <= PREVIEW_START_OFFSET) {
       return 0;
     }
     // For the rest, subtract the offset to get the actual "x"
     // of the cursor in the preview
-    const actualX = this.previewX - PREVIEW_START_OFFSET;
+    const actualX = this.previewPercent - PREVIEW_START_OFFSET;
     // Multiply by 100 since there are 100 previews
     return Math.floor(actualX * 100);
   }
 
   get previewTime() {
-    return this.formatTime(this.duration * this.previewX);
+    return this.formatTime(this.duration * this.previewPercent);
+  }
+
+  get previewStyle() {
+    let previewHeight =
+      this.preview?.dimensions?.height || Math.floor(SINGLE_PREVIEW_WIDTH / this.aspectRatio);
+
+    return {
+      width: `${SINGLE_PREVIEW_WIDTH}px`,
+      height: `${previewHeight}px`,
+    };
   }
 
   get showControls() {
     return (
       this.isPlaybackRateMenuOpen ||
+      this.isStreamTypeMenuOpen ||
       this.isVolumeDragging ||
-      this.isHoveringProgressBar ||
+      this.isHoveringProgressBarDelayed ||
       this.isDraggingProgressBar ||
       this.isHoveringVideo
     );
@@ -546,13 +638,23 @@ export default class VideoPlayer extends Vue {
     }
   }
 
-  onProgressBarMouseDown() {
+  onProgressBarMouseDown(ev: MouseEvent | TouchEvent) {
     this.isDraggingProgressBar = true;
+    // Scrub right away so the user doesn't have to move
+    // their mouse
+    this.onProgressBarScrub(ev);
   }
 
-  onProgressBarMouseUp() {
-    // Ignore global mouseup events
+  onVideoMouseUp(ev: MouseEvent | TouchEvent) {
     if (!this.isDraggingProgressBar) {
+      if (this.mouseDownVideo) {
+        // If we weren't dragging the progress bar, but did originally
+        // press on the video element, toggle play and exit func
+        this.mouseDownVideo = false;
+        this.togglePlay(false);
+      }
+
+      // Ignore non video related mouseup events: exit func
       return;
     }
 
@@ -560,8 +662,17 @@ export default class VideoPlayer extends Vue {
       clearTimeout(this.applyScrubPositionTimeout);
     }
 
-    // Seek to the scrub position
-    this.seek(this.progress);
+    const progressBar = this.$refs.progressBar as Element;
+    if (progressBar) {
+      const rect = progressBar.getBoundingClientRect();
+      const clientX =
+        window.TouchEvent && ev instanceof window.TouchEvent
+          ? ev.changedTouches[0].clientX
+          : (ev as MouseEvent).clientX;
+      const x = clientX - rect.left;
+      const xPercentage = x / rect.width;
+      this.seek(Math.min(this.duration, Math.max(0, xPercentage * this.duration)), "", false);
+    }
 
     this.isDraggingProgressBar = false;
     if (this.didPauseForSeeking) {
@@ -572,7 +683,10 @@ export default class VideoPlayer extends Vue {
 
   onProgressBarScrub(ev: MouseEvent | TouchEvent) {
     // Ignore global mousemove events
-    if (!this.isDraggingProgressBar && !this.isHoveringProgressBar) {
+    // Check 'isHoveringProgressBarExact' instead of 'isHoveringProgressBarDelayed'
+    // so we can stop scrubbing as soon as the mouse leaves the hover zone,
+    // while still displaying the progress bar for a short time
+    if (!this.isDraggingProgressBar && !this.isHoveringProgressBarExact) {
       return;
     }
 
@@ -591,11 +705,15 @@ export default class VideoPlayer extends Vue {
         ? ev.touches[0].clientX
         : (ev as MouseEvent).clientX;
     let x = clientX - rect.left;
-    // Do not "outside" the width of rectangle
+    // Do not go "outside" the width of rectangle
     x = Math.min(rect.right - rect.left, x);
     x = Math.max(0, x);
 
-    this.previewX = x / rect.width;
+    this.previewPercent = x / rect.width;
+
+    const sideOffset = SINGLE_PREVIEW_WIDTH / 2 + 5;
+    // Prevent preview window "overflowing" the container
+    this.previewX = Math.max(Math.min(x, rect.width - sideOffset), sideOffset);
 
     if (this.isDraggingProgressBar) {
       if (!this.isPaused()) {
@@ -603,14 +721,14 @@ export default class VideoPlayer extends Vue {
         this.didPauseForSeeking = true;
       }
       // Update our progress right away
-      const time = this.previewX * this.duration;
+      const time = this.previewPercent * this.duration;
       this.progress = time;
 
       // But delay the seek so we don't seek on every scrub
       this.applyScrubPosition(time);
 
       // For touch mode, after scrubbing, we want the controls to linger a little
-      // since 'isHoveringProgressBar' won't be set to true
+      // since 'isHoveringProgressBarDelayed' won't be set to true
       this.isHoveringVideo = true;
       this.startVideoHoverTimeout();
     }
@@ -634,6 +752,20 @@ export default class VideoPlayer extends Vue {
     return this.percentOfVideo(this.progress);
   }
 
+  get bufferedRanges(): BufferedRange[] {
+    if (!this.buffered) {
+      return [];
+    }
+    const bufferedRanges: BufferedRange[] = [];
+    for (let i = 0; i < this.buffered.length; i++) {
+      bufferedRanges.push({
+        start: this.transcodeOffset + this.buffered.start(i),
+        end: this.transcodeOffset + this.buffered.end(i),
+      });
+    }
+    return bufferedRanges;
+  }
+
   seekRel(delta: number, text?: string) {
     if (this.isHoveringVideo) {
       this.startVideoHoverTimeout();
@@ -644,7 +776,7 @@ export default class VideoPlayer extends Vue {
     this.seek(Math.min(this.duration, Math.max(0, this.progress + delta)), text);
   }
 
-  seek(time: number, text?: string, play = false): void {
+  seek(time: number, text?: string, play = false, ignoreCurrentTime = false): void {
     if (this.applyScrubPositionTimeout) {
       clearTimeout(this.applyScrubPositionTimeout);
     }
@@ -652,28 +784,60 @@ export default class VideoPlayer extends Vue {
     if (!this.player || !this.ready) {
       return;
     }
+
+    // If we are seeking to the same time we already have, ignore it
+    if (
+      !ignoreCurrentTime &&
+      Math.abs(time - this.transcodeOffset - this.player.currentTime()) <= 0.01
+    ) {
+      return;
+    }
+
     this.showPoster = false;
 
-    this.player.currentTime(time);
-    if (play) {
+    const currentSource = this.currentSource()!;
+    let resumeAfterReset = false;
+
+    if (
+      !currentSource.transcode ||
+      (this.transcodeOffset < time &&
+        this.bufferedRanges.find((range) => range.start <= time && range.end >= time))
+    ) {
+      // If we are not transcoding, or if the time is already buffered
+      // seek directly to the time. Subtract the transcode offset since the
+      // player doesn't know the real start time
+      this.player.currentTime(time - this.transcodeOffset);
+    } else {
+      // Else we are transcoding, and the time isn't buffered.
+      // We'll change the src and reload, to make the player request
+      // for the transcode to start at the seek time
+
+      if (!this.isPaused()) {
+        this.pause();
+        resumeAfterReset = true;
+      }
+
+      this.transcodeOffset = time;
+      this.progress = this.transcodeOffset;
+      // Reset the buffer while we load the new url
+      this.buffered = null;
+
+      const src = new URL(window.location.origin + currentSource.url);
+      src.searchParams.set("start", time.toString());
+      this.player.src({
+        ...currentSource,
+        src: src.toString().replace(window.location.origin, ""),
+        type: currentSource.mimeType,
+      });
+
+      this.player.load();
+    }
+
+    if (play || resumeAfterReset) {
       this.play();
     }
     if (text) {
       this.notice(text);
-    }
-  }
-
-  onProgressClick(ev: any) {
-    if (this.applyScrubPositionTimeout) {
-      clearTimeout(this.applyScrubPositionTimeout);
-    }
-
-    const progressBar = this.$refs.progressBar as Element;
-    if (progressBar) {
-      const rect = progressBar.getBoundingClientRect();
-      const x = ev.clientX - rect.left;
-      const xPercentage = x / rect.width;
-      this.seek(xPercentage * this.duration, "", false);
     }
   }
 
@@ -682,7 +846,13 @@ export default class VideoPlayer extends Vue {
     if (ev.touches.length !== 1) {
       return;
     }
-    this.lastTouchClientX = ev.touches[0].clientX;
+
+    if (this.showPoster) {
+      // If the poster is being shown, just start playing
+      this.play();
+    } else {
+      this.lastTouchClientX = ev.touches[0].clientX;
+    }
   }
 
   onVideoTouchEnd(ev: TouchEvent): void {
@@ -851,6 +1021,73 @@ export default class VideoPlayer extends Vue {
       // until the menu is hidden and the main controls hover is triggered
       this.hidePlaybackRateMenu = window.setTimeout(() => {
         this.isPlaybackRateMenuOpen = false;
+      }, 10);
+    }
+  }
+
+  selectStreamType(streamType: string): void {
+    if (!this.player) {
+      return;
+    }
+
+    const source = this.sources.find((s) => s.streamType === streamType);
+    if (!source) {
+      return;
+    }
+    let resumeAfterReset = false;
+    let seekAfterReset = false;
+    if (!this.isPaused()) {
+      this.pause();
+      resumeAfterReset = true;
+    }
+
+    const oldProgress = this.progress;
+    const src = new URL(window.location.origin + source.url);
+
+    // Reset the buffer while we load the new url
+    this.buffered = null;
+    this.transcodeOffset = 0;
+
+    if (source.transcode) {
+      this.transcodeOffset = oldProgress;
+      this.progress = this.transcodeOffset;
+
+      src.searchParams.set("start", this.transcodeOffset.toString());
+    } else {
+      // When not transcoding, we'll have to seek to
+      // the old time once the source is loaded since the player
+      // starts from the beginning
+      seekAfterReset = true;
+    }
+
+    this.player.one("loadedmetadata", () => {
+      if (seekAfterReset) {
+        this.seek(oldProgress);
+      }
+      if (resumeAfterReset) {
+        this.play();
+      }
+    });
+
+    this.player.src({
+      ...source,
+      src: src.toString().replace(window.location.origin, ""),
+      type: source.mimeType,
+    });
+    this.player.load();
+  }
+
+  onStreamTypeMenuToggle(isOpen: boolean): void {
+    if (this.hideStreamTypeMenu) {
+      window.clearTimeout(this.hideStreamTypeMenu);
+    }
+    if (isOpen) {
+      this.isStreamTypeMenuOpen = true;
+    } else {
+      // Delay setting this to false, so that the controls will still be shown
+      // until the menu is hidden and the main controls hover is triggered
+      this.hideStreamTypeMenu = window.setTimeout(() => {
+        this.isStreamTypeMenuOpen = false;
       }, 10);
     }
   }
@@ -1050,6 +1287,12 @@ export default class VideoPlayer extends Vue {
       opacity: 0.2;
     }
 
+    .seek-bar {
+      @include bar;
+      background: white;
+      opacity: 0.3;
+    }
+
     .marker {
       position: absolute;
       bottom: 0;
@@ -1091,7 +1334,10 @@ export default class VideoPlayer extends Vue {
   }
 
   .poster {
-    pointer-events: auto;
+    // Prevent the poster intercepting 'touchstart' events:
+    // Since it's rendered conditionnally, if it's hidden after the 'touchstart'
+    // it won't trigger a 'touchend' event
+    pointer-events: none;
     position: absolute;
     left: 0;
     top: 0;

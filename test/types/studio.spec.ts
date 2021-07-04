@@ -1,17 +1,17 @@
-import { expect } from "chai";
-import { existsSync, unlinkSync } from "fs";
-import { before } from "mocha";
+import { expect } from 'chai';
+import { existsSync, unlinkSync } from 'fs';
+import { before } from 'mocha';
 
-import { labelCollection, sceneCollection, studioCollection } from "../../src/database";
-import { indexScenes } from "../../src/search/scene";
-import { indexStudios } from "../../src/search/studio";
-import Label from "../../src/types/label";
-import Scene from "../../src/types/scene";
-import Studio from "../../src/types/studio";
-import { downloadTestVideo } from "../fixtures/files/dynamicTestFiles";
-import { startTestServer, stopTestServer } from "../testServer";
-
-import query from "../../src/graphql/resolvers/query";
+import { labelCollection, sceneCollection, studioCollection } from '../../src/database';
+import query from '../../src/graphql/resolvers/query';
+import { indexScenes } from '../../src/search/scene';
+import { indexStudios } from '../../src/search/studio';
+import Label from '../../src/types/label';
+import Scene from '../../src/types/scene';
+import Studio from '../../src/types/studio';
+import { downloadFile } from '../../src/utils/download';
+import { TEST_VIDEOS } from '../fixtures/files/dynamicTestFiles';
+import { startTestServer, stopTestServer } from '../testServer';
 
 describe("types", () => {
   describe("studio", () => {
@@ -58,8 +58,8 @@ describe("types", () => {
       }
 
       before(async () => {
-        await downloadTestVideo(videoPathWithStudio);
-        await downloadTestVideo(videoPathWithoutStudio);
+        await downloadFile(TEST_VIDEOS.MP4.url, videoPathWithStudio);
+        await downloadFile(TEST_VIDEOS.MP4.url, videoPathWithoutStudio);
       });
 
       after(() => {

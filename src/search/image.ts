@@ -48,6 +48,7 @@ export async function removeImage(imageId: string): Promise<void> {
     index: indexMap.images,
     id: imageId,
     type: "_doc",
+    refresh: "wait_for",
   });
 }
 
@@ -170,6 +171,8 @@ export interface IImageSearchQuery {
   skip?: number;
   take?: number;
   page?: number;
+
+  rawQuery?: unknown;
 }
 
 export async function searchImages(
@@ -189,7 +192,7 @@ export async function searchImages(
   return performSearch<IImageSearchDoc, typeof options>({
     index: indexMap.images,
     options,
-    query: {
+    query: options.rawQuery || {
       bool: {
         ...shuffleSwitch(query, _shuffle),
         filter: [

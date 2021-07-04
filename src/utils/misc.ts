@@ -1,5 +1,22 @@
-import { logger } from "./logger";
+import { createReadStream, PathLike } from "fs";
+
+import { handleError, logger } from "./logger";
 import { isNumber } from "./types";
+
+/**
+ * Calculates the fps from a FFprobe expression
+ * e.g. 30000/1001 will be converted to 29.97...
+ */
+export function evaluateFps(str: string): number | null {
+  const [x, y] = str.split("/");
+  if (!x) {
+    return null;
+  }
+  if (!y) {
+    return Number(x);
+  }
+  return Number(x) / Number(y);
+}
 
 export function validRating(val: unknown): val is number {
   return isNumber(val) && val >= 0 && val <= 10 && Number.isInteger(val);
@@ -276,4 +293,24 @@ export function isArrayEq<
 
 export function filterInvalidAliases(aliases: string[]): string[] {
   return aliases.filter((alias) => !!alias.trim());
+}
+
+/**
+ * Reads the first n bytes of the file into a buffer
+ * https://stackoverflow.com/a/59722384/13599482
+ *
+ * @param filepath - path to the file to read
+ * @param n - how many bytes to read
+ */
+export async function readFirstNBytes(filepath: PathLike, n: number): Promise<Buffer | null> {
+  try {
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of createReadStream(filepath, { start: 0, end: n })) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+  } catch (err) {
+    handleError(`Could not read first bytes of file ${filepath.toString()}`, err);
+    return null;
+  }
 }

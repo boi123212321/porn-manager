@@ -1,7 +1,7 @@
 // mixin.js
 import Vue from "vue";
 import Component from "vue-class-component";
-import ApolloClient, { serverBase } from "../apollo";
+import ApolloClient from "../apollo";
 import gql from "graphql-tag";
 import moment from "moment";
 import { contextModule } from "../store/context";
@@ -117,15 +117,15 @@ export default class SceneMixin extends Vue {
 
   get thumbnail() {
     if (this.value.thumbnail)
-      return `${serverBase}/media/image/${this.value.thumbnail._id}?password=${localStorage.getItem(
+      return `/api/media/image/${this.value.thumbnail._id}?password=${localStorage.getItem(
         "password"
       )}`;
-    return `${serverBase}/assets/broken.png`;
+    return "/assets/broken.png";
   }
 
   get videoPath() {
     if (this.value)
-      return `${serverBase}/media/scene/${this.value._id}?password=${localStorage.getItem(
+      return `/api/media/scene/${this.value._id}?password=${localStorage.getItem(
         "password"
       )}`;
   }
