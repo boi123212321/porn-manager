@@ -87,7 +87,7 @@
     "@types/express": "^4.17.11",
     "@types/fluent-ffmpeg": "^2.1.16",
     "@types/graphql-upload": "^8.0.4",
-    "@types/gulp": "^4.0.8",
+    "@types/gulp": "^4.0.9",
     "@types/gulp-zip": "^4.0.1",
     "@types/inquirer": "^7.3.1",
     "@types/lru-cache": "^5.1.0",
