@@ -43,6 +43,15 @@
         </v-list-item-content>
       </v-list-item>
 
+      <v-list-item @click="bulkImportDialog = true" v-ripple>
+        <v-list-item-icon>
+          <v-icon>mdi-file-import</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>Bulk add labels</v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+
       <LabelSelector :searchQuery="labelSearchQuery" :items="labels" v-model="selectedLabels">
         <template v-slot:action="{ label }">
           <v-list-item-action>
@@ -154,6 +163,37 @@
       <p>Loading...</p>
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
+
+    <v-dialog :persistent="bulkLoader" scrollable v-model="bulkImportDialog" max-width="400px">
+      <v-card :loading="bulkLoader">
+        <v-card-title>Bulk import labels</v-card-title>
+
+        <v-card-text style="max-height: 400px">
+          <v-textarea
+            color="primary"
+            v-model="labelsBulkText"
+            auto-grow
+            :rows="3"
+            placeholder="Labels"
+            persistent-hint
+            hint="1 label per line"
+          ></v-textarea>
+        </v-card-text>
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="runBulkImport"
+            text
+            color="primary"
+            class="text-none"
+            :disabled="!labelsBulkImport.length"
+            >Add {{ labelsBulkImport.length }} labels</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -200,6 +240,10 @@ export default class Home extends Vue {
   ];
 
   labelSearchQuery = "" as string | null;
+
+  labelsBulkText = "" as string | null;
+  bulkImportDialog = false;
+  bulkLoader = false;
 
   openEditDialog(label: ILabel) {
     this.editLabelDialog = true;
@@ -331,6 +375,33 @@ export default class Home extends Vue {
       });
   }
 
+  addLabelWithName(name: string) {
+    return new Promise((resolve, reject) => {
+      ApolloClient.mutate({
+        mutation: gql`
+          mutation($name: String!) {
+            addLabel(name: $name) {
+              _id
+              name
+              thumbnail {
+                _id
+              }
+            }
+          }
+        `,
+        variables: {
+          name: name,
+        },
+      })
+        .then((res) => {
+          resolve();
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
   labelAliases(label: any) {
     return label.aliases.slice().sort().join(", ");
   }
@@ -358,6 +429,28 @@ export default class Home extends Vue {
       .finally(() => {
         this.fetchLoader = false;
       });
+  }
+
+  async runBulkImport() {
+    this.bulkLoader = true;
+
+    try {
+      for (const name of this.labelsBulkImport) {
+        await this.addLabelWithName(name);
+      }
+      this.bulkImportDialog = false;
+    } catch (error) {
+      console.error(error);
+    }
+
+    this.labelsBulkText = "";
+	this.getLabels();
+	this.bulkLoader = false;
+  }
+
+  get labelsBulkImport() {
+    if (this.labelsBulkText) return this.labelsBulkText.split("\n").filter(Boolean);
+    return [];
   }
 
   beforeMount() {
