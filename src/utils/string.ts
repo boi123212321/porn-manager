@@ -8,6 +8,11 @@ export function getExtension(file: string): string {
   return EXTENSION_REGEX.exec(file)?.[0] || "";
 }
 
+export function basenameFromUrl(url: string): string {
+  const clean = url.split("?")[0].split("#")[0];
+  return clean.split("/").reverse()[0];
+}
+
 export function extensionFromUrl(url: string): string {
   const clean = url.split("?")[0].split("#")[0];
   return getExtension(clean) || "";

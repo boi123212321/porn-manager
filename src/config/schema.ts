@@ -13,6 +13,33 @@ const pluginSchema = zod.object({
 
 const pluginCallWithArgument = zod.tuple([zod.string(), pluginArguments]);
 
+const pluginsSchema = zod.object({
+  register: zod.record(pluginSchema),
+  // Map event name to plugin sequence
+  events: zod.record(
+    zod.array(
+      zod.union([
+        // Plugin name only
+        zod.string(),
+        // Plugin name + arguments [name, { args }]
+        pluginCallWithArgument,
+      ])
+    )
+  ),
+
+  allowSceneThumbnailOverwrite: zod.boolean(),
+  allowActorThumbnailOverwrite: zod.boolean(),
+  allowMovieThumbnailOverwrite: zod.boolean(),
+  allowStudioThumbnailOverwrite: zod.boolean(),
+
+  createMissingActors: zod.boolean(),
+  createMissingStudios: zod.boolean(),
+  createMissingLabels: zod.boolean(),
+  createMissingMovies: zod.boolean(),
+
+  markerDeduplicationThreshold: zod.number(),
+});
+
 export const ApplyActorLabelsEnum = zod.enum([
   "event:actor:create",
   "event:actor:update",
@@ -128,32 +155,7 @@ const configSchema = zod
       matchCreatedStudios: zod.boolean(),
       matchCreatedLabels: zod.boolean(),
     }),
-    plugins: zod.object({
-      register: zod.record(pluginSchema),
-      // Map event name to plugin sequence
-      events: zod.record(
-        zod.array(
-          zod.union([
-            // Plugin name only
-            zod.string(),
-            // Plugin name + arguments [name, { args }]
-            pluginCallWithArgument,
-          ])
-        )
-      ),
-
-      allowSceneThumbnailOverwrite: zod.boolean(),
-      allowActorThumbnailOverwrite: zod.boolean(),
-      allowMovieThumbnailOverwrite: zod.boolean(),
-      allowStudioThumbnailOverwrite: zod.boolean(),
-
-      createMissingActors: zod.boolean(),
-      createMissingStudios: zod.boolean(),
-      createMissingLabels: zod.boolean(),
-      createMissingMovies: zod.boolean(),
-
-      markerDeduplicationThreshold: zod.number(),
-    }),
+    plugins: pluginsSchema,
     log: zod.object({
       level: logLevelType,
       maxSize: zod.union([zod.number().min(0), zod.string()]),
@@ -218,4 +220,13 @@ export function isValidConfig(val: unknown): true | { location: string; error: E
   }
 
   return generalError ? { location: "root", error: generalError } : true;
+}
+
+export function isValidPluginsConfig(val: unknown): true | Error {
+  try {
+    pluginsSchema.parse(val);
+    return true;
+  } catch (err) {
+    return err as Error;
+  }
 }

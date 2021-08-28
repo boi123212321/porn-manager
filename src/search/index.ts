@@ -163,17 +163,18 @@ export async function ensureIndices(wipeData: boolean) {
     markers: buildMarkerIndex,
   };
 
-  const indicesToBuild: string[] = [];
-  await mapAsync(Object.entries(indexMap), async ([indexKey, indexName]) => {
-    const created = await ensureIndexExists(indexName);
-    if (created) {
-      indicesToBuild.push(indexKey);
-    } else {
+  const indicesToBuild = (
+    await mapAsync(Object.entries(indexMap), async ([indexKey, indexName]) => {
+      const created = await ensureIndexExists(indexMap[indexKey]);
+      if (created) {
+        return indexKey;
+      }
       indexBuildInfoMap[indexName].totalToIndexCount = 0;
       indexBuildInfoMap[indexName].eta = 0;
       indexBuildInfoMap[indexName].status = IndexBuildStatus.Ready;
-    }
-  });
+      return "";
+    })
+  ).filter(Boolean);
 
   for (const indexKey of indicesToBuild) {
     await buildIndexMap[indexKey]();

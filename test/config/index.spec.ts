@@ -12,6 +12,7 @@ import {
   getConfig,
   resetLoadedConfig,
   watchConfig,
+  stopConfigFileWatcher,
 } from "../../src/config";
 import defaultConfig from "../../src/config/default";
 import { IConfig } from "../../src/config/schema";
@@ -25,8 +26,6 @@ const configYAMLFilename = path.resolve("config.test.yaml");
 const configYAMLMergedFilename = path.resolve("config.test.merged.yaml");
 
 let exitStub: sinon.SinonStub | null = null;
-
-let stopFileWatcher: (() => Promise<void>) | undefined;
 
 const getFormatter = (targetFile) => {
   if (targetFile.includes(".json")) {
@@ -81,9 +80,8 @@ describe("config", () => {
       assert.isFalse(existsSync(configFilename));
     }
 
-    if (stopFileWatcher) {
-      await stopFileWatcher();
-      stopFileWatcher = undefined;
+    if (stopConfigFileWatcher) {
+      await stopConfigFileWatcher();
     }
   });
 
@@ -441,7 +439,7 @@ describe("config", () => {
       // Loaded config should contain our extra prop
       assert.deepEqual(initialTestConfig, getConfig());
 
-      stopFileWatcher = watchConfig();
+      await watchConfig();
       // 2s should be enough to setup watcher
       await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
 
@@ -486,7 +484,7 @@ describe("config", () => {
       // Loaded config should contain our extra prop
       assert.deepEqual(initialTestConfig, getConfig());
 
-      stopFileWatcher = watchConfig();
+      await watchConfig();
       // 2s should be enough to setup watcher
       await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
 
@@ -537,7 +535,7 @@ describe("config", () => {
       // Loaded config should contain our extra prop
       assert.deepEqual(initialTestConfig, getConfig());
 
-      stopFileWatcher = watchConfig();
+      await watchConfig();
       // 2s should be enough to setup watcher
       await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
 
@@ -602,7 +600,7 @@ describe("config", () => {
 
       assert.deepEqual(initialTestConfig as IConfig, getConfig());
 
-      stopFileWatcher = watchConfig();
+      await watchConfig();
       // 2s should be enough to setup watcher
       await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
 

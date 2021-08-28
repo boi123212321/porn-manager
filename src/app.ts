@@ -10,8 +10,10 @@ import { mountApolloServer } from "./middlewares/apollo";
 import cors from "./middlewares/cors";
 import { checkPassword, passwordHandler } from "./middlewares/password";
 import queueRouter from "./queue_router";
+import browseRouter from "./routers/browse";
 import configRouter from "./routers/config";
 import mediaRouter from "./routers/media";
+import pluginRouter from "./routers/plugins";
 import scanRouter from "./routers/scan";
 import systemRouter from "./routers/system";
 import { applyPublic } from "./static";
@@ -180,6 +182,8 @@ export function createVault(): Vault {
   });
 
   app.use("/api/scan", scanRouter);
+  app.use("/api/plugins", pluginRouter);
+  app.use("/api/browse", browseRouter);
 
   // Error handler
   app.use(

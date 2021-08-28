@@ -26,7 +26,7 @@ describe("root", () => {
       await startTestServer.call(this);
       stopTestServer();
       clearPluginWatchers();
-      expect(existsSync("config.testenv.json")).to.be.false;
+      expect(existsSync("config.test.json")).to.be.false;
       expect(existsSync("test/libary")).to.be.false;
     });
   });

@@ -35,14 +35,14 @@ function stringifyFormatted<T>(obj: T, format: ConfigFileFormat): string {
 
 let loadedConfig: IConfig | null;
 export let configFile: string;
+export let stopConfigFileWatcher: (() => Promise<void>) | null = null;
 
 const configFilename = process.env.NODE_ENV === "test" ? "config.test" : "config";
 
 const configJSONFilename = configPath(`${configFilename}.json`);
 const configYAMLFilename = configPath(`${configFilename}.yaml`);
 
-export async function loadTestConfig(): Promise<void> {
-  const file = "config.testenv.json";
+export async function loadTestConfig(file: string): Promise<void> {
   logger.info(`Loading ${file}...`);
   loadedConfig = JSON.parse(await readFileAsync(file, "utf-8")) as IConfig;
   configFile = file;
@@ -206,6 +206,22 @@ export function writeMergedConfig(config: IConfig): void {
 }
 
 /**
+ * Writes the config to the current loaded config path and
+ * updates the current loaded config object
+ *
+ * @param config - the new config to save
+ */
+export async function updateConfig(config: IConfig): Promise<void> {
+  if (configFile.endsWith(".yaml")) {
+    await writeFileAsync(configFile, stringifyFormatted(config, ConfigFileFormat.YAML), "utf-8");
+  } else {
+    await writeFileAsync(configFile, stringifyFormatted(config, ConfigFileFormat.JSON), "utf-8");
+  }
+  loadedConfig = config;
+  logger.warn(`Saved new config to "${configFile}".`);
+}
+
+/**
  * @param config - the config to test
  * @returns if the config is all right to use
  * @throws
@@ -242,7 +258,11 @@ export function checkConfig(config: IConfig): boolean {
 /**
  * @returns a function that will stop watching the config file
  */
-export function watchConfig(): () => Promise<void> {
+export async function watchConfig(): Promise<void> {
+  if (stopConfigFileWatcher) {
+    await stopConfigFileWatcher();
+  }
+
   const watcher = chokidar
     .watch(configFile, {
       awaitWriteFinish: {
@@ -281,7 +301,10 @@ export function watchConfig(): () => Promise<void> {
       }
     });
 
-  return async (): Promise<void> => watcher.close();
+  stopConfigFileWatcher = async () => {
+    await watcher.close();
+    stopConfigFileWatcher = null;
+  };
 }
 
 export function resetLoadedConfig(): void {

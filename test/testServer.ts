@@ -21,7 +21,7 @@ import { Vault } from "./../src/app";
 import { IConfig } from "./../src/config/schema";
 
 const port = 5000;
-const testConfigPath = "config.testenv.json";
+const testConfigPath = "config.test.json";
 
 let vault: Vault | null = null;
 
@@ -114,7 +114,7 @@ export async function startTestServer(
     exitStub = sinon.stub(process, "exit");
 
     resetLoadedConfig();
-    await loadTestConfig();
+    await loadTestConfig(testConfigPath);
     const config = getConfig();
     expect(!!config).to.be.true;
 

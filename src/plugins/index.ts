@@ -12,6 +12,8 @@ import { modules } from "./context";
 import { getPlugin, requireUncached } from "./register";
 import { createPluginStoreAccess } from "./store";
 
+export const PLUGIN_EXTENSIONS = [".js", ".ts"];
+
 export function resolvePlugin(
   item: string | [string, Record<string, unknown>]
 ): [string, Record<string, unknown> | undefined] {

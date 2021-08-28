@@ -11,9 +11,15 @@ function downloadSpeed(bytes: number, secs: number) {
   return bytes / secs;
 }
 
-export async function downloadFile(url: string, file: string): Promise<void> {
+/**
+ *
+ * @param url - the url to the file
+ * @param file - path to save to
+ * @returns false if a file already exists at the path, otherwise true
+ */
+export async function downloadFile(url: string, file: string): Promise<boolean> {
   if (existsSync(file)) {
-    return;
+    return false;
   }
 
   logger.info(`Downloading ${url} to ${file}...`);
@@ -70,4 +76,5 @@ export async function downloadFile(url: string, file: string): Promise<void> {
   });
 
   downloadBar.stop();
+  return true;
 }

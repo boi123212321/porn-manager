@@ -129,7 +129,7 @@ export default async (): Promise<Vault> => {
   }
   vault.setupMessage = "";
 
-  watchConfig();
+  await watchConfig();
 
   if (config.scan.scanOnStartup) {
     // Scan and auto schedule next scans

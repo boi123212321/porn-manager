@@ -50,7 +50,13 @@
                     <p>Location: {{ config.location }}</p>
                     <p>
                       Raw config:
-                      <Code class="config-code" :content="config.value"></Code>
+                      <CodeTextArea
+                        class="config-code mt-3"
+                        :value="config.value ? JSON.stringify(config.value) : ''"
+                        auto-grow
+                        readonly
+                      >
+                      </CodeTextArea>
                     </p>
                   </template>
                 </v-card-text>
@@ -195,7 +201,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Code from "@/components/Code.vue";
+import CodeTextArea from "@/components/CodeTextArea.vue";
 import Axios from "axios";
 import {
   getFullStatus,
@@ -215,7 +221,7 @@ interface IConfig {
 
 @Component({
   components: {
-    Code,
+    CodeTextArea,
   },
 })
 export default class Setup extends Vue {
@@ -251,7 +257,7 @@ export default class Setup extends Vue {
 
     this.loadingConfig = false;
 
-    setTimeout(this.loadConfig, 5 * 1000);
+    // setTimeout(this.loadConfig, 5 * 1000);
   }
 
   get configOK() {
@@ -275,7 +281,7 @@ export default class Setup extends Vue {
 
     this.loadingStatus = false;
 
-    setTimeout(this.loadStatus, 5 * 1000);
+    // setTimeout(this.loadStatus, 5 * 1000);
   }
 
   collectionBuildColor(status: CollectionBuildStatus): string {
@@ -364,7 +370,7 @@ export default class Setup extends Vue {
 
 <style lang="scss" scoped>
 .config-code {
-  ::v-deep pre {
+  ::v-deep textarea {
     max-height: 60vh;
     overflow: auto;
   }

@@ -64,13 +64,19 @@ export function clearPluginWatchers(): void {
 }
 
 // Throws error if argument validation fails
-function validatePluginVersion(name: string, plugin: UnknownPlugin): true {
+export function validatePluginVersion(
+  name: string,
+  plugin: UnknownPlugin,
+  throwErr = false
+): boolean {
   const required = plugin.requiredVersion;
   if (required) {
     const baseVersion = semver.coerce(version) || version;
-    if (!semver.satisfies(baseVersion, required)) {
+    const satisfied = semver.satisfies(baseVersion, required);
+    if (!satisfied && throwErr) {
       throw new Error(`Plugin "${name}" requires Porn Vault version ${required}`);
     }
+    return satisfied;
   }
 
   return true;
@@ -123,7 +129,7 @@ export function initializePlugins(config: IConfig) {
   const plugins = loadPlugins(config);
 
   for (const [name, _path, args, plugin] of plugins) {
-    validatePluginVersion(name, plugin);
+    validatePluginVersion(name, plugin, true);
     validatePluginArguments(name, plugin, args);
 
     for (const eventName in config.plugins.events) {
