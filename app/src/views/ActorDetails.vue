@@ -89,11 +89,7 @@
                   </div>
                   <div v-if="currentActor.bornOn" class="py-1">
                     Born on
-                    {{
-                      new Date(currentActor.bornOn).toDateString(undefined, {
-                        timeZone: "UTC",
-                      })
-                    }}
+                    {{ renderTimestamp(currentActor.bornOn) }}
                   </div>
                   <div class="py-1">
                     <b>{{ currentActor.numScenes }}</b>
@@ -674,6 +670,7 @@ import { contextModule } from "@/store/context";
 import CustomFieldSelector from "@/components/CustomFieldSelector.vue";
 import Collabs from "@/components/Collabs.vue";
 import { ICollabActor } from "@/types/actor";
+import { formatTimestamp } from "@/util/formatting";
 
 interface ICropCoordinates {
   left: number;
@@ -800,6 +797,10 @@ export default class ActorDetails extends Vue {
     return `/api/media/image/${this.currentActor.hero._id}?password=${localStorage.getItem(
       "password"
     )}`;
+  }
+
+  renderTimestamp(timestamp: number) {
+    return formatTimestamp(timestamp);
   }
 
   loadMoviePage() {

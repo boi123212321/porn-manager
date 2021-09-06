@@ -82,7 +82,10 @@
         >
         <v-spacer />
         <div v-if="releaseDate" class="med--text">
-          {{ releaseDate }}
+          <v-icon x-small>mdi-calendar</v-icon> {{ releaseDate }}
+        </div>
+        <div v-if="addedOn" class="med--text" style="margin-left: 10px;">
+          <v-icon x-small>mdi-calendar-check</v-icon> {{ addedOn }}
         </div>
       </div>
       <v-card-title
@@ -115,7 +118,7 @@ import { contextModule } from "@/store/context";
 import { ensureDarkColor } from "@/util/color";
 import Color from "color";
 import SceneMixin from "@/mixins/scene";
-import moment from "moment";
+import { formatTimestamp } from "@/util/formatting";
 
 @Component
 export default class SceneCard extends Mixins(SceneMixin) {
@@ -127,12 +130,19 @@ export default class SceneCard extends Mixins(SceneMixin) {
 
   // Card contains top line containing studio/date
   get hasTopLine() {
-    return this.value.studio || this.releaseDate;
+    return this.value.studio || this.releaseDate || this.addedOn;
   }
 
   get releaseDate(): string | null {
     if (this.value.releaseDate) {
-      return moment(this.value.releaseDate).format("YYYY.MM.DD");
+      return formatTimestamp(this.value.releaseDate);
+    }
+    return null;
+  }
+
+  get addedOn(): string | null {
+    if (this.value.addedOn) {
+      return formatTimestamp(this.value.addedOn);
     }
     return null;
   }

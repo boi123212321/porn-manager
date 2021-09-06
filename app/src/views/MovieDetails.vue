@@ -109,7 +109,7 @@
               <v-subheader>Release Date</v-subheader>
             </div>
             <div class="med--text pa-2">
-              {{ new Date(currentMovie.releaseDate).toDateString(undefined, { timeZone: "UTC" }) }}
+              {{ renderTimestamp(currentMovie.releaseDate) }}
             </div>
           </div>
 
@@ -316,6 +316,7 @@ import movieFragment from "../fragments/movie";
 import DVDRenderer from "@/components/DVDRenderer.vue";
 import ActorGrid from "@/components/ActorGrid.vue";
 import { contextModule } from "@/store/context";
+import { formatTimestamp } from "@/util/formatting";
 
 const LS_DVD_THEME = "pm_dvd_renderer_theme";
 
@@ -377,6 +378,10 @@ export default class MovieDetails extends Vue {
 
   get showDVD() {
     return contextModule.defaultDVDShow3d || this.forceDVD3d;
+  }
+
+  renderTimestamp(timestamp: number) {
+    return formatTimestamp(timestamp);
   }
 
   toggleDVDFullscreen() {
